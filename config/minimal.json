@@ -1,0 +1,122 @@
+{
+  "personal": {
+    "name": "",
+    "email": "",
+    "editor": "vim"
+  },
+  "installation": {
+    "homebrew": false,
+    "brewfile": false,
+    "dotfiles": false,
+    "macos_defaults": false,
+    "npm_packages": false
+  },
+  "system": {
+    "appearance": {
+      "dark_mode": false,
+      "enable_24_hour_time": false
+    },
+    "dock": {
+      "autohide": false,
+      "position": "bottom",
+      "tile_size": 64,
+      "magnification": false
+    },
+    "finder": {
+      "show_hidden_files": false,
+      "default_view": "icon",
+      "show_file_extensions": false
+    },
+    "keyboard": {
+      "key_repeat_rate": 6,
+      "disable_press_and_hold": false
+    },
+    "security": {
+      "require_password_immediately": false,
+      "display_sleep_minutes": 10,
+      "computer_sleep_minutes": 30
+    },
+    "screenshots": {
+      "location": "$HOME/Desktop",
+      "format": "png"
+    },
+    "menu_bar": {
+      "show_battery_percent": false,
+      "show_date": false
+    },
+    "safari": {
+      "show_develop_menu": false,
+      "default_encoding": "UTF-8"
+    }
+  },
+  "development": {
+    "git": {
+      "default_branch": "main",
+      "pull_rebase": false,
+      "push_default": "simple"
+    },
+    "languages": {
+      "node": false,
+      "python": false,
+      "docker": false,
+      "go": false,
+      "rust": false,
+      "java": false,
+      "javascript": false,
+      "typescript": false,
+      "php": false,
+      "ruby": false,
+      "csharp": false,
+      "cpp": false,
+      "swift": false,
+      "kotlin": false
+    },
+    "shell": {
+      "theme": "default",
+      "terminal_theme": "default",
+      "plugins": {
+        "autosuggestions": false,
+        "syntax_highlighting": false,
+        "fzf": false,
+        "zoxide": false
+      }
+    },
+    "aliases": {
+      "node": false,
+      "git": false,
+      "docker": false,
+      "system": false
+    }
+  },
+  "tools": {
+    "git": false,
+    "stow": false,
+    "basic": false,
+    "modern_cli": false,
+    "json": false
+  },
+  "shell": {
+    "zsh": false
+  },
+  "fonts": {
+    "nerd_fonts": false
+  },
+  "packages": {
+    "extra_brews": [],
+    "extra_casks": [],
+    "extra_taps": [],
+    "npm_globals": []
+  },
+  "directories": [],
+  "stow_exclusions": [
+    ".git",
+    "node_modules"
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "created_at": "2025-01-13T00:00:00Z",
+    "last_modified": "2025-01-13T00:00:00Z",
+    "created_by": "minimal-template",
+    "description": "Minimal configuration - everything is opt-in"
+  }
+}

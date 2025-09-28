@@ -4,14 +4,17 @@ import "time"
 
 // Config represents the complete dotfiles configuration
 type Config struct {
-	Personal     Personal     `json:"personal" yaml:"personal"`
-	Installation Installation `json:"installation" yaml:"installation"`
-	System       System       `json:"system" yaml:"system"`
-	Development  Development  `json:"development" yaml:"development"`
-	Packages     Packages     `json:"packages" yaml:"packages"`
-	Directories  []string     `json:"directories" yaml:"directories"`
-	StowExclusions []string   `json:"stow_exclusions" yaml:"stow_exclusions"`
-	Metadata     Metadata     `json:"metadata" yaml:"metadata"`
+	Personal       Personal       `json:"personal" yaml:"personal"`
+	Installation   Installation   `json:"installation" yaml:"installation"`
+	System         System         `json:"system" yaml:"system"`
+	Development    Development    `json:"development" yaml:"development"`
+	Tools          Tools          `json:"tools" yaml:"tools"`
+	Shell          ShellConfig    `json:"shell" yaml:"shell"`
+	Fonts          Fonts          `json:"fonts" yaml:"fonts"`
+	Packages       Packages       `json:"packages" yaml:"packages"`
+	Directories    []string       `json:"directories" yaml:"directories"`
+	StowExclusions []string       `json:"stow_exclusions" yaml:"stow_exclusions"`
+	Metadata       Metadata       `json:"metadata" yaml:"metadata"`
 }
 
 // Personal contains user personal information
@@ -126,10 +129,47 @@ type Packages struct {
 	NPMGlobals []string `json:"npm_globals" yaml:"npm_globals"`
 }
 
+// Tools contains tool installation preferences
+type Tools struct {
+	Git       bool `json:"git" yaml:"git"`
+	Stow      bool `json:"stow" yaml:"stow"`
+	Basic     bool `json:"basic" yaml:"basic"`
+	ModernCLI bool `json:"modern_cli" yaml:"modern_cli"`
+	JSON      bool `json:"json" yaml:"json"`
+}
+
+// ShellConfig contains shell-specific configuration
+type ShellConfig struct {
+	Zsh bool `json:"zsh" yaml:"zsh"`
+}
+
+// Fonts contains font installation preferences
+type Fonts struct {
+	NerdFonts bool `json:"nerd_fonts" yaml:"nerd_fonts"`
+}
+
 // Metadata contains configuration metadata
 type Metadata struct {
 	Version      string    `json:"version" yaml:"version"`
 	CreatedAt    time.Time `json:"created_at" yaml:"created_at"`
 	LastModified time.Time `json:"last_modified" yaml:"last_modified"`
 	CreatedBy    string    `json:"created_by" yaml:"created_by"`
+	Description  string    `json:"description,omitempty" yaml:"description,omitempty"`
+
+	// Web-friendly metadata
+	Title        string   `json:"title,omitempty" yaml:"title,omitempty"`
+	Tags         []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Category     string   `json:"category,omitempty" yaml:"category,omitempty"`
+	Difficulty   string   `json:"difficulty,omitempty" yaml:"difficulty,omitempty"` // beginner, intermediate, advanced
+	WebURL       string   `json:"web_url,omitempty" yaml:"web_url,omitempty"`
+	GitHubURL    string   `json:"github_url,omitempty" yaml:"github_url,omitempty"`
+	Author       Author   `json:"author,omitempty" yaml:"author,omitempty"`
+}
+
+// Author contains author information for sharing
+type Author struct {
+	Name        string `json:"name,omitempty" yaml:"name,omitempty"`
+	Username    string `json:"username,omitempty" yaml:"username,omitempty"`
+	URL         string `json:"url,omitempty" yaml:"url,omitempty"`
+	Avatar      string `json:"avatar,omitempty" yaml:"avatar,omitempty"`
 }

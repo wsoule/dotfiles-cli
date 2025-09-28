@@ -2,17 +2,27 @@
 # This file serves as a template for generating user-specific Brewfiles
 # The actual Brewfile will be generated based on user configuration during setup
 
-# Essential tools (always included)
+# Essential tools (opt-in via configuration)
+{% if tools.git %}
 brew "git"
-brew "stow"
+{% endif %}
+{% if tools.stow %}
+brew "stow"                # Required for dotfiles management
+{% endif %}
+{% if tools.basic %}
 brew "curl"
 brew "wget"
 brew "tree"
+{% endif %}
 
-# Shell and Terminal (recommended)
+# Shell and Terminal (opt-in)
+{% if shell.zsh %}
 brew "zsh"
+{% endif %}
+{% if tools.modern_cli %}
 brew "fzf"
 brew "ripgrep"
+{% endif %}
 
 # Development tools (selected based on configuration)
 # Languages
@@ -92,12 +102,16 @@ cask "zoom"
 cask "docker"
 {% endif %}
 
-# Fonts (recommended for terminal themes)
+# Fonts (opt-in)
+{% if fonts.nerd_fonts %}
 cask "font-jetbrains-mono-nerd-font"
 cask "font-ubuntu-mono-nerd-font"
+{% endif %}
 
-# Mac App Store apps (if mas is available)
-# mas "Xcode", id: 497799835
+# Mac App Store apps (opt-in)
+{% if development.xcode %}
+mas "Xcode", id: 497799835
+{% endif %}
 
 # Additional packages from user configuration
 {% for package in packages.extra_brews %}

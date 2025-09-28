@@ -2,8 +2,8 @@
 
 > A modern, fast, and beautiful dotfiles management system built in Go
 
-[![Release](https://img.shields.io/github/v/release/wyatsoule/dotfiles)](https://github.com/wyatsoule/dotfiles/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/wyatsoule/dotfiles)](https://goreportcard.com/report/github.com/wyatsoule/dotfiles)
+[![Release](https://img.shields.io/github/v/release/wsoule/new-dotfiles)](https://github.com/wsoule/new-dotfiles/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wsoule/new-dotfiles)](https://goreportcard.com/report/github.com/wsoule/new-dotfiles)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Effortlessly manage your development environment with a beautiful CLI interface, preset configurations, and automated setup.
@@ -16,12 +16,14 @@ Effortlessly manage your development environment with a beautiful CLI interface,
 - 🔗 **Dotfiles Management** - GNU Stow-based dotfile installation
 - ⚙️ **Development Environment** - Language and framework-specific configurations
 - 📋 **Configuration Management** - JSON-based configuration with validation
+- 🤝 **Configuration Sharing** - Share and import configurations easily
+- ✋ **Opt-in Everything** - Nothing is installed without your explicit consent
 
 ## 📦 Installation
 
 ### Option 1: One-line installer (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wyatsoule/dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wsoule/new-dotfiles/main/install.sh | bash
 ```
 
 ### Option 2: Homebrew (macOS/Linux)
@@ -32,7 +34,7 @@ brew install dotfiles
 ```
 
 ### Option 3: Download from releases
-1. Go to the [releases page](https://github.com/wyatsoule/dotfiles/releases)
+1. Go to the [releases page](https://github.com/wsoule/new-dotfiles/releases)
 2. Download the binary for your platform
 3. Extract and move to your PATH:
    ```bash
@@ -42,12 +44,12 @@ brew install dotfiles
 
 ### Option 4: Go install
 ```bash
-go install github.com/wyatsoule/dotfiles@latest
+go install github.com/wsoule/new-dotfiles@latest
 ```
 
 ### Option 5: Build from source
 ```bash
-git clone https://github.com/wyatsoule/dotfiles.git
+git clone https://github.com/wsoule/new-dotfiles.git
 cd dotfiles
 make build
 sudo mv dotfiles /usr/local/bin/
@@ -118,6 +120,43 @@ dotfiles config show --summary
 dotfiles config validate
 ```
 
+### Configuration sharing
+```bash
+# Export your config for sharing (removes personal info)
+dotfiles share export my-config.json
+
+# Import someone's shared configuration
+dotfiles share import their-config.json
+
+# Validate a shared configuration
+dotfiles share validate config.json
+```
+
+## 🎯 Opt-in Philosophy
+
+This dotfiles manager follows a **strict opt-in philosophy** - nothing is installed or configured without your explicit consent:
+
+### ✅ **What's Opt-in**
+- **All packages and applications** - Every brew, cask, and npm package
+- **All system modifications** - macOS defaults, dock settings, security preferences
+- **All development tools** - Languages, frameworks, CLIs, git tools
+- **All shell enhancements** - Themes, plugins, aliases
+- **All fonts and visual elements** - Nerd fonts, color schemes
+
+### 🚫 **What's NOT automatic**
+- No "essential" or "recommended" packages forced on you
+- No system changes without permission
+- No dotfiles copied without selection
+- No personal information shared
+
+### 📋 **How it works**
+1. **Setup wizard** asks what you want to enable
+2. **Configuration file** stores your choices explicitly
+3. **Installation** only applies what you've selected
+4. **Sharing** removes personal info automatically
+
+Even `git` and `stow` are opt-in - though you'll likely want them for dotfiles management!
+
 ## 📚 Commands Reference
 
 ### 🔧 Setup Commands
@@ -146,6 +185,13 @@ dotfiles config validate
 | `dotfiles config validate` | Validate configuration |
 | `dotfiles config get <key>` | Get specific configuration value |
 | `dotfiles config set <key> <value>` | Set configuration value |
+
+### 🤝 Sharing Commands
+| Command | Description |
+|---------|-------------|
+| `dotfiles share export [file]` | Export configuration for sharing |
+| `dotfiles share import <file>` | Import a shared configuration |
+| `dotfiles share validate <file>` | Validate a configuration file |
 
 ### 📋 Other Commands
 | Command | Description |
@@ -288,7 +334,7 @@ Go_Dotfiles/
 ### Building from Source
 ```bash
 # Clone the repository
-git clone https://github.com/wyatsoule/dotfiles.git
+git clone https://github.com/wsoule/new-dotfiles.git
 cd dotfiles
 
 # Install dependencies

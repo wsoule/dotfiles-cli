@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-REPO="wyatsoule/dotfiles"  # Change this to your GitHub username/repo
+REPO="wsoule/new-dotfiles"  # Change this to your GitHub username/repo
 BINARY_NAME="dotfiles"
 INSTALL_DIR="/usr/local/bin"
 
