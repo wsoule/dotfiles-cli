@@ -130,6 +130,34 @@ install_dotfiles() {
         exit 1
     fi
 
+    # Download and verify checksums for security
+    local checksums_url="https://github.com/${REPO}/releases/download/${version}/checksums.txt"
+    local checksums_file="checksums.txt"
+
+    print_info "Verifying download integrity..."
+    if command -v curl >/dev/null 2>&1; then
+        curl -L -o "$checksums_file" "$checksums_url" 2>/dev/null || true
+    elif command -v wget >/dev/null 2>&1; then
+        wget -O "$checksums_file" "$checksums_url" 2>/dev/null || true
+    fi
+
+    # Verify checksum if available and shasum is present
+    if [ -f "$checksums_file" ] && command -v shasum >/dev/null 2>&1; then
+        if shasum -a 256 -c "$checksums_file" --ignore-missing --quiet 2>/dev/null; then
+            print_success "Download integrity verified"
+        else
+            print_warning "Could not verify download integrity (checksum mismatch or not found)"
+            read -p "Continue anyway? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                print_error "Installation cancelled for security"
+                exit 1
+            fi
+        fi
+    else
+        print_warning "Could not verify download integrity (checksums unavailable)"
+    fi
+
     # Extract archive
     if [[ "$archive_name" == *.zip ]]; then
         unzip -q "$archive_name"

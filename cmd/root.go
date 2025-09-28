@@ -41,6 +41,11 @@ func init() {
 	// Version flag
 	rootCmd.Version = "1.0.0"
 	rootCmd.SetVersionTemplate(`{{printf "%s version %s\n" .Use .Version}}`)
+
+	// Enable shell completions
+	rootCmd.CompletionOptions.DisableDefaultCmd = false
+	rootCmd.CompletionOptions.DisableNoDescFlag = false
+	rootCmd.CompletionOptions.DisableDescriptions = false
 }
 
 // initConfig reads in config file and ENV variables if set.
