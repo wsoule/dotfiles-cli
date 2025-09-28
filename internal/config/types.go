@@ -4,17 +4,17 @@ import "time"
 
 // Config represents the complete dotfiles configuration
 type Config struct {
-	Personal       Personal       `json:"personal" yaml:"personal"`
-	Installation   Installation   `json:"installation" yaml:"installation"`
-	System         System         `json:"system" yaml:"system"`
-	Development    Development    `json:"development" yaml:"development"`
-	Tools          Tools          `json:"tools" yaml:"tools"`
-	Shell          ShellConfig    `json:"shell" yaml:"shell"`
-	Fonts          Fonts          `json:"fonts" yaml:"fonts"`
-	Packages       Packages       `json:"packages" yaml:"packages"`
-	Directories    []string       `json:"directories" yaml:"directories"`
-	StowExclusions []string       `json:"stow_exclusions" yaml:"stow_exclusions"`
-	Metadata       Metadata       `json:"metadata" yaml:"metadata"`
+	Personal       Personal     `json:"personal" yaml:"personal"`
+	Installation   Installation `json:"installation" yaml:"installation"`
+	System         System       `json:"system" yaml:"system"`
+	Development    Development  `json:"development" yaml:"development"`
+	Tools          Tools        `json:"tools" yaml:"tools"`
+	Shell          ShellConfig  `json:"shell" yaml:"shell"`
+	Fonts          Fonts        `json:"fonts" yaml:"fonts"`
+	Packages       Packages     `json:"packages" yaml:"packages"`
+	Directories    []string     `json:"directories" yaml:"directories"`
+	StowExclusions []string     `json:"stow_exclusions" yaml:"stow_exclusions"`
+	Metadata       Metadata     `json:"metadata" yaml:"metadata"`
 }
 
 // Personal contains user personal information
@@ -61,9 +61,9 @@ type Dock struct {
 
 // Finder contains Finder preferences
 type Finder struct {
-	ShowHiddenFiles     bool   `json:"show_hidden_files" yaml:"show_hidden_files"`
-	DefaultView         string `json:"default_view" yaml:"default_view"`
-	ShowFileExtensions  bool   `json:"show_file_extensions" yaml:"show_file_extensions"`
+	ShowHiddenFiles    bool   `json:"show_hidden_files" yaml:"show_hidden_files"`
+	DefaultView        string `json:"default_view" yaml:"default_view"`
+	ShowFileExtensions bool   `json:"show_file_extensions" yaml:"show_file_extensions"`
 }
 
 // Keyboard contains keyboard and input settings
@@ -93,18 +93,18 @@ type MenuBar struct {
 
 // Safari contains Safari browser settings
 type Safari struct {
-	ShowDevelopMenu   bool   `json:"show_develop_menu" yaml:"show_develop_menu"`
-	DefaultEncoding   string `json:"default_encoding" yaml:"default_encoding"`
+	ShowDevelopMenu bool   `json:"show_develop_menu" yaml:"show_develop_menu"`
+	DefaultEncoding string `json:"default_encoding" yaml:"default_encoding"`
 }
 
 // Development contains development environment settings
 type Development struct {
-	Git        Git                    `json:"git" yaml:"git"`
-	Languages  map[string]bool        `json:"languages" yaml:"languages"`
-	Frameworks map[string]bool        `json:"frameworks" yaml:"frameworks"`
-	Tools      map[string]bool        `json:"tools" yaml:"tools"`
-	Shell      Shell                  `json:"shell" yaml:"shell"`
-	Aliases    map[string]bool        `json:"aliases" yaml:"aliases"`
+	Git        Git             `json:"git" yaml:"git"`
+	Languages  map[string]bool `json:"languages" yaml:"languages"`
+	Frameworks map[string]bool `json:"frameworks" yaml:"frameworks"`
+	Tools      map[string]bool `json:"tools" yaml:"tools"`
+	Shell      Shell           `json:"shell" yaml:"shell"`
+	Aliases    map[string]bool `json:"aliases" yaml:"aliases"`
 }
 
 // Git contains git configuration
@@ -116,9 +116,9 @@ type Git struct {
 
 // Shell contains shell configuration
 type Shell struct {
-	Theme         string             `json:"theme" yaml:"theme"`
-	TerminalTheme string             `json:"terminal_theme" yaml:"terminal_theme"`
-	Plugins       map[string]bool    `json:"plugins" yaml:"plugins"`
+	Theme         string          `json:"theme" yaml:"theme"`
+	TerminalTheme string          `json:"terminal_theme" yaml:"terminal_theme"`
+	Plugins       map[string]bool `json:"plugins" yaml:"plugins"`
 }
 
 // Packages contains package installation preferences
@@ -157,19 +157,19 @@ type Metadata struct {
 	Description  string    `json:"description,omitempty" yaml:"description,omitempty"`
 
 	// Web-friendly metadata
-	Title        string   `json:"title,omitempty" yaml:"title,omitempty"`
-	Tags         []string `json:"tags,omitempty" yaml:"tags,omitempty"`
-	Category     string   `json:"category,omitempty" yaml:"category,omitempty"`
-	Difficulty   string   `json:"difficulty,omitempty" yaml:"difficulty,omitempty"` // beginner, intermediate, advanced
-	WebURL       string   `json:"web_url,omitempty" yaml:"web_url,omitempty"`
-	GitHubURL    string   `json:"github_url,omitempty" yaml:"github_url,omitempty"`
-	Author       Author   `json:"author,omitempty" yaml:"author,omitempty"`
+	Title      string   `json:"title,omitempty" yaml:"title,omitempty"`
+	Tags       []string `json:"tags,omitempty" yaml:"tags,omitempty"`
+	Category   string   `json:"category,omitempty" yaml:"category,omitempty"`
+	Difficulty string   `json:"difficulty,omitempty" yaml:"difficulty,omitempty"` // beginner, intermediate, advanced
+	WebURL     string   `json:"web_url,omitempty" yaml:"web_url,omitempty"`
+	GitHubURL  string   `json:"github_url,omitempty" yaml:"github_url,omitempty"`
+	Author     Author   `json:"author,omitempty" yaml:"author,omitempty"`
 }
 
 // Author contains author information for sharing
 type Author struct {
-	Name        string `json:"name,omitempty" yaml:"name,omitempty"`
-	Username    string `json:"username,omitempty" yaml:"username,omitempty"`
-	URL         string `json:"url,omitempty" yaml:"url,omitempty"`
-	Avatar      string `json:"avatar,omitempty" yaml:"avatar,omitempty"`
+	Name     string `json:"name,omitempty" yaml:"name,omitempty"`
+	Username string `json:"username,omitempty" yaml:"username,omitempty"`
+	URL      string `json:"url,omitempty" yaml:"url,omitempty"`
+	Avatar   string `json:"avatar,omitempty" yaml:"avatar,omitempty"`
 }

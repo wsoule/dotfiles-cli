@@ -66,7 +66,7 @@ func PrintStep(step int, total int, message string) {
 func PrintSection(title string) {
 	fmt.Println()
 	Highlight.Println("▶ " + title)
-	Muted.Println("  " + strings.Repeat("─", len(title) + 2))
+	Muted.Println("  " + strings.Repeat("─", len(title)+2))
 }
 
 // NewSpinner creates a new spinner with custom styling

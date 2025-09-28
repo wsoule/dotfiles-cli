@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"dotfiles/internal/config"
 	"dotfiles/internal/ui"
+	"github.com/spf13/cobra"
 )
 
 // setupCmd represents the setup command
