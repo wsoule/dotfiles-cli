@@ -1,0 +1,107 @@
+{
+  "personal": {
+    "name": "John Hacker",
+    "email": "john@example.com",
+    "editor": "vim"
+  },
+  "installation": {
+    "homebrew": true,
+    "brewfile": true,
+    "dotfiles": true,
+    "macos_defaults": true,
+    "npm_packages": false
+  },
+  "system": {
+    "appearance": {
+      "dark_mode": true,
+      "enable_24_hour_time": true
+    },
+    "dock": {
+      "autohide": true,
+      "position": "left",
+      "tile_size": 32,
+      "magnification": false
+    },
+    "finder": {
+      "show_hidden_files": true,
+      "default_view": "list",
+      "show_file_extensions": true
+    },
+    "keyboard": {
+      "key_repeat_rate": 1,
+      "disable_press_and_hold": true
+    },
+    "security": {
+      "require_password_immediately": true,
+      "display_sleep_minutes": 5,
+      "computer_sleep_minutes": 15
+    },
+    "screenshots": {
+      "location": "$HOME/Screenshots",
+      "format": "png"
+    },
+    "menu_bar": {
+      "show_battery_percent": true,
+      "show_date": true
+    },
+    "safari": {
+      "show_develop_menu": true,
+      "default_encoding": "UTF-8"
+    }
+  },
+  "development": {
+    "git": {
+      "default_branch": "main",
+      "pull_rebase": true,
+      "push_default": "simple"
+    },
+    "languages": {
+      "node": false,
+      "python": true,
+      "docker": true,
+      "go": true,
+      "rust": true,
+      "java": false
+    },
+    "shell": {
+      "theme": "minimal",
+      "terminal_theme": "dark",
+      "plugins": {
+        "autosuggestions": false,
+        "syntax_highlighting": true,
+        "fzf": true,
+        "zoxide": true
+      }
+    },
+    "aliases": {
+      "node": false,
+      "git": true,
+      "docker": true,
+      "system": true
+    }
+  },
+  "packages": {
+    "extra_brews": ["tmux", "neofetch", "ripgrep", "fd", "bat", "exa"],
+    "extra_casks": ["iterm2", "wireshark"],
+    "extra_taps": [],
+    "npm_globals": []
+  },
+  "directories": [
+    "$HOME/code",
+    "$HOME/scripts",
+    "$HOME/tools"
+  ],
+  "stow_exclusions": [
+    "scripts",
+    "private",
+    ".git",
+    "node_modules"
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "created_at": "2025-01-13T12:00:00Z",
+    "last_modified": "2025-01-13T12:00:00Z",
+    "created_by": "john",
+    "description": "System administrator / DevOps engineer setup with Python, Go, Rust, and minimal shell"
+  }
+}

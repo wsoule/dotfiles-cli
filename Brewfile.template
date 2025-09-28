@@ -1,0 +1,108 @@
+# Brewfile Template
+# This file serves as a template for generating user-specific Brewfiles
+# The actual Brewfile will be generated based on user configuration during setup
+
+# Essential tools (always included)
+brew "git"
+brew "stow"
+brew "curl"
+brew "wget"
+brew "tree"
+
+# Shell and Terminal (recommended)
+brew "zsh"
+brew "fzf"
+brew "ripgrep"
+
+# Development tools (selected based on configuration)
+# Languages
+{% if languages.javascript %}
+brew "node"
+brew "pnpm"
+{% endif %}
+{% if languages.python %}
+brew "python@3.12"
+brew "pipx"
+{% endif %}
+{% if languages.go %}
+brew "go"
+{% endif %}
+{% if languages.rust %}
+brew "rust"
+{% endif %}
+{% if languages.java %}
+brew "openjdk"
+{% endif %}
+
+# CLI Tools (based on user preferences)
+{% if tools.modern_cli %}
+brew "eza"          # Modern ls
+brew "bat"          # Better cat
+brew "zoxide"       # Smart cd
+{% endif %}
+{% if tools.json %}
+brew "jq"           # JSON processor
+brew "yq"           # YAML processor
+{% endif %}
+{% if development.git.enhanced %}
+brew "lazygit"      # Git TUI
+{% endif %}
+
+# Databases (if selected)
+{% if databases.postgresql %}
+brew "postgresql@16"
+{% endif %}
+{% if databases.redis %}
+brew "redis"
+{% endif %}
+{% if databases.mongodb %}
+tap "mongodb/brew"
+brew "mongodb-community"
+{% endif %}
+
+# Applications (based on user selection)
+{% if apps.terminal %}
+cask "iterm2"
+# cask "alacritty"
+# cask "ghostty"
+{% endif %}
+{% if apps.editor %}
+cask "visual-studio-code"
+# cask "zed"
+# cask "cursor"
+{% endif %}
+{% if apps.browser %}
+cask "google-chrome"
+# cask "arc"
+# cask "brave-browser"
+{% endif %}
+{% if apps.productivity %}
+cask "raycast"
+cask "1password"
+{% endif %}
+{% if apps.design %}
+cask "figma"
+# cask "gimp"
+{% endif %}
+{% if apps.communication %}
+cask "discord"
+cask "zoom"
+{% endif %}
+{% if development.docker %}
+cask "docker"
+{% endif %}
+
+# Fonts (recommended for terminal themes)
+cask "font-jetbrains-mono-nerd-font"
+cask "font-ubuntu-mono-nerd-font"
+
+# Mac App Store apps (if mas is available)
+# mas "Xcode", id: 497799835
+
+# Additional packages from user configuration
+{% for package in packages.extra_brews %}
+brew "{{ package }}"
+{% endfor %}
+{% for cask in packages.extra_casks %}
+cask "{{ cask }}"
+{% endfor %}
