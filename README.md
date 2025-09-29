@@ -9,6 +9,9 @@ A comprehensive command-line tool that manages your entire development environme
 - 🎉 **Complete Developer Onboarding** - One command to set up everything for new developers
 - 🔐 **GitHub SSH Integration** - Automated SSH key generation and GitHub configuration
 - 📦 **Smart Package Management** - Curated essential packages for developers
+- 🤝 **Configuration Sharing** - Share and discover configs via GitHub Gist
+- 📚 **Template Library** - Pre-built configs for web-dev, data science, DevOps, and more
+- 🌍 **Community Discovery** - Find and browse configurations from other developers
 - 📋 **JSON Configuration** - Store your setup in simple, versionable JSON
 - 🍺 **Brewfile Support** - Generate and import Brewfiles with full automation
 - 🔗 **GNU Stow Integration** - Manage dotfiles with symbolic links
@@ -94,6 +97,10 @@ Usage:
 Available Commands:
   onboard     Complete developer onboarding and environment setup  🎯 NEW!
   github      Set up GitHub with SSH keys                          🔐 NEW!
+  share       Share your configuration with others                 🤝 NEW!
+  clone       Clone a shared configuration                         📥 NEW!
+  templates   Browse and use configuration templates               📚 NEW!
+  discover    Discover shared configurations from community        🔍 NEW!
   add         Add packages to your configuration
   backup      Backup your configuration to a file
   brewfile    Generate a Brewfile from your configuration
@@ -135,6 +142,81 @@ visual-studio-code, iterm2, rectangle
 ```
 
 You can customize this list after onboarding with `dotfiles add` and `dotfiles remove`.
+
+## 🤝 Configuration Sharing & Templates
+
+Share your perfect development setup with others and discover configurations from the community!
+
+### 🎯 Using Templates (Quick Start)
+
+Choose from pre-built templates for different development workflows:
+
+```bash
+# Browse available templates
+dotfiles templates list
+
+# Preview a template
+dotfiles templates show web-dev
+
+# Apply a template
+dotfiles clone template:web-dev
+```
+
+**Available Templates:**
+- `web-dev` - Web development with Node.js, Python, Docker
+- `mobile-dev` - iOS/Android with Flutter, React Native
+- `data-science` - Python, R, Jupyter, analytics tools
+- `devops` - Kubernetes, Terraform, cloud tools
+- `minimal` - Essential tools only
+
+### 📤 Share Your Configuration
+
+Share your setup with the community:
+
+```bash
+# Share via GitHub Gist (public)
+dotfiles share gist --name="My Web Dev Setup" --description="Full-stack config" --author="YourName"
+
+# Share privately
+dotfiles share gist --name="My Config" --private
+
+# Export to file
+dotfiles share file my-config.json --name="My Setup"
+```
+
+### 📥 Import Shared Configurations
+
+Import configurations from others:
+
+```bash
+# From GitHub Gist URL
+dotfiles clone https://gist.github.com/user/gist-id
+
+# From local file
+dotfiles clone my-config.json
+
+# Preview before importing
+dotfiles clone https://gist.github.com/user/gist-id --preview
+
+# Merge with existing config
+dotfiles clone https://gist.github.com/user/gist-id --merge
+```
+
+### 🔍 Discover Community Configs
+
+Find configurations shared by other developers:
+
+```bash
+# Browse featured configs
+dotfiles discover featured
+
+# Search by topic
+dotfiles discover search web-development
+dotfiles discover search --tags=python,data-science
+
+# View sharing statistics
+dotfiles discover stats
+```
 
 ## 💡 Usage Examples
 
@@ -294,6 +376,13 @@ When you run `dotfiles stow vim`, it will create symlinks:
 | `dotfiles onboard` ⭐ | Complete developer setup | `--email=<email>`, `--skip-*` |
 | `dotfiles github setup` 🔐 | Set up GitHub SSH keys | `--email=<email>`, `--key-type=<type>` |
 | `dotfiles github test` 🧪 | Test GitHub SSH connection | None |
+| `dotfiles templates list` 📚 | Browse configuration templates | None |
+| `dotfiles templates show <name>` | Preview template details | None |
+| `dotfiles share gist` 🤝 | Share config via GitHub Gist | `--name=<name>`, `--description`, `--private` |
+| `dotfiles share file <path>` | Export config to file | `--name=<name>`, `--description` |
+| `dotfiles clone <source>` 📥 | Import shared configuration | `--merge`, `--preview` |
+| `dotfiles discover search` 🔍 | Search community configs | `--tags=<tags>` |
+| `dotfiles discover featured` | Browse featured configs | None |
 | `dotfiles init` | Initialize new configuration | None |
 | `dotfiles add <packages>` | Add packages to config | `--type=brew/cask/tap/stow`, `--file=<path>` |
 | `dotfiles remove <packages>` | Remove packages from config | `--type=brew/cask/tap/stow`, `--all-*`, `--file=<path>` |
