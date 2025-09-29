@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dotfiles Setup</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #007acc;
+            color: white;
+            border-color: #007acc;
+        }
+
+        .btn-primary:hover {
+            background: #005a9e;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 0 2rem;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            color: #666;
+        }
+
+        .step.active {
+            background: #007acc;
+            color: white;
+            border-color: #007acc;
+        }
+
+        .step.completed {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+
+        .selection-card {
+            padding: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background: white;
+        }
+
+        .selection-card:hover {
+            border-color: #007acc;
+        }
+
+        .selection-card.selected {
+            border-color: #007acc;
+            background: #f0f8ff;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #007acc;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .step {
+                width: 40px;
+                height: 40px;
+            }
+
+            .selection-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header style="background: white; border-bottom: 1px solid #e0e0e0; padding: 20px 0;">
+            <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+                <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 600;">Dotfiles Setup</h1>
+                <p style="margin: 0 0 20px 0; color: #666; font-size: 14px;">Configure your development environment</p>
+                <div class="progress-bar" style="max-width: 300px;">
+                    <div class="progress-fill" id="progressBar" style="width: 14%"></div>
+                </div>
+                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;" id="progressText">Step 1 of 7</p>
+            </div>
+        </header>
+
+        <!-- Step Indicator -->
+        <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+            <div class="step-indicator">
+                <div class="step active" id="step-0">1</div>
+                <div class="step" id="step-1">2</div>
+                <div class="step" id="step-2">3</div>
+                <div class="step" id="step-3">4</div>
+                <div class="step" id="step-4">5</div>
+                <div class="step" id="step-5">6</div>
+                <div class="step" id="step-6">7</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main style="max-width: 800px; margin: 0 auto; padding: 0 20px 40px 20px;">
+            <div class="card" style="padding: 30px;">
+                        <!-- Step 0: Personal Info -->
+                        <div class="step-content active" id="step-content-0">
+                            <div style="margin-bottom: 30px;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">Personal Information</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Enter your basic information</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                                <div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Your Name *</label>
+                                        <input type="text" id="userName" class="input-field" placeholder="Enter your full name" required>
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Email Address *</label>
+                                        <input type="email" id="userEmail" class="input-field" placeholder="your.email@example.com" required>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Preferred Code Editor</label>
+                                        <select id="userEditor" class="input-field">
+                                            <option value="nvim">Neovim</option>
+                                            <option value="code">VS Code</option>
+                                            <option value="vim">Vim</option>
+                                            <option value="cursor">Cursor</option>
+                                            <option value="zed">Zed</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 20px;">
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">What We'll Set Up</h3>
+                                    <ul style="list-style: none; padding: 0; margin: 0;">
+                                        <li style="margin-bottom: 10px; color: #666;">• Development tools & languages</li>
+                                        <li style="margin-bottom: 10px; color: #666;">• Modern CLI tools & shell</li>
+                                        <li style="margin-bottom: 10px; color: #666;">• System preferences</li>
+                                        <li style="margin-bottom: 10px; color: #666;">• Package management</li>
+                                        <li style="color: #666;">• Dotfiles & configurations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 1: Languages -->
+                        <div class="step-content" id="step-content-1" style="display: none;">
+                            <div style="margin-bottom: 30px;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">Programming Languages</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Select the languages you work with</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;" id="languageGrid">
+                                <!-- Languages will be populated by JavaScript -->
+                            </div>
+
+                            <div style="text-align: center;">
+                                <p style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Quick presets:</p>
+                                <button class="btn btn-secondary" onclick="selectPreset('frontend')" style="margin: 0 5px 10px 5px;">Frontend Dev</button>
+                                <button class="btn btn-secondary" onclick="selectPreset('backend')" style="margin: 0 5px 10px 5px;">Backend Dev</button>
+                                <button class="btn btn-secondary" onclick="selectPreset('fullstack')" style="margin: 0 5px 10px 5px;">Full Stack</button>
+                                <button class="btn btn-secondary" onclick="selectPreset('mobile')" style="margin: 0 5px 10px 5px;">Mobile Dev</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Tools -->
+                        <div class="step-content" id="step-content-2" style="display: none;">
+                            <div style="margin-bottom: 30px;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">Development Tools</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Choose your essential tools</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Core Tools</h3>
+                                    <div id="coreToolsGrid">
+                                        <!-- Core tools will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Shell & CLI</h3>
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        <div class="selection-card" id="modernCliCard">
+                                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                                <input type="checkbox" id="modernCli" style="margin-right: 10px;">
+                                                <div>
+                                                    <div style="font-weight: 600; margin-bottom: 3px;">Modern CLI Bundle</div>
+                                                    <div style="font-size: 12px; color: #666;">fzf, ripgrep, eza, bat</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div class="selection-card" id="zshCard">
+                                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                                <input type="checkbox" id="zshShell" style="margin-right: 10px;">
+                                                <div>
+                                                    <div style="font-weight: 600; margin-bottom: 3px;">Zsh + Oh My Zsh</div>
+                                                    <div style="font-size: 12px; color: #666;">Enhanced shell with plugins</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Packages & Apps -->
+                        <div class="step-content" id="step-content-3" style="display: none;">
+                            <div style="margin-bottom: 30px;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">Popular Packages & Apps</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Choose from curated lists of popular development tools</p>
+                            </div>
+
+                            <!-- Search and Package Tabs -->
+                            <div style="margin-bottom: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div style="display: flex; gap: 10px; border-bottom: 1px solid #e0e0e0;">
+                                        <button class="package-tab active" data-tab="development" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid #007acc;">Development</button>
+                                        <button class="package-tab" data-tab="utilities" style="padding: 10px 20px; border: none; background: none; cursor: pointer;">Utilities</button>
+                                        <button class="package-tab" data-tab="apps" style="padding: 10px 20px; border: none; background: none; cursor: pointer;">Apps</button>
+                                        <button class="package-tab" data-tab="npm" style="padding: 10px 20px; border: none; background: none; cursor: pointer;">NPM</button>
+                                        <button class="package-tab" data-tab="media" style="padding: 10px 20px; border: none; background: none; cursor: pointer;">Media</button>
+                                    </div>
+                                    <input type="text" id="packageSearch" class="input-field" placeholder="Search packages..." style="width: 250px;" onkeyup="wizard.filterPackages(this.value)">
+                                </div>
+                            </div>
+
+                            <!-- Package Content -->
+                            <div id="packageTabContent" style="min-height: 400px;">
+                                <!-- Content will be populated by JavaScript -->
+                            </div>
+
+                            <!-- Search and Custom -->
+                            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                                <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Add Custom Packages</h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Custom Homebrew Packages</label>
+                                        <input type="text" id="customBrews" class="input-field" placeholder="e.g. neovim, tmux, zsh">
+                                        <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Separate multiple packages with commas</p>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 500; margin-bottom: 5px;">Custom Applications</label>
+                                        <input type="text" id="customCasks" class="input-field" placeholder="e.g. spotify, steam, whatsapp">
+                                        <p style="font-size: 12px; color: #666; margin: 5px 0 0 0;">Separate multiple apps with commas</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: System -->
+                        <div class="step-content" id="step-content-4" style="display: none;">
+                            <div style="margin-bottom: 30px;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">System Preferences</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Customize your macOS settings</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                                <div>
+                                    <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                                        <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Appearance</h3>
+                                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                                                <span>Dark Mode</span>
+                                                <input type="checkbox" id="darkMode">
+                                            </label>
+                                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                                                <span>24-Hour Time</span>
+                                                <input type="checkbox" id="time24Hour">
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="card" style="padding: 20px;">
+                                        <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Dock Settings</h3>
+                                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                                            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                                                <span>Auto-hide Dock</span>
+                                                <input type="checkbox" id="dockAutohide">
+                                            </label>
+                                            <div>
+                                                <label style="display: block; font-weight: 500; margin-bottom: 5px;">Dock Position</label>
+                                                <select id="dockPosition" class="input-field">
+                                                    <option value="bottom">Bottom</option>
+                                                    <option value="left">Left</option>
+                                                    <option value="right">Right</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card" style="padding: 20px; background: #f8f9fa;">
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Preview</h3>
+                                    <div id="livePreview" style="font-size: 14px;">
+                                        <!-- Live preview will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Extra Settings -->
+                        <div class="step-content" id="step-content-5" style="display: none;">
+                            <div style="margin-bottom: 30px;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">Extra Settings</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Additional configuration options</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Custom NPM Packages</h3>
+                                    <input type="text" id="customNpmGlobals" class="input-field" placeholder="e.g. @vue/cli, typescript, prettier">
+                                    <p style="font-size: 12px; color: #666; margin: 10px 0 0 0;">Separate multiple packages with commas</p>
+                                </div>
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Installation Options</h3>
+                                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="installHomebrew" style="margin-right: 10px;" checked>
+                                            <span>Install Homebrew</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="installBrewfile" style="margin-right: 10px;" checked>
+                                            <span>Generate Brewfile</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="installDotfiles" style="margin-right: 10px;" checked>
+                                            <span>Install Dotfiles</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="installMacosDefaults" style="margin-right: 10px;" checked>
+                                            <span>Apply macOS Defaults</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; cursor: pointer;">
+                                            <input type="checkbox" id="installNpmPackages" style="margin-right: 10px;" checked>
+                                            <span>Install NPM Packages</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 6: Launch -->
+                        <div class="step-content" id="step-content-6" style="display: none;">
+                            <div style="margin-bottom: 30px; text-align: center;">
+                                <h2 style="font-size: 20px; font-weight: 600; margin: 0 0 10px 0;">Ready to Launch!</h2>
+                                <p style="color: #666; margin: 0; font-size: 14px;">Your development environment is ready to build</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
+                                <div class="card" style="padding: 20px;">
+                                    <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Configuration Summary</h3>
+                                    <div id="configSummary" style="font-size: 14px;">
+                                        <!-- Summary will be populated by JavaScript -->
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                                        <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 15px 0;">Optional Details</h3>
+                                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                                            <div>
+                                                <label style="display: block; font-weight: 500; margin-bottom: 5px;">Setup Title</label>
+                                                <input type="text" id="configTitle" class="input-field" placeholder="My Development Setup">
+                                            </div>
+                                            <div>
+                                                <label style="display: block; font-weight: 500; margin-bottom: 5px;">Description</label>
+                                                <textarea id="configDescription" class="input-field" rows="3" placeholder="Describe your setup..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card p-6 bg-gradient-to-r from-amber-50 to-orange-50">
+                                        <h4 class="font-semibold text-amber-800 mb-2">⚡ Next Steps</h4>
+                                        <ol class="text-sm text-amber-700 space-y-1">
+                                            <li>1. Save your configuration</li>
+                                            <li>2. Run <code class="bg-amber-200 px-2 py-1 rounded">dotfiles install</code></li>
+                                            <li>3. Restart your terminal</li>
+                                            <li>4. Start coding! 🚀</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
+                                <h3 class="font-semibold text-green-800 mb-2">
+                                    <i class="fas fa-check-circle mr-2"></i>Configuration Complete
+                                </h3>
+                                <p class="text-green-700" id="installEstimates">
+                                    <!-- Estimates will be populated by JavaScript -->
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="flex justify-between items-center mt-12 pt-8 border-t border-gray-200">
+                            <button id="prevBtn" class="btn btn-secondary" onclick="previousStep()" style="display: none;">
+                                <i class="fas fa-arrow-left mr-2"></i>Previous
+                            </button>
+                            <div></div>
+
+                            <div class="flex items-center space-x-4">
+                                <button id="nextBtn" class="btn btn-primary" onclick="nextStep()">
+                                    Next<i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                                <button id="saveBtn" class="btn" onclick="saveConfiguration()" style="display: none; background: linear-gradient(135deg, var(--success), #059669); color: white;">
+                                    <i class="fas fa-rocket mr-2"></i>Launch Setup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Preview Sidebar -->
+                <div class="lg:col-span-1">
+                    <div class="card glassmorphism p-6 sticky top-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">
+                            <i class="fas fa-eye text-blue-500 mr-2"></i>Live Preview
+                        </h3>
+
+                        <div id="sidebarPreview">
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-rocket text-4xl mb-4 opacity-50"></i>
+                                <p>Start configuring to see preview</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" style="display: none;">
+            <div class="bg-white rounded-2xl p-8 text-center max-w-md mx-4">
+                <div class="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Saving Configuration...</h3>
+                <p class="text-gray-600">Your perfect development environment is being prepared!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

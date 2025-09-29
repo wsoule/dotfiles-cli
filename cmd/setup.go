@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"dotfiles/internal/config"
+	"dotfiles/internal/server"
 	"dotfiles/internal/ui"
 	"github.com/spf13/cobra"
 )
@@ -31,23 +34,23 @@ func init() {
 	setupCmd.Flags().Bool("force", false, "Force setup even if configuration already exists")
 	setupCmd.Flags().String("preset", "", "Use a specific preset configuration")
 	setupCmd.Flags().Bool("quick", false, "Quick setup with minimal prompts")
+	setupCmd.Flags().Bool("cli", false, "Use CLI wizard instead of web interface")
+	setupCmd.Flags().Int("port", 0, "Port for web interface (random if not specified)")
 }
 
 func runSetup(cmd *cobra.Command, args []string) error {
 	ui.Banner()
 	ui.PrintSection("Setup Wizard")
 
-	ui.PrintInfo("This wizard will help you:")
-	fmt.Println("  • Choose from preset configurations")
-	fmt.Println("  • Customize settings to your preferences")
-	fmt.Println("  • Generate a personalized environment")
-	fmt.Println()
-
-	// Create configuration manager
-	configManager := config.NewManager(cfgFile)
+	// Get flags
+	force, _ := cmd.Flags().GetBool("force")
+	preset, _ := cmd.Flags().GetString("preset")
+	quick, _ := cmd.Flags().GetBool("quick")
+	useCLI, _ := cmd.Flags().GetBool("cli")
+	port, _ := cmd.Flags().GetInt("port")
 
 	// Check if config exists and force flag
-	force, _ := cmd.Flags().GetBool("force")
+	configManager := config.NewManager(cfgFile)
 	if !force {
 		if err := configManager.Load(); err == nil {
 			ui.PrintWarning("Configuration already exists!")
@@ -56,51 +59,75 @@ func runSetup(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Check for preset flag
-	preset, _ := cmd.Flags().GetString("preset")
-	quick, _ := cmd.Flags().GetBool("quick")
-
-	// Create UI manager
-	uiManager := ui.NewManager()
-
-	// Load or create configuration
-	var cfg *config.Config
-	var err error
-
+	// Handle preset loading
 	if preset != "" {
-		// Load preset configuration
-		cfg, err = loadPresetConfig(preset)
+		cfg, err := loadPresetConfig(preset)
 		if err != nil {
 			return fmt.Errorf("failed to load preset '%s': %w", preset, err)
 		}
 		ui.PrintSuccess(fmt.Sprintf("Loaded preset configuration: %s", preset))
-	} else {
-		// Start interactive setup
-		cfg, err = uiManager.RunSetupWizard(quick)
-		if err != nil {
-			return fmt.Errorf("setup wizard failed: %w", err)
+
+		configManager.Set(cfg)
+		if err := configManager.Save(); err != nil {
+			return fmt.Errorf("failed to save configuration: %w", err)
 		}
+
+		ui.PrintSuccess("Configuration saved successfully!")
+		return nil
 	}
 
-	// Set and save configuration
-	configManager.Set(cfg)
-	if err := configManager.Validate(); err != nil {
-		return fmt.Errorf("configuration validation failed: %w", err)
+	// Choose interface type
+	if !useCLI {
+		return runWebSetup(port)
+	} else {
+		return runCLISetup(quick)
+	}
+}
+
+func runWebSetup(port int) error {
+	ui.PrintInfo("Starting modern web-based setup wizard...")
+
+	// Generate random port if not specified
+	if port == 0 {
+		rand.Seed(time.Now().UnixNano())
+		port = rand.Intn(10000) + 50000 // Random port between 50000-60000
 	}
 
-	if err := configManager.Save(); err != nil {
-		return fmt.Errorf("failed to save configuration: %w", err)
+	// Create and start server
+	srv := server.NewServer(port)
+	if err := srv.Start(); err != nil {
+		ui.PrintError("Failed to start web server")
+		ui.PrintInfo("Falling back to CLI wizard...")
+		return runCLISetup(false)
 	}
 
-	fmt.Println()
+	ui.PrintInfo("Waiting for setup to complete...")
+	ui.PrintInfo("(Close the browser tab when you're done)")
+
+	// Wait for completion
+	srv.WaitForCompletion()
+
+	// Stop server
+	srv.Stop()
+
 	ui.PrintSuccess("Configuration saved successfully!")
 
 	ui.PrintSection("Next Steps")
 	fmt.Println("  • Run 'dotfiles install' to install your configuration")
 	fmt.Println("  • Run 'dotfiles config show' to review your settings")
-	fmt.Println("  • Run 'dotfiles config edit' to modify settings")
 
 	return nil
+}
+
+func runCLISetup(quick bool) error {
+	ui.PrintInfo("Using CLI wizard...")
+	ui.PrintWarning("For a better experience, try the web wizard: dotfiles setup")
+
+	// TODO: Implement fallback CLI wizard
+	ui.PrintError("CLI wizard not yet implemented")
+	ui.PrintInfo("Please use the web wizard or import a preset configuration")
+
+	return fmt.Errorf("CLI wizard not available - use web interface")
 }
 
 func loadPresetConfig(presetName string) (*config.Config, error) {

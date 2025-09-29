@@ -10,6 +10,7 @@ Effortlessly manage your development environment with a beautiful CLI interface,
 
 ## Features
 
+- 🌐 **Modern Web Interface** - Beautiful browser-based setup wizard
 - 🚀 **Interactive Setup Wizard** - Easy configuration with preset support
 - 📦 **Package Management** - Automated Homebrew, npm, and system package installation
 - 🎨 **System Configuration** - macOS system defaults and preferences
@@ -18,6 +19,7 @@ Effortlessly manage your development environment with a beautiful CLI interface,
 - 📋 **Configuration Management** - JSON-based configuration with validation
 - 🤝 **Configuration Sharing** - Share and import configurations easily
 - ✋ **Opt-in Everything** - Nothing is installed without your explicit consent
+- 📱 **Cross-Platform UI** - Works in browser, terminal, or headless environments
 
 ## 📦 Installation
 
@@ -57,10 +59,11 @@ sudo mv dotfiles /usr/local/bin/
 
 ## 🚀 Quick Start
 
-1. **Run the interactive setup wizard:**
+1. **Run the modern web-based setup wizard:**
    ```bash
    dotfiles setup
    ```
+   This opens a beautiful web interface in your browser for easy configuration!
 
 2. **Install your configuration:**
    ```bash
@@ -68,6 +71,17 @@ sudo mv dotfiles /usr/local/bin/
    ```
 
 3. **That's it!** Your development environment is now configured.
+
+### 🌐 **Modern Setup Experience**
+
+The setup wizard now features:
+- **🎨 Beautiful web interface** - Auto-opens in your browser
+- **📱 Responsive design** - Works on desktop, tablet, and mobile
+- **⚡ Live preview** - See your configuration as you build it
+- **🔄 Auto-save** - Never lose your progress
+- **📋 Step-by-step guidance** - Clear progress indicators
+
+For terminal-only environments, use: `dotfiles setup --cli`
 
 ## 🖼 Screenshots
 
@@ -162,9 +176,10 @@ Even `git` and `stow` are opt-in - though you'll likely want them for dotfiles m
 ### 🔧 Setup Commands
 | Command | Description |
 |---------|-------------|
-| `dotfiles setup` | Launch interactive setup wizard |
+| `dotfiles setup` | Launch modern web-based setup wizard |
+| `dotfiles setup --cli` | Use terminal-based setup wizard |
 | `dotfiles setup --preset <name>` | Use a preset configuration |
-| `dotfiles setup --quick` | Quick setup with minimal prompts |
+| `dotfiles setup --port <port>` | Specify port for web interface |
 | `dotfiles setup --force` | Force setup even if config exists |
 
 ### 🚀 Installation Commands
