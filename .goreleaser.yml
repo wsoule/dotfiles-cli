@@ -43,10 +43,6 @@ archives:
     files:
       - README.md
       - LICENSE*
-      - Brewfile.template
-      - Brewfile.example
-      - config/**/*
-      - presets/**/*
 
 checksum:
   name_template: 'checksums.txt'
@@ -64,8 +60,11 @@ changelog:
 brews:
   - name: dotfiles
     description: "Modern dotfiles management system built in Go"
-    homepage: "https://github.com/{{ .Env.GITHUB_USERNAME }}/{{ .ProjectName }}"
+    homepage: "https://github.com/wyatsoule/go-dotfiles"
     license: "MIT"
+    repository:
+      owner: wyatsoule
+      name: homebrew-tap
     folder: Formula
     dependencies:
       - gnu-stow
@@ -91,8 +90,8 @@ nfpms:
 
 release:
   github:
-    owner: "{{ .Env.GITHUB_USERNAME }}"
-    name: "{{ .ProjectName }}"
+    owner: wyatsoule
+    name: go-dotfiles
   draft: false
   prerelease: auto
   name_template: "{{ .ProjectName }} {{ .Version }}"
@@ -105,13 +104,13 @@ release:
 
     ### Homebrew (macOS/Linux)
     ```bash
-    brew install {{ .Env.GITHUB_USERNAME }}/tap/dotfiles
+    brew install wyatsoule/tap/dotfiles
     ```
 
     ### Direct Download
-    Download the binary for your platform from the [releases page](https://github.com/{{ .Env.GITHUB_USERNAME }}/{{ .ProjectName }}/releases).
+    Download the binary for your platform from the [releases page](https://github.com/wyatsoule/go-dotfiles/releases).
 
     ### Go Install
     ```bash
-    go install github.com/{{ .Env.GITHUB_USERNAME }}/{{ .ProjectName }}@latest
+    go install github.com/wyatsoule/go-dotfiles@latest
     ```

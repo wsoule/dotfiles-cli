@@ -151,7 +151,7 @@ homebrew/cask-fonts
 git, curl, wget, tree, jq, stow, gh
 
 # Casks (GUI Applications)
-visual-studio-code, iterm2, rectangle
+visual-studio-code, ghostty, raycast
 ```
 
 You can customize this list after onboarding with `dotfiles add` and `dotfiles remove`.
