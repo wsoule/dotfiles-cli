@@ -1,64 +1,88 @@
-# 🛠 Dotfiles Manager
+# 🚀 Dotfiles Manager - Developer Onboarding Toolkit
 
-> A minimal, focused dotfiles manager with JSON config and Brewfile support
+> The complete solution for new developer environment setup
 
-A simple command-line tool that manages your Homebrew packages through JSON configuration and generates Brewfiles.
+A comprehensive command-line tool that manages your entire development environment: Homebrew packages, dotfiles with GNU Stow, GitHub SSH setup, and complete developer onboarding automation.
 
 ## Features
 
-- 📦 **Package Management** - Add/remove Homebrew packages, casks, taps, and Stow packages
-- 📋 **JSON Configuration** - Store your package list in simple JSON format
-- 🍺 **Brewfile Support** - Generate Brewfiles and import from existing ones
+- 🎉 **Complete Developer Onboarding** - One command to set up everything for new developers
+- 🔐 **GitHub SSH Integration** - Automated SSH key generation and GitHub configuration
+- 📦 **Smart Package Management** - Curated essential packages for developers
+- 📋 **JSON Configuration** - Store your setup in simple, versionable JSON
+- 🍺 **Brewfile Support** - Generate and import Brewfiles with full automation
 - 🔗 **GNU Stow Integration** - Manage dotfiles with symbolic links
-- 📊 **Status Checking** - Verify package installation status
-- 💾 **Backup & Restore** - Save and restore configurations
+- 📊 **Status Checking** - Verify installation status across all components
+- 💾 **Backup & Restore** - Save and restore complete configurations
 - 🔍 **Multiple Output Formats** - JSON, count, and filtered views
-- ✨ **Minimal Dependencies** - Only requires Cobra CLI framework and optional GNU Stow
-- 🚀 **Fast & Lightweight** - Single binary with comprehensive functionality
+- 📦 **Easy Distribution** - Install via Homebrew or direct from GitHub
+- ✨ **Zero Configuration** - Works out of the box with sensible defaults
+- 🚀 **Fast & Lightweight** - Single binary, comprehensive functionality
 
 ## 📦 Installation
 
-### Build from source
+### 🍺 Homebrew (Recommended)
 ```bash
-git clone <your-repo>
-cd Go_Dotfiles
+brew tap wyatsoule/tap
+brew install dotfiles
+```
+
+### 🚀 One-liner Install
+```bash
+curl -fsSL https://raw.githubusercontent.com/wyatsoule/go-dotfiles/main/install.sh | bash
+```
+
+### 📦 GitHub Releases
+Download the latest binary from [releases](https://github.com/wyatsoule/go-dotfiles/releases/latest)
+
+### 🔨 Build from Source
+```bash
+git clone https://github.com/wyatsoule/go-dotfiles.git
+cd go-dotfiles
 go build -o dotfiles
 ```
 
 ## 🚀 Quick Start
 
-1. **Initialize your configuration:**
+### 🎯 For New Developers (Complete Setup)
+```bash
+# Complete onboarding with everything included
+dotfiles onboard
+
+# Or with your GitHub email
+dotfiles onboard --email your@email.com
+```
+
+This single command will:
+- Initialize your dotfiles configuration
+- Set up GitHub SSH keys
+- Install essential development packages
+- Guide you through next steps
+
+### 🔧 Manual Setup (Step by Step)
+
+1. **Initialize configuration:**
    ```bash
-   ./dotfiles init
+   dotfiles init
    ```
 
-2. **Add packages:**
+2. **Set up GitHub SSH:**
    ```bash
-   ./dotfiles add git lazygit
-   ./dotfiles add --type=cask visual-studio-code
-   ./dotfiles add --type=tap homebrew/cask-fonts
+   dotfiles github setup --email your@email.com
+   dotfiles github test  # Verify connection
    ```
 
-3. **Add Stow packages for dotfiles:**
+3. **Add packages:**
    ```bash
-   ./dotfiles add --type=stow vim zsh tmux
+   dotfiles add git lazygit curl
+   dotfiles add --type=cask visual-studio-code
+   dotfiles add --type=stow vim zsh tmux
    ```
 
-4. **List your packages:**
+4. **Install everything:**
    ```bash
-   ./dotfiles list
-   ./dotfiles status    # Check installation status
-   ```
-
-5. **Generate and install from Brewfile:**
-   ```bash
-   ./dotfiles install   # Generate Brewfile and install packages
-   ```
-
-6. **Manage dotfiles with Stow:**
-   ```bash
-   ./dotfiles stow vim zsh    # Create symlinks
-   ./dotfiles unstow vim      # Remove symlinks
+   dotfiles install      # Installs Homebrew packages
+   dotfiles stow vim zsh # Creates dotfile symlinks
    ```
 
 ## 📋 Available Commands
@@ -68,6 +92,8 @@ Usage:
   dotfiles [command]
 
 Available Commands:
+  onboard     Complete developer onboarding and environment setup  🎯 NEW!
+  github      Set up GitHub with SSH keys                          🔐 NEW!
   add         Add packages to your configuration
   backup      Backup your configuration to a file
   brewfile    Generate a Brewfile from your configuration
@@ -82,6 +108,33 @@ Available Commands:
   stow        Stow dotfile packages using GNU Stow
   unstow      Unstow dotfile packages using GNU Stow
 ```
+
+## 🎯 Developer Onboarding
+
+Perfect for new developers or setting up fresh machines:
+
+### What the onboard command does:
+1. **🔧 Initializes** your dotfiles configuration
+2. **🔐 Creates** GitHub SSH keys and shows setup instructions
+3. **📦 Installs** curated essential packages:
+   - **Development tools**: git, curl, wget, tree, jq, gh
+   - **Applications**: Visual Studio Code, iTerm2, Rectangle
+   - **GNU Stow** for dotfiles management
+4. **📋 Guides** you through next steps
+
+### Essential packages included:
+```bash
+# Taps
+homebrew/cask-fonts
+
+# Brews (Command-line tools)
+git, curl, wget, tree, jq, stow, gh
+
+# Casks (GUI Applications)
+visual-studio-code, iterm2, rectangle
+```
+
+You can customize this list after onboarding with `dotfiles add` and `dotfiles remove`.
 
 ## 💡 Usage Examples
 
@@ -238,6 +291,9 @@ When you run `dotfiles stow vim`, it will create symlinks:
 
 | Command | Description | Key Flags |
 |---------|-------------|-----------|
+| `dotfiles onboard` ⭐ | Complete developer setup | `--email=<email>`, `--skip-*` |
+| `dotfiles github setup` 🔐 | Set up GitHub SSH keys | `--email=<email>`, `--key-type=<type>` |
+| `dotfiles github test` 🧪 | Test GitHub SSH connection | None |
 | `dotfiles init` | Initialize new configuration | None |
 | `dotfiles add <packages>` | Add packages to config | `--type=brew/cask/tap/stow`, `--file=<path>` |
 | `dotfiles remove <packages>` | Remove packages from config | `--type=brew/cask/tap/stow`, `--all-*`, `--file=<path>` |
@@ -282,6 +338,33 @@ Go_Dotfiles/
 │   └── config.go       # JSON config handling
 └── main.go             # Entry point
 ```
+
+## 📦 Publishing & Distribution
+
+### Homebrew Tap
+This package will be available via a custom Homebrew tap:
+
+```bash
+brew tap wyatsoule/tap
+brew install dotfiles
+```
+
+### GitHub Releases
+Automated releases are created for every tagged version with binaries for:
+- macOS (Intel & Apple Silicon)
+- Linux (x64 & ARM64)
+- Windows (x64)
+
+### Installation Script
+The `install.sh` script automatically detects your platform and installs the appropriate binary.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## 📄 License
 

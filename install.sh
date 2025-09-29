@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Dotfiles Installation Script
-# This script downloads and installs the latest version of dotfiles
-
 set -e
-
-# Configuration
-REPO="wsoule/new-dotfiles"  # Change this to your GitHub username/repo
-BINARY_NAME="dotfiles"
-INSTALL_DIR="/usr/local/bin"
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,214 +9,170 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Helper functions
-print_info() {
-    echo -e "${BLUE}ℹ${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}✗${NC} $1"
-}
+# Configuration
+REPO="wyatsoule/go-dotfiles"
+BINARY_NAME="dotfiles"
+INSTALL_DIR="/usr/local/bin"
 
 # Detect OS and architecture
-detect_platform() {
-    local os
-    local arch
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
 
-    case "$(uname -s)" in
-        Darwin)
-            os="darwin"
-            ;;
-        Linux)
-            os="linux"
-            ;;
-        MINGW* | MSYS* | CYGWIN*)
-            os="windows"
-            ;;
-        *)
-            print_error "Unsupported operating system: $(uname -s)"
-            exit 1
-            ;;
-    esac
+case $ARCH in
+    x86_64) ARCH="amd64" ;;
+    arm64|aarch64) ARCH="arm64" ;;
+    i386|i686) ARCH="386" ;;
+    *) echo -e "${RED}❌ Unsupported architecture: $ARCH${NC}" && exit 1 ;;
+esac
 
-    case "$(uname -m)" in
-        x86_64 | amd64)
-            arch="x86_64"
-            ;;
-        arm64 | aarch64)
-            arch="arm64"
-            ;;
-        *)
-            print_error "Unsupported architecture: $(uname -m)"
-            exit 1
-            ;;
-    esac
+case $OS in
+    darwin) OS="darwin" ;;
+    linux) OS="linux" ;;
+    *) echo -e "${RED}❌ Unsupported OS: $OS${NC}" && exit 1 ;;
+esac
 
-    echo "${os}-${arch}"
-}
+echo -e "${BLUE}🛠  Dotfiles Manager Installer${NC}"
+echo "=================================="
+echo ""
+echo "Installing for: $OS/$ARCH"
+echo ""
 
-# Get latest release version
-get_latest_version() {
-    local api_url="https://api.github.com/repos/${REPO}/releases/latest"
+# Check if running as root (not recommended)
+if [[ $EUID -eq 0 ]]; then
+    echo -e "${YELLOW}⚠️  Warning: Running as root. Consider running as regular user.${NC}"
+fi
 
-    if command -v curl >/dev/null 2>&1; then
-        curl -s "${api_url}" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'
-    elif command -v wget >/dev/null 2>&1; then
-        wget -qO- "${api_url}" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'
-    else
-        print_error "Neither curl nor wget is available. Please install one of them."
-        exit 1
-    fi
-}
+# Function to install from GitHub releases
+install_from_releases() {
+    echo -e "${BLUE}📦 Installing from GitHub releases...${NC}"
 
-# Download and install
-install_dotfiles() {
-    local platform
-    local version
-    local download_url
-    local temp_dir
-    local archive_name
+    # Get latest release info
+    LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
-    platform=$(detect_platform)
-    version=$(get_latest_version)
-
-    if [ -z "$version" ]; then
-        print_error "Could not determine latest version"
-        exit 1
+    if [ -z "$LATEST_RELEASE" ]; then
+        echo -e "${RED}❌ Could not fetch latest release info${NC}"
+        return 1
     fi
 
-    print_info "Latest version: ${version}"
-    print_info "Platform: ${platform}"
+    echo "Latest release: $LATEST_RELEASE"
 
     # Construct download URL
-    archive_name="${BINARY_NAME}-${version}-${platform}"
-    if [[ "$platform" == *"windows"* ]]; then
-        archive_name="${archive_name}.zip"
-    else
-        archive_name="${archive_name}.tar.gz"
-    fi
+    DOWNLOAD_URL="https://github.com/$REPO/releases/download/$LATEST_RELEASE/${BINARY_NAME}_${OS}_${ARCH}.tar.gz"
 
-    download_url="https://github.com/${REPO}/releases/download/${version}/${archive_name}"
-
-    print_info "Downloading from: ${download_url}"
+    echo "Downloading: $DOWNLOAD_URL"
 
     # Create temporary directory
-    temp_dir=$(mktemp -d)
-    cd "$temp_dir"
+    TEMP_DIR=$(mktemp -d)
+    cd "$TEMP_DIR"
 
-    # Download archive
-    if command -v curl >/dev/null 2>&1; then
-        curl -L -o "$archive_name" "$download_url"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -O "$archive_name" "$download_url"
+    # Download and extract
+    if ! curl -L -o "${BINARY_NAME}.tar.gz" "$DOWNLOAD_URL"; then
+        echo -e "${RED}❌ Download failed${NC}"
+        rm -rf "$TEMP_DIR"
+        return 1
+    fi
+
+    tar -xzf "${BINARY_NAME}.tar.gz"
+
+    # Install binary
+    if [[ ! -w "$INSTALL_DIR" ]]; then
+        echo -e "${YELLOW}🔐 Installing to $INSTALL_DIR (requires sudo)${NC}"
+        sudo mv "$BINARY_NAME" "$INSTALL_DIR/"
+        sudo chmod +x "$INSTALL_DIR/$BINARY_NAME"
     else
-        print_error "Neither curl nor wget is available"
+        mv "$BINARY_NAME" "$INSTALL_DIR/"
+        chmod +x "$INSTALL_DIR/$BINARY_NAME"
+    fi
+
+    # Cleanup
+    cd - > /dev/null
+    rm -rf "$TEMP_DIR"
+
+    echo -e "${GREEN}✅ Installed successfully!${NC}"
+    return 0
+}
+
+# Function to build from source
+install_from_source() {
+    echo -e "${BLUE}🔨 Building from source...${NC}"
+
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        echo -e "${RED}❌ Go is not installed. Please install Go first:${NC}"
+        echo "   macOS: brew install go"
+        echo "   Linux: Follow instructions at https://golang.org/doc/install"
         exit 1
     fi
 
-    # Download and verify checksums for security
-    local checksums_url="https://github.com/${REPO}/releases/download/${version}/checksums.txt"
-    local checksums_file="checksums.txt"
+    # Create temporary directory
+    TEMP_DIR=$(mktemp -d)
+    cd "$TEMP_DIR"
 
-    print_info "Verifying download integrity..."
-    if command -v curl >/dev/null 2>&1; then
-        curl -L -o "$checksums_file" "$checksums_url" 2>/dev/null || true
-    elif command -v wget >/dev/null 2>&1; then
-        wget -O "$checksums_file" "$checksums_url" 2>/dev/null || true
+    # Clone repository
+    echo "Cloning repository..."
+    if ! git clone "https://github.com/$REPO.git" .; then
+        echo -e "${RED}❌ Failed to clone repository${NC}"
+        rm -rf "$TEMP_DIR"
+        exit 1
     fi
 
-    # Verify checksum if available and shasum is present
-    if [ -f "$checksums_file" ] && command -v shasum >/dev/null 2>&1; then
-        if shasum -a 256 -c "$checksums_file" --ignore-missing --quiet 2>/dev/null; then
-            print_success "Download integrity verified"
-        else
-            print_warning "Could not verify download integrity (checksum mismatch or not found)"
-            read -p "Continue anyway? (y/N): " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                print_error "Installation cancelled for security"
-                exit 1
-            fi
-        fi
-    else
-        print_warning "Could not verify download integrity (checksums unavailable)"
-    fi
-
-    # Extract archive
-    if [[ "$archive_name" == *.zip ]]; then
-        unzip -q "$archive_name"
-    else
-        tar -xzf "$archive_name"
-    fi
-
-    # Find binary
-    binary_path=""
-    if [ -f "$BINARY_NAME" ]; then
-        binary_path="$BINARY_NAME"
-    elif [ -f "*/bin/$BINARY_NAME" ]; then
-        binary_path="*/bin/$BINARY_NAME"
-    else
-        print_error "Binary not found in archive"
+    # Build
+    echo "Building..."
+    if ! go build -o "$BINARY_NAME" .; then
+        echo -e "${RED}❌ Build failed${NC}"
+        rm -rf "$TEMP_DIR"
         exit 1
     fi
 
     # Install binary
-    if [ -w "$INSTALL_DIR" ]; then
-        cp "$binary_path" "$INSTALL_DIR/$BINARY_NAME"
-        chmod +x "$INSTALL_DIR/$BINARY_NAME"
-    else
-        print_info "Installing to $INSTALL_DIR (requires sudo)"
-        sudo cp "$binary_path" "$INSTALL_DIR/$BINARY_NAME"
+    if [[ ! -w "$INSTALL_DIR" ]]; then
+        echo -e "${YELLOW}🔐 Installing to $INSTALL_DIR (requires sudo)${NC}"
+        sudo mv "$BINARY_NAME" "$INSTALL_DIR/"
         sudo chmod +x "$INSTALL_DIR/$BINARY_NAME"
+    else
+        mv "$BINARY_NAME" "$INSTALL_DIR/"
+        chmod +x "$INSTALL_DIR/$BINARY_NAME"
     fi
 
     # Cleanup
-    cd /
-    rm -rf "$temp_dir"
+    cd - > /dev/null
+    rm -rf "$TEMP_DIR"
 
-    print_success "Successfully installed $BINARY_NAME to $INSTALL_DIR"
-    print_info "Run '$BINARY_NAME --help' to get started"
+    echo -e "${GREEN}✅ Built and installed successfully!${NC}"
 }
 
-# Main execution
-main() {
-    echo "🛠  Dotfiles Installer"
-    echo "====================="
-    echo
+# Try installation methods
+echo -e "${BLUE}Attempting installation...${NC}"
 
-    # Check if already installed
-    if command -v "$BINARY_NAME" >/dev/null 2>&1; then
-        local current_version
-        current_version=$("$BINARY_NAME" --version 2>/dev/null | grep -o 'v[0-9.]*' || echo "unknown")
-        print_warning "$BINARY_NAME is already installed (version: $current_version)"
+# Try GitHub releases first, fall back to source
+if ! install_from_releases; then
+    echo -e "${YELLOW}⚠️  Release installation failed, trying source build...${NC}"
+    install_from_source
+fi
 
-        read -p "Do you want to update it? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Installation cancelled"
-            exit 0
-        fi
-    fi
+# Verify installation
+echo ""
+echo -e "${BLUE}🧪 Verifying installation...${NC}"
 
-    # Install
-    install_dotfiles
+if command -v "$BINARY_NAME" &> /dev/null; then
+    echo -e "${GREEN}✅ Installation successful!${NC}"
+    echo ""
+    echo -e "${GREEN}🎉 Dotfiles Manager is ready!${NC}"
+    echo ""
+    echo "Get started with:"
+    echo -e "  ${BLUE}dotfiles onboard${NC}          # Complete developer setup"
+    echo -e "  ${BLUE}dotfiles init${NC}             # Initialize configuration"
+    echo -e "  ${BLUE}dotfiles github setup${NC}     # Set up GitHub SSH"
+    echo ""
+    echo "For help:"
+    echo -e "  ${BLUE}dotfiles --help${NC}"
+    echo ""
 
-    echo
-    print_success "Installation complete!"
-    echo
-    print_info "Next steps:"
-    echo "  1. Run: $BINARY_NAME setup"
-    echo "  2. Run: $BINARY_NAME install"
-    echo
-}
-
-# Run main function
-main "$@"
+    # Show version
+    "$BINARY_NAME" --version 2>/dev/null || echo "Version: Latest"
+else
+    echo -e "${RED}❌ Installation verification failed${NC}"
+    echo "The binary may not be in your PATH. Try:"
+    echo "  $INSTALL_DIR/$BINARY_NAME --help"
+    exit 1
+fi
