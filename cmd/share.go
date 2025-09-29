@@ -1,305 +1,557 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"dotfiles/internal/config"
-	"dotfiles/internal/ui"
 	"github.com/spf13/cobra"
 )
 
-// shareCmd represents the share command
+// ShareableConfig represents a config that can be shared
+type ShareableConfig struct {
+	config.Config
+	Metadata ShareMetadata `json:"metadata"`
+}
+
+type ShareMetadata struct {
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Author      string    `json:"author"`
+	Tags        []string  `json:"tags"`
+	CreatedAt   time.Time `json:"created_at"`
+	Version     string    `json:"version"`
+}
+
+type GistResponse struct {
+	ID          string            `json:"id"`
+	HTMLURL     string            `json:"html_url"`
+	Files       map[string]GistFile `json:"files"`
+	Description string            `json:"description"`
+	Public      bool              `json:"public"`
+}
+
+type GistFile struct {
+	Content string `json:"content"`
+}
+
+type GistRequest struct {
+	Description string            `json:"description"`
+	Public      bool              `json:"public"`
+	Files       map[string]GistFile `json:"files"`
+}
+
 var shareCmd = &cobra.Command{
 	Use:   "share",
-	Short: "Share and import dotfiles configurations",
-	Long: `Share your configuration with others or import shared configurations.
-
-This command helps you:
-- Export your configuration for sharing (with personal info removed)
-- Import configurations from others
-- Create shareable preset files
-- Validate shared configurations`,
+	Short: "Share your configuration with others",
+	Long:  `Share your dotfiles configuration via GitHub Gist or export to file`,
 }
 
-// shareExportCmd exports configuration for sharing
-var shareExportCmd = &cobra.Command{
-	Use:   "export [filename]",
-	Short: "Export your configuration for sharing",
-	Long: `Export your current configuration with personal information removed.
+var shareGistCmd = &cobra.Command{
+	Use:   "gist",
+	Short: "Share configuration via GitHub Gist",
+	Long:  `Upload your configuration to GitHub Gist for easy sharing`,
+	Run: func(cmd *cobra.Command, args []string) {
+		name, _ := cmd.Flags().GetString("name")
+		description, _ := cmd.Flags().GetString("description")
+		author, _ := cmd.Flags().GetString("author")
+		tags, _ := cmd.Flags().GetStringSlice("tags")
+		private, _ := cmd.Flags().GetBool("private")
 
-The exported file can be shared with others or used as a preset.
-Personal information (name, email) is removed for privacy.`,
-	Args: cobra.MaximumNArgs(1),
-	RunE: runShareExport,
+		if name == "" {
+			fmt.Println("❌ Config name is required. Use --name flag.")
+			os.Exit(1)
+		}
+
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
+		}
+
+		configPath := filepath.Join(home, ".dotfiles", "config.json")
+		cfg, err := config.Load(configPath)
+		if err != nil {
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Create shareable config with metadata
+		shareableConfig := ShareableConfig{
+			Config: *cfg,
+			Metadata: ShareMetadata{
+				Name:        name,
+				Description: description,
+				Author:      author,
+				Tags:        tags,
+				CreatedAt:   time.Now(),
+				Version:     "1.0.0",
+			},
+		}
+
+		fmt.Printf("📤 Sharing config '%s'...\n", name)
+
+		// Try uploading to web app first
+		webAppURL, err := uploadToWebApp(shareableConfig, !private)
+		if err == nil {
+			fmt.Printf("✅ Config shared to web app successfully!\n")
+			fmt.Printf("🔗 Web App URL: %s\n", webAppURL)
+			fmt.Printf("📋 To clone this config: dotfiles clone %s\n", webAppURL)
+		} else {
+			fmt.Printf("⚠️  Web app upload failed, trying GitHub Gist: %v\n", err)
+
+			// Fallback to GitHub Gist
+			gistURL, err := uploadToGist(shareableConfig, !private)
+			if err != nil {
+				fmt.Printf("❌ Failed to upload to Gist: %v\n", err)
+				os.Exit(1)
+			}
+
+			fmt.Printf("✅ Config shared to GitHub Gist successfully!\n")
+			fmt.Printf("🔗 Gist URL: %s\n", gistURL)
+			fmt.Printf("📋 To clone this config: dotfiles clone %s\n", gistURL)
+		}
+
+		// Copy URL to clipboard
+		var finalURL string
+		if webAppURL != "" {
+			finalURL = webAppURL
+		} else {
+			finalURL = gistURL
+		}
+		if err := copyToClipboard(finalURL); err == nil {
+			fmt.Println("📋 URL copied to clipboard!")
+		}
+	},
 }
 
-// shareImportCmd imports a shared configuration
-var shareImportCmd = &cobra.Command{
-	Use:   "import <file>",
-	Short: "Import a shared configuration",
-	Long: `Import a configuration file shared by another user.
+var shareFileCmd = &cobra.Command{
+	Use:   "file <output-file>",
+	Short: "Export configuration to a shareable file",
+	Long:  `Export your configuration to a JSON file that others can import`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		outputPath := args[0]
+		name, _ := cmd.Flags().GetString("name")
+		description, _ := cmd.Flags().GetString("description")
+		author, _ := cmd.Flags().GetString("author")
+		tags, _ := cmd.Flags().GetStringSlice("tags")
 
-This will load the configuration and prompt you to:
-- Review the settings
-- Add your personal information
-- Choose what to enable/disable
-- Save as your configuration`,
-	Args: cobra.ExactArgs(1),
-	RunE: runShareImport,
+		if name == "" {
+			fmt.Println("❌ Config name is required. Use --name flag.")
+			os.Exit(1)
+		}
+
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
+		}
+
+		configPath := filepath.Join(home, ".dotfiles", "config.json")
+		cfg, err := config.Load(configPath)
+		if err != nil {
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Create shareable config with metadata
+		shareableConfig := ShareableConfig{
+			Config: *cfg,
+			Metadata: ShareMetadata{
+				Name:        name,
+				Description: description,
+				Author:      author,
+				Tags:        tags,
+				CreatedAt:   time.Now(),
+				Version:     "1.0.0",
+			},
+		}
+
+		// Write to file
+		data, err := json.MarshalIndent(shareableConfig, "", "  ")
+		if err != nil {
+			fmt.Printf("❌ Error marshaling config: %v\n", err)
+			os.Exit(1)
+		}
+
+		if err := os.WriteFile(outputPath, data, 0644); err != nil {
+			fmt.Printf("❌ Error writing file: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("✅ Configuration exported to: %s\n", outputPath)
+		fmt.Printf("📋 Others can import with: dotfiles clone %s\n", outputPath)
+	},
 }
 
-// shareValidateCmd validates a configuration file
-var shareValidateCmd = &cobra.Command{
-	Use:   "validate <file>",
-	Short: "Validate a configuration file",
-	Long: `Validate that a configuration file is properly formatted and contains valid settings.
+var cloneCmd = &cobra.Command{
+	Use:   "clone <source>",
+	Short: "Clone a shared configuration",
+	Long:  `Import a shared configuration from:
+  - GitHub Gist URL: https://gist.github.com/user/id
+  - Local file: /path/to/config.json
+  - Built-in template: template:web-dev`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		source := args[0]
+		merge, _ := cmd.Flags().GetBool("merge")
+		preview, _ := cmd.Flags().GetBool("preview")
 
-This checks:
-- JSON syntax and structure
-- Required fields are present
-- Values are within valid ranges
-- No conflicting settings`,
-	Args: cobra.ExactArgs(1),
-	RunE: runShareValidate,
+		// Handle template:name format
+		if strings.HasPrefix(source, "template:") {
+			templateName := strings.TrimPrefix(source, "template:")
+			if err := handleTemplateClone(templateName, merge); err != nil {
+				fmt.Printf("❌ %v\n", err)
+				os.Exit(1)
+			}
+			return
+		}
+
+		var shareableConfig ShareableConfig
+		var err error
+
+		if strings.HasPrefix(source, "http") {
+			// Try web app first, then GitHub Gist
+			if strings.Contains(source, "your-web-app.com") {
+				shareableConfig, err = downloadFromWebApp(source)
+			} else {
+				// Handle GitHub Gist URL
+				shareableConfig, err = downloadFromGist(source)
+			}
+		} else {
+			// Handle local file
+			shareableConfig, err = loadFromFile(source)
+		}
+
+		if err != nil {
+			fmt.Printf("❌ Error loading shared config: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Show preview
+		fmt.Printf("📋 Config: %s\n", shareableConfig.Metadata.Name)
+		fmt.Printf("👤 Author: %s\n", shareableConfig.Metadata.Author)
+		fmt.Printf("📝 Description: %s\n", shareableConfig.Metadata.Description)
+		if len(shareableConfig.Metadata.Tags) > 0 {
+			fmt.Printf("🏷️  Tags: %s\n", strings.Join(shareableConfig.Metadata.Tags, ", "))
+		}
+		fmt.Printf("📅 Created: %s\n", shareableConfig.Metadata.CreatedAt.Format("2006-01-02"))
+		fmt.Println()
+
+		fmt.Printf("📦 Packages included:\n")
+		if len(shareableConfig.Taps) > 0 {
+			fmt.Printf("  📋 Taps: %d\n", len(shareableConfig.Taps))
+		}
+		if len(shareableConfig.Brews) > 0 {
+			fmt.Printf("  🍺 Brews: %d\n", len(shareableConfig.Brews))
+		}
+		if len(shareableConfig.Casks) > 0 {
+			fmt.Printf("  📦 Casks: %d\n", len(shareableConfig.Casks))
+		}
+		if len(shareableConfig.Stow) > 0 {
+			fmt.Printf("  🔗 Stow: %d\n", len(shareableConfig.Stow))
+		}
+		fmt.Println()
+
+		if preview {
+			fmt.Println("📋 Full package list:")
+			if len(shareableConfig.Taps) > 0 {
+				fmt.Println("Taps:", strings.Join(shareableConfig.Taps, ", "))
+			}
+			if len(shareableConfig.Brews) > 0 {
+				fmt.Println("Brews:", strings.Join(shareableConfig.Brews, ", "))
+			}
+			if len(shareableConfig.Casks) > 0 {
+				fmt.Println("Casks:", strings.Join(shareableConfig.Casks, ", "))
+			}
+			if len(shareableConfig.Stow) > 0 {
+				fmt.Println("Stow:", strings.Join(shareableConfig.Stow, ", "))
+			}
+			return
+		}
+
+		if !askConfirmation("Import this configuration? (y/N): ", false) {
+			fmt.Println("❌ Import cancelled.")
+			return
+		}
+
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
+		}
+
+		configPath := filepath.Join(home, ".dotfiles", "config.json")
+
+		if merge {
+			// Load existing config and merge
+			existingConfig, err := config.Load(configPath)
+			if err != nil {
+				fmt.Printf("⚠️  Could not load existing config, creating new: %v\n", err)
+				existingConfig = &config.Config{}
+			}
+
+			// Merge packages
+			existingConfig.Taps = mergeSlices(existingConfig.Taps, shareableConfig.Taps)
+			existingConfig.Brews = mergeSlices(existingConfig.Brews, shareableConfig.Brews)
+			existingConfig.Casks = mergeSlices(existingConfig.Casks, shareableConfig.Casks)
+			existingConfig.Stow = mergeSlices(existingConfig.Stow, shareableConfig.Stow)
+
+			if err := existingConfig.Save(configPath); err != nil {
+				fmt.Printf("❌ Error saving merged config: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("✅ Configuration merged successfully!")
+		} else {
+			// Replace existing config
+			newConfig := &config.Config{
+				Taps:  shareableConfig.Taps,
+				Brews: shareableConfig.Brews,
+				Casks: shareableConfig.Casks,
+				Stow:  shareableConfig.Stow,
+			}
+
+			if err := newConfig.Save(configPath); err != nil {
+				fmt.Printf("❌ Error saving config: %v\n", err)
+				os.Exit(1)
+			}
+			fmt.Println("✅ Configuration imported successfully!")
+		}
+
+		fmt.Println("💡 Next steps:")
+		fmt.Println("  dotfiles status    # Check what needs to be installed")
+		fmt.Println("  dotfiles install   # Install all packages")
+	},
 }
+
+func uploadToGist(config ShareableConfig, public bool) (string, error) {
+	// Convert config to JSON
+	configJSON, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	// Create Gist request
+	gistReq := GistRequest{
+		Description: fmt.Sprintf("Dotfiles Config: %s", config.Metadata.Name),
+		Public:      public,
+		Files: map[string]GistFile{
+			"dotfiles-config.json": {
+				Content: string(configJSON),
+			},
+		},
+	}
+
+	reqBody, err := json.Marshal(gistReq)
+	if err != nil {
+		return "", err
+	}
+
+	// Make request to GitHub API
+	req, err := http.NewRequest("POST", "https://api.github.com/gists", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "dotfiles-manager")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("GitHub API error: %s - %s", resp.Status, string(body))
+	}
+
+	var gistResp GistResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gistResp); err != nil {
+		return "", err
+	}
+
+	return gistResp.HTMLURL, nil
+}
+
+func downloadFromGist(gistURL string) (ShareableConfig, error) {
+	// Extract Gist ID from URL
+	parts := strings.Split(gistURL, "/")
+	gistID := parts[len(parts)-1]
+
+	// Remove any hash fragments
+	if idx := strings.Index(gistID, "#"); idx != -1 {
+		gistID = gistID[:idx]
+	}
+
+	// Download from GitHub API
+	apiURL := fmt.Sprintf("https://api.github.com/gists/%s", gistID)
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return ShareableConfig{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return ShareableConfig{}, fmt.Errorf("failed to download gist: %s", resp.Status)
+	}
+
+	var gistResp GistResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gistResp); err != nil {
+		return ShareableConfig{}, err
+	}
+
+	// Find the config file
+	var configContent string
+	for filename, file := range gistResp.Files {
+		if strings.Contains(filename, "dotfiles-config") || strings.HasSuffix(filename, ".json") {
+			configContent = file.Content
+			break
+		}
+	}
+
+	if configContent == "" {
+		return ShareableConfig{}, fmt.Errorf("no dotfiles config found in gist")
+	}
+
+	var shareableConfig ShareableConfig
+	if err := json.Unmarshal([]byte(configContent), &shareableConfig); err != nil {
+		return ShareableConfig{}, err
+	}
+
+	return shareableConfig, nil
+}
+
+func loadFromFile(filePath string) (ShareableConfig, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return ShareableConfig{}, err
+	}
+
+	var shareableConfig ShareableConfig
+	if err := json.Unmarshal(data, &shareableConfig); err != nil {
+		return ShareableConfig{}, err
+	}
+
+	return shareableConfig, nil
+}
+
+func uploadToWebApp(config ShareableConfig, public bool) (string, error) {
+	// Get API endpoint
+	apiEndpoint := os.Getenv("DOTFILES_API_ENDPOINT")
+	if apiEndpoint == "" {
+		apiEndpoint = "https://your-web-app.com/api"
+	}
+
+	// Convert config to JSON
+	configJSON, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	// Create upload request
+	uploadReq := map[string]interface{}{
+		"name":        config.Metadata.Name,
+		"description": config.Metadata.Description,
+		"author":      config.Metadata.Author,
+		"tags":        config.Metadata.Tags,
+		"config":      string(configJSON),
+		"public":      public,
+	}
+
+	reqBody, err := json.Marshal(uploadReq)
+	if err != nil {
+		return "", err
+	}
+
+	// Make request to web app API
+	url := fmt.Sprintf("%s/configs/upload", apiEndpoint)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "dotfiles-manager")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("web app API error: %s - %s", resp.Status, string(body))
+	}
+
+	var uploadResp struct {
+		ID  string `json:"id"`
+		URL string `json:"url"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&uploadResp); err != nil {
+		return "", err
+	}
+
+	return uploadResp.URL, nil
+}
+
+func downloadFromWebApp(webAppURL string) (ShareableConfig, error) {
+	// Extract config ID from URL or use URL directly as API endpoint
+	// Assuming URL format: https://your-web-app.com/config/123
+	apiURL := strings.Replace(webAppURL, "/config/", "/api/configs/", 1)
+
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return ShareableConfig{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return ShareableConfig{}, fmt.Errorf("failed to download from web app: %s", resp.Status)
+	}
+
+	var shareableConfig ShareableConfig
+	if err := json.NewDecoder(resp.Body).Decode(&shareableConfig); err != nil {
+		return ShareableConfig{}, err
+	}
+
+	return shareableConfig, nil
+}
+
+// Note: askConfirmation function is already defined in onboard.go
 
 func init() {
+	// Share gist flags
+	shareGistCmd.Flags().StringP("name", "n", "", "Name for the shared config (required)")
+	shareGistCmd.Flags().StringP("description", "d", "", "Description of the config")
+	shareGistCmd.Flags().StringP("author", "a", "", "Author name")
+	shareGistCmd.Flags().StringSliceP("tags", "t", []string{}, "Tags for categorization (e.g., web-dev,mobile)")
+	shareGistCmd.Flags().Bool("private", false, "Create private gist")
+
+	// Share file flags
+	shareFileCmd.Flags().StringP("name", "n", "", "Name for the shared config (required)")
+	shareFileCmd.Flags().StringP("description", "d", "", "Description of the config")
+	shareFileCmd.Flags().StringP("author", "a", "", "Author name")
+	shareFileCmd.Flags().StringSliceP("tags", "t", []string{}, "Tags for categorization")
+
+	// Clone flags
+	cloneCmd.Flags().Bool("merge", false, "Merge with existing config instead of replacing")
+	cloneCmd.Flags().Bool("preview", false, "Preview config without importing")
+
+	shareCmd.AddCommand(shareGistCmd)
+	shareCmd.AddCommand(shareFileCmd)
 	rootCmd.AddCommand(shareCmd)
-
-	// Add subcommands
-	shareCmd.AddCommand(shareExportCmd)
-	shareCmd.AddCommand(shareImportCmd)
-	shareCmd.AddCommand(shareValidateCmd)
-
-	// Flags for export
-	shareExportCmd.Flags().Bool("include-personal", false, "Include personal information in export")
-	shareExportCmd.Flags().Bool("preset", false, "Export as a preset file to presets/ directory")
-	shareExportCmd.Flags().String("description", "", "Description for the exported configuration")
-
-	// Flags for import
-	shareImportCmd.Flags().Bool("force", false, "Overwrite existing configuration without prompting")
-	shareImportCmd.Flags().Bool("dry-run", false, "Show what would be imported without saving")
-}
-
-func runShareExport(cmd *cobra.Command, args []string) error {
-	ui.PrintSection("Export Configuration")
-
-	// Load current configuration
-	configManager := config.NewManager(cfgFile)
-	if err := configManager.Load(); err != nil {
-		return fmt.Errorf("failed to load configuration: %w", err)
-	}
-
-	cfg := configManager.Get()
-	if cfg == nil {
-		return fmt.Errorf("no configuration found\nRun 'dotfiles setup' to create a configuration")
-	}
-
-	// Get flags
-	includePersonal, _ := cmd.Flags().GetBool("include-personal")
-	isPreset, _ := cmd.Flags().GetBool("preset")
-	description, _ := cmd.Flags().GetString("description")
-
-	// Create export copy
-	exportCfg := *cfg
-
-	// Remove personal information unless explicitly requested
-	if !includePersonal {
-		exportCfg.Personal.Name = ""
-		exportCfg.Personal.Email = ""
-		ui.PrintInfo("Personal information removed for privacy")
-	}
-
-	// Update metadata
-	exportCfg.Metadata.CreatedBy = "exported"
-	if description != "" {
-		exportCfg.Metadata.Description = description
-	}
-
-	// Determine filename
-	var filename string
-	if len(args) > 0 {
-		filename = args[0]
-	} else if isPreset {
-		filename = ui.Input("Enter preset name", "my-config")
-		if !strings.HasSuffix(filename, ".json") {
-			filename += ".json"
-		}
-		filename = filepath.Join("presets", filename)
-	} else {
-		filename = "shared-config.json"
-	}
-
-	// Ensure directory exists for presets
-	if isPreset {
-		if err := os.MkdirAll("presets", 0755); err != nil {
-			return fmt.Errorf("failed to create presets directory: %w", err)
-		}
-	}
-
-	// Marshal to JSON
-	data, err := json.MarshalIndent(&exportCfg, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal configuration: %w", err)
-	}
-
-	// Write file
-	if err := os.WriteFile(filename, data, 0644); err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
-	}
-
-	ui.PrintSuccess(fmt.Sprintf("Configuration exported to: %s", filename))
-
-	if isPreset {
-		fmt.Println()
-		ui.PrintInfo("Preset saved! Others can use it with:")
-		fmt.Printf("  dotfiles setup --preset %s\n", strings.TrimSuffix(filepath.Base(filename), ".json"))
-	} else {
-		fmt.Println()
-		ui.PrintInfo("Share this file with others! They can import it with:")
-		fmt.Printf("  dotfiles share import %s\n", filename)
-	}
-
-	return nil
-}
-
-func runShareImport(cmd *cobra.Command, args []string) error {
-	filename := args[0]
-
-	ui.PrintSection("Import Configuration")
-	ui.PrintInfo(fmt.Sprintf("Importing from: %s", filename))
-
-	// Read and validate file
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var importCfg config.Config
-	if err := json.Unmarshal(data, &importCfg); err != nil {
-		return fmt.Errorf("failed to parse configuration: %w", err)
-	}
-
-	// Get flags
-	force, _ := cmd.Flags().GetBool("force")
-	dryRun, _ := cmd.Flags().GetBool("dry-run")
-
-	// Show preview
-	fmt.Println()
-	ui.PrintInfo("Configuration Preview:")
-	showImportPreview(&importCfg)
-
-	if dryRun {
-		ui.PrintInfo("Dry run - no changes made")
-		return nil
-	}
-
-	// Check if config exists
-	configManager := config.NewManager(cfgFile)
-	if !force {
-		if err := configManager.Load(); err == nil {
-			ui.PrintWarning("Existing configuration found!")
-			if !ui.Confirm("This will overwrite your current configuration. Continue?") {
-				ui.PrintInfo("Import cancelled")
-				return nil
-			}
-		}
-	}
-
-	// Prompt for personal information if missing
-	if importCfg.Personal.Name == "" {
-		fmt.Println()
-		ui.PrintSection("Personal Information")
-		importCfg.Personal.Name = ui.Input("Your name", "")
-		importCfg.Personal.Email = ui.Input("Your email", "")
-	}
-
-	// Update metadata
-	importCfg.Metadata.CreatedBy = "imported"
-
-	// Save configuration
-	configManager.Set(&importCfg)
-	if err := configManager.Validate(); err != nil {
-		return fmt.Errorf("imported configuration is invalid: %w", err)
-	}
-
-	if err := configManager.Save(); err != nil {
-		return fmt.Errorf("failed to save configuration: %w", err)
-	}
-
-	ui.PrintSuccess("Configuration imported successfully!")
-	fmt.Println()
-	ui.PrintInfo("Next steps:")
-	fmt.Println("  • Run 'dotfiles install' to apply the configuration")
-	fmt.Println("  • Run 'dotfiles config show' to review settings")
-
-	return nil
-}
-
-func runShareValidate(cmd *cobra.Command, args []string) error {
-	filename := args[0]
-
-	ui.PrintSection("Validate Configuration")
-	ui.PrintInfo(fmt.Sprintf("Validating: %s", filename))
-
-	// Read file
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		ui.PrintError(fmt.Sprintf("Failed to read file: %v", err))
-		return err
-	}
-
-	// Parse JSON
-	var cfg config.Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		ui.PrintError(fmt.Sprintf("Invalid JSON: %v", err))
-		return err
-	}
-
-	ui.PrintSuccess("JSON syntax is valid")
-
-	// Validate structure
-	configManager := config.NewManager("")
-	configManager.Set(&cfg)
-
-	if err := configManager.Validate(); err != nil {
-		ui.PrintError(fmt.Sprintf("Configuration validation failed: %v", err))
-		return err
-	}
-
-	ui.PrintSuccess("Configuration structure is valid")
-
-	// Show summary
-	fmt.Println()
-	ui.PrintInfo("Configuration Summary:")
-	showImportPreview(&cfg)
-
-	return nil
-}
-
-func showImportPreview(cfg *config.Config) {
-	if cfg.Metadata.Description != "" {
-		fmt.Printf("  Description: %s\n", cfg.Metadata.Description)
-	}
-	if cfg.Metadata.CreatedBy != "" {
-		fmt.Printf("  Created by: %s\n", cfg.Metadata.CreatedBy)
-	}
-
-	// Count enabled features
-	langCount := 0
-	for _, enabled := range cfg.Development.Languages {
-		if enabled {
-			langCount++
-		}
-	}
-
-	fmt.Printf("  Languages: %d enabled\n", langCount)
-	fmt.Printf("  Extra packages: %d brews, %d casks\n",
-		len(cfg.Packages.ExtraBrews), len(cfg.Packages.ExtraCasks))
-	fmt.Printf("  System settings: dock=%s, dark_mode=%t\n",
-		cfg.System.Dock.Position, cfg.System.Appearance.DarkMode)
+	rootCmd.AddCommand(cloneCmd)
 }
