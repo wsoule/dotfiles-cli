@@ -26,21 +26,21 @@ A comprehensive command-line tool that manages your entire development environme
 
 ### 🍺 Homebrew (Recommended)
 ```bash
-brew tap wyatsoule/tap
+brew tap wsoule/tap
 brew install dotfiles
 ```
 
 ### 🚀 One-liner Install
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wyatsoule/go-dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wsoule/go-dotfiles/main/install.sh | bash
 ```
 
 ### 📦 GitHub Releases
-Download the latest binary from [releases](https://github.com/wyatsoule/go-dotfiles/releases/latest)
+Download the latest binary from [releases](https://github.com/wsoule/go-dotfiles/releases/latest)
 
 ### 🔨 Build from Source
 ```bash
-git clone https://github.com/wyatsoule/go-dotfiles.git
+git clone https://github.com/wsoule/go-dotfiles.git
 cd go-dotfiles
 go build -o dotfiles
 ```
@@ -463,7 +463,7 @@ Go_Dotfiles/
 This package will be available via a custom Homebrew tap:
 
 ```bash
-brew tap wyatsoule/tap
+brew tap wsoule/tap
 brew install dotfiles
 ```
 

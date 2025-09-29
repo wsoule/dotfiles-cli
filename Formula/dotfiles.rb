@@ -2,8 +2,8 @@
 #                https://rubydoc.brew.sh/Formula
 class Dotfiles < Formula
   desc "Modern dotfiles manager with Homebrew and GNU Stow integration"
-  homepage "https://github.com/wyatsoule/go-dotfiles"
-  url "https://github.com/wyatsoule/go-dotfiles/archive/v1.0.0.tar.gz"
+  homepage "https://github.com/wsoule/go-dotfiles"
+  url "https://github.com/wsoule/go-dotfiles/archive/v1.0.0.tar.gz"
   sha256 "PLACEHOLDER_SHA256"
   license "MIT"
   version "1.0.0"
