@@ -204,9 +204,6 @@ func showSSHInstructions(pubKeyPath string) {
 
 func installEssentialPackages(skipInteractive bool) error {
 	essentialPackages := map[string][]string{
-		"taps": {
-			"homebrew/cask-fonts",
-		},
 		"brews": {
 			"git",
 			"curl",
@@ -218,8 +215,10 @@ func installEssentialPackages(skipInteractive bool) error {
 		},
 		"casks": {
 			"visual-studio-code",
-			"iterm2",
-			"rectangle",
+			"ghostty",
+			"raycast",
+			"font-jetbrains-mono-nerd-font",
+			"font-ubuntu-mono-nerd-font",
 		},
 	}
 
@@ -342,3 +341,4 @@ func init() {
 
 	rootCmd.AddCommand(onboardCmd)
 }
+

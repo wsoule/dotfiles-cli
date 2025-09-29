@@ -47,6 +47,18 @@ go build -o dotfiles
 
 ## 🚀 Quick Start
 
+### 🆕 Setup from a Repository (Recommended)
+```bash
+# Setup dotfiles from your GitHub repository
+dotfiles setup https://github.com/your-username/your-dotfiles.git
+
+# This will:
+# - Clone your repo to ~/.dotfiles/
+# - Create a stow/ directory for your packages
+# - Create a private/ directory for sensitive files
+# - Set up proper directory structure
+```
+
 ### 🎯 For New Developers (Complete Setup)
 ```bash
 # Complete onboarding with everything included
@@ -95,6 +107,7 @@ Usage:
   dotfiles [command]
 
 Available Commands:
+  setup       Fork and setup a dotfiles repository                 🆕 NEW!
   onboard     Complete developer onboarding and environment setup  🎯 NEW!
   github      Set up GitHub with SSH keys                          🔐 NEW!
   share       Share your configuration with others                 🤝 NEW!
@@ -346,33 +359,49 @@ brew "lazygit"
 cask "visual-studio-code"
 ```
 
-### Stow Directory Structure
+### Directory Structure
 
-For Stow packages, organize your dotfiles in the `~/.dotfiles` directory:
+The `dotfiles setup` command creates an organized directory structure at `~/.dotfiles/`:
 
 ```
 ~/.dotfiles/
-├── vim/
-│   ├── .vimrc
-│   └── .vim/
-│       └── ... (vim config files)
-├── zsh/
-│   ├── .zshrc
-│   ├── .zprofile
-│   └── .zsh/
-│       └── ... (zsh config files)
-└── tmux/
-    └── .tmux.conf
+├── config.json          # Your package configuration
+├── .gitignore           # Excludes private/ directory
+├── stow/                # Stow packages directory
+│   ├── config/          # Auto-created .config package
+│   │   └── .config/
+│   ├── vim/
+│   │   ├── .vimrc
+│   │   └── .vim/
+│   │       └── ... (vim config files)
+│   ├── zsh/
+│   │   ├── .zshrc
+│   │   ├── .zprofile
+│   │   └── .zsh/
+│   │       └── ... (zsh config files)
+│   └── tmux/
+│       └── .tmux.conf
+└── private/             # Private files (excluded from git)
+    ├── .env.local       # Local environment variables
+    ├── .gitconfig.local # Personal git config
+    └── .ssh/            # SSH keys and config
 ```
 
-When you run `dotfiles stow vim`, it will create symlinks:
-- `~/.vimrc` → `~/.dotfiles/vim/.vimrc`
-- `~/.vim/` → `~/.dotfiles/vim/.vim/`
+### Stow Integration
+
+When you run `dotfiles stow vim`, it will create symlinks from the `stow/` directory:
+- `~/.vimrc` → `~/.dotfiles/stow/vim/.vimrc`
+- `~/.vim/` → `~/.dotfiles/stow/vim/.vim/`
+
+For `.config` files, use the auto-created `config` package:
+- Put files in `~/.dotfiles/stow/config/.config/`
+- Run `dotfiles stow config` to symlink them
 
 ## 📚 Command Reference
 
 | Command | Description | Key Flags |
 |---------|-------------|-----------|
+| `dotfiles setup <repo-url>` 🆕 | Fork and setup dotfiles repository | `--force` |
 | `dotfiles onboard` ⭐ | Complete developer setup | `--email=<email>`, `--skip-*` |
 | `dotfiles github setup` 🔐 | Set up GitHub SSH keys | `--email=<email>`, `--key-type=<type>` |
 | `dotfiles github test` 🧪 | Test GitHub SSH connection | None |

@@ -124,7 +124,7 @@ var shareGistCmd = &cobra.Command{
 		if webAppURL != "" {
 			finalURL = webAppURL
 		} else {
-			finalURL = gistURL
+			// finalURL = gistURL
 		}
 		if err := copyToClipboard(finalURL); err == nil {
 			fmt.Println("📋 URL copied to clipboard!")

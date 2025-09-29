@@ -38,10 +38,10 @@ var stowCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Get stow directory from flag or default to ~/.dotfiles
+		// Get stow directory from flag or default to ~/.dotfiles/stow
 		stowDir, _ := cmd.Flags().GetString("dir")
 		if stowDir == "" {
-			stowDir = filepath.Join(home, ".dotfiles")
+			stowDir = filepath.Join(home, ".dotfiles", "stow")
 		}
 
 		// Get target directory from flag or default to home
@@ -172,10 +172,10 @@ var unstowCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Get stow directory from flag or default to ~/.dotfiles
+		// Get stow directory from flag or default to ~/.dotfiles/stow
 		stowDir, _ := cmd.Flags().GetString("dir")
 		if stowDir == "" {
-			stowDir = filepath.Join(home, ".dotfiles")
+			stowDir = filepath.Join(home, ".dotfiles", "stow")
 		}
 
 		// Get target directory from flag or default to home
@@ -308,10 +308,10 @@ var restowCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Get stow directory from flag or default to ~/.dotfiles
+		// Get stow directory from flag or default to ~/.dotfiles/stow
 		stowDir, _ := cmd.Flags().GetString("dir")
 		if stowDir == "" {
-			stowDir = filepath.Join(home, ".dotfiles")
+			stowDir = filepath.Join(home, ".dotfiles", "stow")
 		}
 
 		// Get target directory from flag or default to home
@@ -404,14 +404,14 @@ var restowCmd = &cobra.Command{
 
 func init() {
 	// Stow command flags
-	stowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles)")
+	stowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles/stow)")
 	stowCmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
 	stowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
 	stowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
 	stowCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
 
 	// Unstow command flags
-	unstowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles)")
+	unstowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles/stow)")
 	unstowCmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
 	unstowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
 	unstowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
@@ -420,7 +420,7 @@ func init() {
 	unstowCmd.Flags().Bool("keep-config", false, "Don't remove packages from config")
 
 	// Restow command flags
-	restowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles)")
+	restowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles/stow)")
 	restowCmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
 	restowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
 	restowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
