@@ -10,7 +10,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REPO="wsoule/go-dotfiles"
+REPO="wsoule/new-dotfiles"
 BINARY_NAME="dotfiles"
 INSTALL_DIR="/usr/local/bin"
 
