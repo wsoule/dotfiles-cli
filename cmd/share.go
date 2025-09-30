@@ -447,10 +447,10 @@ func loadFromFile(filePath string) (ShareableConfig, error) {
 }
 
 func uploadToWebApp(config ShareableConfig, public bool) (string, error) {
-	// Get API endpoint
+	// Get API endpoint (with hardcoded default)
 	apiEndpoint := os.Getenv("DOTFILES_API_ENDPOINT")
 	if apiEndpoint == "" {
-		apiEndpoint = "https://your-web-app.com/api"
+		apiEndpoint = "https://new-dotfiles-production.up.railway.app/api"
 	}
 
 	// Convert config to JSON
