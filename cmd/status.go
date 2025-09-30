@@ -199,7 +199,7 @@ func checkStowPackages(configuredStow []string) {
 		return
 	}
 
-	stowDir := filepath.Join(home, ".dotfiles")
+	stowDir := filepath.Join(home, ".dotfiles", "stow")
 
 	// Check if stow is available
 	if _, err := exec.LookPath("stow"); err != nil {

@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"dotfiles/internal/config"
 	"github.com/spf13/cobra"
@@ -80,11 +81,23 @@ var stowCmd = &cobra.Command{
 				continue
 			}
 
-			// Check if package directory exists
+			// Check if package directory exists, if not try to import it
 			pkgPath := filepath.Join(stowDir, pkg)
 			if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
-				fmt.Printf("❌ Package directory not found: %s\n", pkgPath)
-				continue
+				// Try to auto-import from home directory
+				homeDirPath := filepath.Join(target, "."+pkg)
+				if _, err := os.Stat(homeDirPath); err == nil {
+					fmt.Printf("📥 Found ~/.%s directory, importing...\n", pkg)
+					if err := importDotfileDirectory(pkg, homeDirPath, pkgPath); err != nil {
+						fmt.Printf("❌ Failed to import ~/.%s: %v\n", pkg, err)
+						continue
+					}
+					fmt.Printf("✅ Successfully imported ~/.%s to stow package\n", pkg)
+				} else {
+					fmt.Printf("❌ Package directory not found: %s\n", pkgPath)
+					fmt.Printf("   💡 Create it manually or place files in ~/.%s to auto-import\n", pkg)
+					continue
+				}
 			}
 
 			// Build stow command
@@ -430,4 +443,31 @@ func init() {
 	rootCmd.AddCommand(stowCmd)
 	rootCmd.AddCommand(unstowCmd)
 	rootCmd.AddCommand(restowCmd)
+}
+
+// importDotfileDirectory moves a dotfile directory from home to stow package structure
+func importDotfileDirectory(pkgName, sourcePath, destPath string) error {
+	// Create the stow package directory
+	if err := os.MkdirAll(destPath, 0755); err != nil {
+		return fmt.Errorf("failed to create stow package directory: %v", err)
+	}
+
+	// Move the source directory to the stow package
+	targetPath := filepath.Join(destPath, "."+pkgName)
+
+	// Create backup of original if it already exists
+	if _, err := os.Stat(targetPath); err == nil {
+		backupPath := targetPath + ".backup." + fmt.Sprintf("%d", time.Now().Unix())
+		if err := os.Rename(targetPath, backupPath); err != nil {
+			return fmt.Errorf("failed to backup existing directory: %v", err)
+		}
+		fmt.Printf("   📋 Backed up existing %s to %s\n", targetPath, backupPath)
+	}
+
+	// Move the original directory to the stow package
+	if err := os.Rename(sourcePath, targetPath); err != nil {
+		return fmt.Errorf("failed to move directory: %v", err)
+	}
+
+	return nil
 }
