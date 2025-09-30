@@ -265,8 +265,14 @@ var cloneCmd = &cobra.Command{
 		var err error
 
 		if strings.HasPrefix(source, "http") {
-			// Try web app first, then GitHub Gist
-			if strings.Contains(source, "your-web-app.com") {
+			// Check if it's a template or config URL from our Railway app
+			if strings.Contains(source, "new-dotfiles-production.up.railway.app") {
+				if strings.Contains(source, "/templates/") {
+					shareableConfig, err = downloadTemplate(source)
+				} else {
+					shareableConfig, err = downloadFromWebApp(source)
+				}
+			} else if strings.Contains(source, "your-web-app.com") {
 				shareableConfig, err = downloadFromWebApp(source)
 			} else {
 				// Handle GitHub Gist URL
@@ -557,6 +563,9 @@ func downloadFromWebApp(webAppURL string) (ShareableConfig, error) {
 	// Extract config ID from URL or use URL directly as API endpoint
 	// Assuming URL format: https://your-web-app.com/config/123
 	apiURL := strings.Replace(webAppURL, "/config/", "/api/configs/", 1)
+	if !strings.HasSuffix(apiURL, "/download") {
+		apiURL += "/download"
+	}
 
 	resp, err := http.Get(apiURL)
 	if err != nil {
@@ -566,6 +575,33 @@ func downloadFromWebApp(webAppURL string) (ShareableConfig, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		return ShareableConfig{}, fmt.Errorf("failed to download from web app: %s", resp.Status)
+	}
+
+	var shareableConfig ShareableConfig
+	if err := json.NewDecoder(resp.Body).Decode(&shareableConfig); err != nil {
+		return ShareableConfig{}, err
+	}
+
+	return shareableConfig, nil
+}
+
+func downloadTemplate(templateURL string) (ShareableConfig, error) {
+	// Convert template URL to download URL
+	// From: https://new-dotfiles-production.up.railway.app/api/templates/123
+	// To: https://new-dotfiles-production.up.railway.app/api/templates/123/download
+	downloadURL := templateURL
+	if !strings.HasSuffix(downloadURL, "/download") {
+		downloadURL += "/download"
+	}
+
+	resp, err := http.Get(downloadURL)
+	if err != nil {
+		return ShareableConfig{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return ShareableConfig{}, fmt.Errorf("failed to download template: %s", resp.Status)
 	}
 
 	var shareableConfig ShareableConfig

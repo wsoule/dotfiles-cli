@@ -676,10 +676,10 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 
 	apiURL := os.Getenv("DOTFILES_API_URL")
 	if apiURL == "" {
-		apiURL = "https://api.dotfiles.dev"
+		apiURL = "https://new-dotfiles-production.up.railway.app"
 	}
 
-	resp, err := http.Post(apiURL+"/templates", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(apiURL+"/api/templates", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to push template: %v", err)
 	}
@@ -711,10 +711,10 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 	apiURL := os.Getenv("DOTFILES_API_URL")
 	if apiURL == "" {
-		apiURL = "https://api.dotfiles.dev"
+		apiURL = "https://new-dotfiles-production.up.railway.app"
 	}
 
-	apiEndpoint := apiURL + "/templates"
+	apiEndpoint := apiURL + "/api/templates"
 	params := make([]string, 0)
 
 	if search != "" {
@@ -784,7 +784,7 @@ func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 		}
 		fmt.Printf(" | 📥 Downloads: %d\n", tmpl.Downloads)
 
-		fmt.Printf("   💾 Install: dotfiles templates install %s\n", tmpl.ID)
+		fmt.Printf("   💾 Clone: dotfiles clone https://new-dotfiles-production.up.railway.app/api/templates/%s\n", tmpl.ID)
 		fmt.Println()
 	}
 

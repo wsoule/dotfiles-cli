@@ -32,16 +32,16 @@ brew install dotfiles
 
 ### 🚀 One-liner Install
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wsoule/go-dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wsoule/new-dotfiles/main/install.sh | bash
 ```
 
 ### 📦 GitHub Releases
-Download the latest binary from [releases](https://github.com/wsoule/go-dotfiles/releases/latest)
+Download the latest binary from [releases](https://github.com/wsoule/new-dotfiles/releases/latest)
 
 ### 🔨 Build from Source
 ```bash
-git clone https://github.com/wsoule/go-dotfiles.git
-cd go-dotfiles
+git clone https://github.com/wsoule/new-dotfiles.git
+cd new-dotfiles
 go build -o dotfiles
 ```
 
