@@ -701,7 +701,7 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 
 	apiURL := os.Getenv("DOTFILES_API_URL")
 	if apiURL == "" {
-		apiURL = "https://new-dotfiles-production.up.railway.app"
+		apiURL = "https://dotfiles.wyat.me"
 	}
 
 	resp, err := http.Post(apiURL+"/api/templates", "application/json", bytes.NewBuffer(jsonData))
@@ -736,7 +736,7 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 	apiURL := os.Getenv("DOTFILES_API_URL")
 	if apiURL == "" {
-		apiURL = "https://new-dotfiles-production.up.railway.app"
+		apiURL = "https://dotfiles.wyat.me"
 	}
 
 	apiEndpoint := apiURL + "/api/templates"
@@ -809,7 +809,7 @@ func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 		}
 		fmt.Printf(" | 📥 Downloads: %d\n", tmpl.Downloads)
 
-		fmt.Printf("   💾 Clone: dotfiles clone https://new-dotfiles-production.up.railway.app/api/templates/%s\n", tmpl.ID)
+		fmt.Printf("   💾 Clone: dotfiles clone https://dotfiles.wyat.me/api/templates/%s\n", tmpl.ID)
 		fmt.Println()
 	}
 

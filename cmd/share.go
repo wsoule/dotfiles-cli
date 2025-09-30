@@ -251,7 +251,7 @@ Import shared configurations or templates from various sources:
 
 Sources:
 • Template: template:web-dev
-• API URL: https://new-dotfiles-production.up.railway.app/api/templates/id
+• API URL: https://dotfiles.wyat.me/api/templates/id
 • Gist: https://gist.github.com/user/gist-id
 • File: /path/to/config.json
 
@@ -288,7 +288,7 @@ Popular templates:
 
 		if strings.HasPrefix(source, "http") {
 			// Check if it's a template or config URL from our Railway app
-			if strings.Contains(source, "new-dotfiles-production.up.railway.app") {
+			if strings.Contains(source, "dotfiles.wyat.me") {
 				if strings.Contains(source, "/templates/") {
 					shareableConfig, err = downloadTemplate(source)
 				} else {
@@ -524,7 +524,7 @@ func uploadToWebApp(config ShareableConfig, public bool) (string, error) {
 	// Get API endpoint (with hardcoded default)
 	apiEndpoint := os.Getenv("DOTFILES_API_ENDPOINT")
 	if apiEndpoint == "" {
-		apiEndpoint = "https://new-dotfiles-production.up.railway.app/api"
+		apiEndpoint = "https://dotfiles.wyat.me/api"
 	}
 
 	// Convert config to JSON
@@ -609,8 +609,8 @@ func downloadFromWebApp(webAppURL string) (ShareableConfig, error) {
 
 func downloadTemplate(templateURL string) (ShareableConfig, error) {
 	// Convert template URL to download URL
-	// From: https://new-dotfiles-production.up.railway.app/api/templates/123
-	// To: https://new-dotfiles-production.up.railway.app/api/templates/123/download
+	// From: https://dotfiles.wyat.me/api/templates/123
+	// To: https://dotfiles.wyat.me/api/templates/123/download
 	downloadURL := templateURL
 	if !strings.HasSuffix(downloadURL, "/download") {
 		downloadURL += "/download"
