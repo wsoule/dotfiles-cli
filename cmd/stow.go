@@ -415,6 +415,80 @@ var restowCmd = &cobra.Command{
 	},
 }
 
+var privateCmd = &cobra.Command{
+	Use:   "private <package> <file>",
+	Short: "Add a private file to a stow package",
+	Long:  `Create a symlink in a stow package that points to a file in the private directory`,
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("Error getting home directory: %v\n", err)
+			os.Exit(1)
+		}
+
+		pkg := args[0]
+		filename := args[1]
+
+		stowDir := filepath.Join(home, ".dotfiles", "stow")
+		privateDir := filepath.Join(home, ".dotfiles", "private")
+
+		// Ensure the private directory exists
+		if err := os.MkdirAll(privateDir, 0755); err != nil {
+			fmt.Printf("Error creating private directory: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Ensure the stow package directory exists
+		pkgPath := filepath.Join(stowDir, pkg)
+		if err := os.MkdirAll(pkgPath, 0755); err != nil {
+			fmt.Printf("Error creating stow package directory: %v\n", err)
+			os.Exit(1)
+		}
+
+		privatePath := filepath.Join(privateDir, filename)
+		stowLinkPath := filepath.Join(pkgPath, filename)
+
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		verbose, _ := cmd.Flags().GetBool("verbose")
+
+		if dryRun {
+			fmt.Printf("Would create symlink: %s -> ../../private/%s\n", stowLinkPath, filename)
+			return
+		}
+
+		// Check if the private file exists
+		if _, err := os.Stat(privatePath); os.IsNotExist(err) {
+			fmt.Printf("⚠️  Private file doesn't exist: %s\n", privatePath)
+			fmt.Printf("   Create the file first, then run this command again.\n")
+			return
+		}
+
+		// Create relative symlink from stow package to private directory
+		relativePrivatePath := filepath.Join("..", "..", "private", filename)
+
+		// Remove existing symlink if it exists
+		if _, err := os.Lstat(stowLinkPath); err == nil {
+			if err := os.Remove(stowLinkPath); err != nil {
+				fmt.Printf("Error removing existing symlink: %v\n", err)
+				os.Exit(1)
+			}
+		}
+
+		// Create the symlink
+		if err := os.Symlink(relativePrivatePath, stowLinkPath); err != nil {
+			fmt.Printf("Error creating symlink: %v\n", err)
+			os.Exit(1)
+		}
+
+		if verbose {
+			fmt.Printf("Created symlink: %s -> %s\n", stowLinkPath, relativePrivatePath)
+		}
+		fmt.Printf("✅ Private file linked: %s/%s -> private/%s\n", pkg, filename, filename)
+		fmt.Printf("   💡 Now run: dotfiles stow %s\n", pkg)
+	},
+}
+
 func init() {
 	// Stow command flags
 	stowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles/stow)")
@@ -440,9 +514,14 @@ func init() {
 	restowCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
 	restowCmd.Flags().Bool("all", false, "Restow all configured stow packages")
 
+	// Private command flags
+	privateCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
+	privateCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
+
 	rootCmd.AddCommand(stowCmd)
 	rootCmd.AddCommand(unstowCmd)
 	rootCmd.AddCommand(restowCmd)
+	rootCmd.AddCommand(privateCmd)
 }
 
 // importDotfileDirectory moves a dotfile directory from home to stow package structure

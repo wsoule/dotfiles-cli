@@ -49,13 +49,14 @@ var githubSetupCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		sshDir := filepath.Join(home, ".ssh")
-		keyPath := filepath.Join(sshDir, "id_"+keyType)
+		// Use private directory for SSH keys
+		privateSshDir := filepath.Join(home, ".dotfiles", "private", ".ssh")
+		keyPath := filepath.Join(privateSshDir, "id_"+keyType)
 		pubKeyPath := keyPath + ".pub"
 
-		// Create .ssh directory if it doesn't exist
-		if err := os.MkdirAll(sshDir, 0700); err != nil {
-			fmt.Printf("❌ Error creating .ssh directory: %v\n", err)
+		// Create private .ssh directory if it doesn't exist
+		if err := os.MkdirAll(privateSshDir, 0700); err != nil {
+			fmt.Printf("❌ Error creating private .ssh directory: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -111,7 +112,15 @@ var githubSetupCmd = &cobra.Command{
 			fmt.Println()
 		}
 
-		// Show public key
+		// Set up SSH stow package
+		fmt.Println("🔗 Setting up SSH stow package...")
+		if err := setupSSHStowPackage(home, privateSshDir); err != nil {
+			fmt.Printf("⚠️  Warning: Could not set up SSH stow package: %v\n", err)
+		} else {
+			fmt.Println("✅ SSH stow package created")
+		}
+
+		// Show public key and next steps
 		showPublicKey(pubKeyPath)
 	},
 }
@@ -179,7 +188,8 @@ func showPublicKey(pubKeyPath string) {
 	fmt.Println("3. Add a title (e.g., 'My Development Machine')")
 	fmt.Println("4. Paste the public key")
 	fmt.Println("5. Click 'Add SSH key'")
-	fmt.Println("6. Test with: dotfiles github test")
+	fmt.Println("6. Run: dotfiles stow ssh (to symlink SSH keys to home directory)")
+	fmt.Println("7. Test with: dotfiles github test")
 	fmt.Println()
 
 	// Try to copy to clipboard
@@ -188,6 +198,37 @@ func showPublicKey(pubKeyPath string) {
 	} else {
 		fmt.Printf("⚠️  Could not copy to clipboard: %v\n", err)
 	}
+}
+
+func setupSSHStowPackage(home, privateSshDir string) error {
+	stowDir := filepath.Join(home, ".dotfiles", "stow")
+	sshStowDir := filepath.Join(stowDir, "ssh")
+
+	// Create ssh stow package directory
+	if err := os.MkdirAll(sshStowDir, 0755); err != nil {
+		return fmt.Errorf("failed to create ssh stow directory: %v", err)
+	}
+
+	// Create relative symlink from stow package to private .ssh directory
+	stowSshLink := filepath.Join(sshStowDir, ".ssh")
+	relativePrivatePath := filepath.Join("..", "..", "private", ".ssh")
+
+	// Remove existing symlink if it exists
+	if _, err := os.Lstat(stowSshLink); err == nil {
+		if err := os.Remove(stowSshLink); err != nil {
+			return fmt.Errorf("failed to remove existing symlink: %v", err)
+		}
+	}
+
+	// Create the symlink
+	if err := os.Symlink(relativePrivatePath, stowSshLink); err != nil {
+		return fmt.Errorf("failed to create symlink: %v", err)
+	}
+
+	fmt.Printf("   Created symlink: %s -> %s\n", stowSshLink, relativePrivatePath)
+	fmt.Printf("   💡 Run 'dotfiles stow ssh' to symlink SSH keys to home directory\n")
+
+	return nil
 }
 
 func copyToClipboard(text string) error {

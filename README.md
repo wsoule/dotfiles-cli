@@ -110,6 +110,7 @@ Available Commands:
   setup       Fork and setup a dotfiles repository                 🆕 NEW!
   onboard     Complete developer onboarding and environment setup  🎯 NEW!
   github      Set up GitHub with SSH keys                          🔐 NEW!
+  private     Add private files to stow packages                   🔒 NEW!
   share       Share your configuration with others                 🤝 NEW!
   clone       Clone a shared configuration                         📥 NEW!
   templates   Browse and use configuration templates               📚 NEW!
@@ -307,6 +308,20 @@ brew bundle --file=./Brewfile
 ./dotfiles stow --dry-run --verbose vim
 ```
 
+### Working with Private Files
+```bash
+# First, move your private file to the private directory
+mv ~/.env-private.sh ~/.dotfiles/private/.env-private.sh
+
+# Create a symlink in a stow package that points to the private file
+./dotfiles private shell .env-private.sh
+
+# Now stow the package to create the final symlink
+./dotfiles stow shell
+
+# This creates: ~/.env-private.sh -> ~/.dotfiles/stow/shell/.env-private.sh -> ~/.dotfiles/private/.env-private.sh
+```
+
 ### Status and Backup Operations
 ```bash
 # Check installation status of all packages
@@ -405,6 +420,7 @@ For `.config` files, use the auto-created `config` package:
 | `dotfiles onboard` ⭐ | Complete developer setup | `--email=<email>`, `--skip-*` |
 | `dotfiles github setup` 🔐 | Set up GitHub SSH keys | `--email=<email>`, `--key-type=<type>` |
 | `dotfiles github test` 🧪 | Test GitHub SSH connection | None |
+| `dotfiles private <package> <file>` 🔒 | Add private file to stow package | `--dry-run`, `--verbose` |
 | `dotfiles templates list` 📚 | Browse configuration templates | None |
 | `dotfiles templates show <name>` | Preview template details | None |
 | `dotfiles share gist` 🤝 | Share config via GitHub Gist | `--name=<name>`, `--description`, `--private` |
