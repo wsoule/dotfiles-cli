@@ -73,6 +73,8 @@ var stowCmd = &cobra.Command{
 
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		verbose, _ := cmd.Flags().GetBool("verbose")
+		backup, _ := cmd.Flags().GetBool("backup")
+		autoResolve, _ := cmd.Flags().GetBool("auto-resolve")
 		added := 0
 
 		for _, pkg := range packages {
@@ -115,6 +117,29 @@ var stowCmd = &cobra.Command{
 			}
 
 			stowArgs = append(stowArgs, pkg)
+
+			// Check for conflicts before stowing
+			if !dryRun {
+				conflicts := findStowConflicts(pkgPath, target)
+				if len(conflicts) > 0 {
+					fmt.Printf("⚠️  Found %d conflicts for package '%s':\n", len(conflicts), pkg)
+					for _, conflict := range conflicts {
+						fmt.Printf("   %s\n", conflict)
+					}
+
+					if autoResolve {
+						fmt.Printf("🔧 Auto-resolving conflicts...\n")
+						if err := resolveStowConflicts(conflicts, backup, verbose); err != nil {
+							fmt.Printf("❌ Failed to resolve conflicts: %v\n", err)
+							continue
+						}
+					} else {
+						fmt.Printf("💡 Use --auto-resolve to automatically handle conflicts\n")
+						fmt.Printf("   Or use --backup to backup existing files\n")
+						continue
+					}
+				}
+			}
 
 			// Execute stow command
 			stowCmd := exec.Command("stow", stowArgs...)
@@ -496,6 +521,8 @@ func init() {
 	stowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
 	stowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
 	stowCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
+	stowCmd.Flags().Bool("backup", false, "Backup existing files before stowing")
+	stowCmd.Flags().Bool("auto-resolve", false, "Automatically resolve conflicts")
 
 	// Unstow command flags
 	unstowCmd.Flags().StringP("dir", "d", "", "Stow directory (default: ~/.dotfiles/stow)")
@@ -546,6 +573,114 @@ func importDotfileDirectory(pkgName, sourcePath, destPath string) error {
 	// Move the original directory to the stow package
 	if err := os.Rename(sourcePath, targetPath); err != nil {
 		return fmt.Errorf("failed to move directory: %v", err)
+	}
+
+	return nil
+}
+
+func findStowConflicts(pkgPath, target string) []string {
+	var conflicts []string
+
+	err := filepath.Walk(pkgPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip the package directory itself
+		if path == pkgPath {
+			return nil
+		}
+
+		// Get relative path from package directory
+		relPath, err := filepath.Rel(pkgPath, path)
+		if err != nil {
+			return err
+		}
+
+		// Calculate target path
+		targetPath := filepath.Join(target, relPath)
+
+		// Check if target exists and is not a symlink to our package
+		if info, err := os.Lstat(targetPath); err == nil {
+			if info.Mode()&os.ModeSymlink != 0 {
+				// It's a symlink, check if it points to our package
+				linkTarget, err := os.Readlink(targetPath)
+				if err == nil {
+					if absLink, err := filepath.Abs(filepath.Join(filepath.Dir(targetPath), linkTarget)); err == nil {
+						if absPackage, err := filepath.Abs(path); err == nil {
+							if absLink == absPackage {
+								// It's already linked to our package, not a conflict
+								return nil
+							}
+						}
+					}
+				}
+			}
+			// File exists and is not a proper symlink to our package
+			conflicts = append(conflicts, targetPath)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		fmt.Printf("Warning: Error scanning for conflicts: %v\n", err)
+	}
+
+	return conflicts
+}
+
+func resolveStowConflicts(conflicts []string, backup, verbose bool) error {
+	backupDir := ""
+	if backup {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("error getting home directory: %v", err)
+		}
+
+		backupDir = filepath.Join(home, ".dotfiles", "backups", fmt.Sprintf("backup-%d", time.Now().Unix()))
+		if err := os.MkdirAll(backupDir, 0755); err != nil {
+			return fmt.Errorf("error creating backup directory: %v", err)
+		}
+		fmt.Printf("📦 Created backup directory: %s\n", backupDir)
+	}
+
+	for _, conflictPath := range conflicts {
+		if backup {
+			// Backup the existing file
+			relPath, err := filepath.Rel(os.Getenv("HOME"), conflictPath)
+			if err != nil {
+				relPath = filepath.Base(conflictPath)
+			}
+
+			backupPath := filepath.Join(backupDir, relPath)
+			if err := os.MkdirAll(filepath.Dir(backupPath), 0755); err != nil {
+				return fmt.Errorf("error creating backup subdirectory: %v", err)
+			}
+
+			if err := os.Rename(conflictPath, backupPath); err != nil {
+				return fmt.Errorf("error backing up %s: %v", conflictPath, err)
+			}
+
+			if verbose {
+				fmt.Printf("   📦 Backed up %s to %s\n", conflictPath, backupPath)
+			}
+		} else {
+			// Just remove the conflicting file
+			if err := os.Remove(conflictPath); err != nil {
+				return fmt.Errorf("error removing conflicting file %s: %v", conflictPath, err)
+			}
+
+			if verbose {
+				fmt.Printf("   🗑️  Removed conflicting file %s\n", conflictPath)
+			}
+		}
+	}
+
+	if backup && len(conflicts) > 0 {
+		fmt.Printf("✅ Backed up %d conflicting files to %s\n", len(conflicts), backupDir)
+	} else if len(conflicts) > 0 {
+		fmt.Printf("✅ Removed %d conflicting files\n", len(conflicts))
 	}
 
 	return nil

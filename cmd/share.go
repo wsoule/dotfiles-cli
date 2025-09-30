@@ -64,6 +64,8 @@ var shareGistCmd = &cobra.Command{
 		author, _ := cmd.Flags().GetString("author")
 		tags, _ := cmd.Flags().GetStringSlice("tags")
 		private, _ := cmd.Flags().GetBool("private")
+		pushToAPI, _ := cmd.Flags().GetBool("api")
+		featured, _ := cmd.Flags().GetBool("featured")
 
 		if name == "" {
 			fmt.Println("❌ Config name is required. Use --name flag.")
@@ -117,6 +119,50 @@ var shareGistCmd = &cobra.Command{
 			fmt.Printf("✅ Config shared to GitHub Gist successfully!\n")
 			fmt.Printf("🔗 Gist URL: %s\n", gistURL)
 			fmt.Printf("📋 To clone this config: dotfiles clone %s\n", gistURL)
+		}
+
+		// Push to template API if requested
+		if pushToAPI {
+			fmt.Printf("📤 Pushing to template API...\n")
+
+			// Create a temporary template file for the API push
+			home, _ := os.UserHomeDir()
+			templatesDir := filepath.Join(home, ".dotfiles", "templates")
+			os.MkdirAll(templatesDir, 0755)
+
+			tempTemplateFile := filepath.Join(templatesDir, "temp_"+name+".json")
+
+			// Convert ShareableConfig to ExtendedTemplate format
+			templateData := map[string]interface{}{
+				"name":        shareableConfig.Metadata.Name,
+				"description": shareableConfig.Metadata.Description,
+				"author":      shareableConfig.Metadata.Author,
+				"tags":        shareableConfig.Metadata.Tags,
+				"version":     shareableConfig.Metadata.Version,
+				"created_at":  shareableConfig.Metadata.CreatedAt,
+				"public":      !private,
+				"featured":    featured,
+				"taps":        shareableConfig.Taps,
+				"brews":       shareableConfig.Brews,
+				"casks":       shareableConfig.Casks,
+				"stow":        shareableConfig.Stow,
+			}
+
+			tempData, err := json.MarshalIndent(templateData, "", "  ")
+			if err != nil {
+				fmt.Printf("⚠️  Warning: Could not format template for API: %v\n", err)
+			} else {
+				if err := os.WriteFile(tempTemplateFile, tempData, 0644); err != nil {
+					fmt.Printf("⚠️  Warning: Could not create temporary template file: %v\n", err)
+				} else {
+					defer os.Remove(tempTemplateFile)
+
+					// Import the function from templates.go by calling it directly
+					if err := pushTemplateToAPI(tempTemplateFile, !private, featured); err != nil {
+						fmt.Printf("⚠️  Warning: Could not push to template API: %v\n", err)
+					}
+				}
+			}
 		}
 
 		// Copy URL to clipboard
@@ -539,6 +585,8 @@ func init() {
 	shareGistCmd.Flags().StringP("author", "a", "", "Author name")
 	shareGistCmd.Flags().StringSliceP("tags", "t", []string{}, "Tags for categorization (e.g., web-dev,mobile)")
 	shareGistCmd.Flags().Bool("private", false, "Create private gist")
+	shareGistCmd.Flags().Bool("api", false, "Also push as template to the dotfiles API")
+	shareGistCmd.Flags().Bool("featured", false, "Mark template as featured (requires --api)")
 
 	// Share file flags
 	shareFileCmd.Flags().StringP("name", "n", "", "Name for the shared config (required)")

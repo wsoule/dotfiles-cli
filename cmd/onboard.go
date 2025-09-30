@@ -41,8 +41,35 @@ var onboardCmd = &cobra.Command{
 		fmt.Println("🚀 Starting onboarding process...")
 		fmt.Println()
 
-		// Step 1: Initialize configuration
-		fmt.Println("📋 Step 1: Initializing dotfiles configuration...")
+		// Step 1: Detect existing dotfiles
+		fmt.Println("🔍 Step 1: Scanning for existing dotfiles...")
+		existingDotfiles := detectExistingDotfiles()
+		if len(existingDotfiles) > 0 {
+			fmt.Printf("   Found %d existing dotfiles:\n", len(existingDotfiles))
+			for _, dotfile := range existingDotfiles {
+				fmt.Printf("   • %s\n", dotfile)
+			}
+			fmt.Println()
+
+			if !skipInteractive && askConfirmation("   Would you like to import these into your dotfiles setup? (Y/n): ", true) {
+				if err := offerDotfilesImport(existingDotfiles, skipInteractive); err != nil {
+					fmt.Printf("⚠️  Some imports failed: %v\n", err)
+				}
+			}
+		} else {
+			fmt.Println("   No existing dotfiles found")
+		}
+		fmt.Println()
+
+		// Step 2: Check dependencies
+		fmt.Println("🔧 Step 2: Checking dependencies...")
+		if err := checkAndInstallDependencies(skipInteractive); err != nil {
+			fmt.Printf("⚠️  Dependency check had issues: %v\n", err)
+		}
+		fmt.Println()
+
+		// Step 3: Initialize configuration
+		fmt.Println("📋 Step 3: Initializing dotfiles configuration...")
 		if err := initializeConfig(); err != nil {
 			fmt.Printf("❌ Failed to initialize configuration: %v\n", err)
 			os.Exit(1)
@@ -50,9 +77,9 @@ var onboardCmd = &cobra.Command{
 		fmt.Println("✅ Configuration initialized!")
 		fmt.Println()
 
-		// Step 2: GitHub setup
+		// Step 4: GitHub setup
 		if !skipGithub {
-			fmt.Println("🔐 Step 2: Setting up GitHub SSH authentication...")
+			fmt.Println("🔐 Step 4: Setting up GitHub SSH authentication...")
 			if email == "" && !skipInteractive {
 				reader := bufio.NewReader(os.Stdin)
 				fmt.Print("Enter your GitHub email: ")
@@ -74,9 +101,9 @@ var onboardCmd = &cobra.Command{
 			fmt.Println()
 		}
 
-		// Step 3: Install essential packages
+		// Step 5: Install essential packages
 		if !skipPackages {
-			fmt.Println("📦 Step 3: Installing essential development packages...")
+			fmt.Println("📦 Step 5: Installing essential development packages...")
 			if err := installEssentialPackages(skipInteractive); err != nil {
 				fmt.Printf("⚠️  Package installation had issues: %v\n", err)
 			} else {
@@ -85,8 +112,8 @@ var onboardCmd = &cobra.Command{
 			fmt.Println()
 		}
 
-		// Step 4: Final steps and guidance
-		fmt.Println("🎯 Step 4: Final setup and next steps...")
+		// Step 6: Final steps and guidance
+		fmt.Println("🎯 Step 6: Final setup and next steps...")
 		showNextSteps()
 		fmt.Println()
 
@@ -329,6 +356,252 @@ func askConfirmation(prompt string, defaultYes bool) bool {
 
 		fmt.Println("   Please answer y/yes or n/no.")
 	}
+}
+
+func detectExistingDotfiles() []string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return []string{}
+	}
+
+	commonDotfiles := []string{
+		".zshrc", ".bashrc", ".bash_profile", ".profile",
+		".vimrc", ".vim", ".nvim", ".config/nvim",
+		".tmux.conf", ".gitconfig", ".gitignore_global",
+		".aliases", ".functions", ".exports",
+		".ssh/config", ".aws", ".docker",
+	}
+
+	var existing []string
+	for _, dotfile := range commonDotfiles {
+		path := filepath.Join(home, dotfile)
+		if _, err := os.Stat(path); err == nil {
+			existing = append(existing, dotfile)
+		}
+	}
+
+	return existing
+}
+
+func offerDotfilesImport(dotfiles []string, skipInteractive bool) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	dotfilesDir := filepath.Join(home, ".dotfiles")
+	stowDir := filepath.Join(dotfilesDir, "stow")
+
+	// Ensure directories exist
+	if err := os.MkdirAll(stowDir, 0755); err != nil {
+		return fmt.Errorf("failed to create stow directory: %v", err)
+	}
+
+	for _, dotfile := range dotfiles {
+		// Determine package name from dotfile
+		pkgName := suggestPackageName(dotfile)
+
+		if !skipInteractive {
+			fmt.Printf("   Import %s into package '%s'? (Y/n/s=skip): ", dotfile, pkgName)
+			reader := bufio.NewReader(os.Stdin)
+			response, _ := reader.ReadString('\n')
+			response = strings.TrimSpace(strings.ToLower(response))
+
+			if response == "n" || response == "no" {
+				// Ask for custom package name
+				fmt.Print("   Enter custom package name (or 'skip'): ")
+				customName, _ := reader.ReadString('\n')
+				customName = strings.TrimSpace(customName)
+				if customName == "skip" || customName == "" {
+					continue
+				}
+				pkgName = customName
+			} else if response == "s" || response == "skip" {
+				continue
+			}
+		}
+
+		// Import the dotfile
+		if err := importDotfileToPackage(dotfile, pkgName, home, stowDir); err != nil {
+			fmt.Printf("   ❌ Failed to import %s: %v\n", dotfile, err)
+			continue
+		}
+
+		fmt.Printf("   ✅ Imported %s into package '%s'\n", dotfile, pkgName)
+	}
+
+	return nil
+}
+
+func suggestPackageName(dotfile string) string {
+	// Suggest logical package names based on dotfile
+	packageMap := map[string]string{
+		".zshrc":         "zsh",
+		".bashrc":        "bash",
+		".bash_profile":  "bash",
+		".profile":       "shell",
+		".vimrc":         "vim",
+		".vim":           "vim",
+		".nvim":          "nvim",
+		".config/nvim":   "nvim",
+		".tmux.conf":     "tmux",
+		".gitconfig":     "git",
+		".gitignore_global": "git",
+		".aliases":       "shell",
+		".functions":     "shell",
+		".exports":       "shell",
+		".ssh/config":    "ssh",
+		".aws":           "aws",
+		".docker":        "docker",
+	}
+
+	if pkg, exists := packageMap[dotfile]; exists {
+		return pkg
+	}
+
+	// Default: extract name from dotfile
+	name := strings.TrimPrefix(dotfile, ".")
+	name = strings.Split(name, "/")[0]
+	return name
+}
+
+func importDotfileToPackage(dotfile, pkgName, home, stowDir string) error {
+	srcPath := filepath.Join(home, dotfile)
+	pkgDir := filepath.Join(stowDir, pkgName)
+	dstPath := filepath.Join(pkgDir, dotfile)
+
+	// Create package directory
+	if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
+		return fmt.Errorf("failed to create package directory: %v", err)
+	}
+
+	// Move or copy the file/directory
+	if err := os.Rename(srcPath, dstPath); err != nil {
+		// If rename fails, try copy
+		return copyFileOrDir(srcPath, dstPath)
+	}
+
+	return nil
+}
+
+func copyFileOrDir(src, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if srcInfo.IsDir() {
+		return copyDir(src, dst)
+	}
+	return copyFilesOnboard(src, dst)
+}
+
+func copyFilesOnboard(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return err
+	}
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	_, err = srcFile.WriteTo(dstFile)
+	return err
+}
+
+func copyDir(src, dst string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+
+		dstPath := filepath.Join(dst, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+
+		return copyFile(path, dstPath)
+	})
+}
+
+func checkAndInstallDependencies(skipInteractive bool) error {
+	dependencies := map[string]struct {
+		cmd         string
+		installCmd  string
+		description string
+	}{
+		"brew": {
+			cmd:         "brew",
+			installCmd:  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+			description: "Homebrew package manager",
+		},
+		"git": {
+			cmd:         "git",
+			installCmd:  "brew install git",
+			description: "Git version control",
+		},
+		"stow": {
+			cmd:         "stow",
+			installCmd:  "brew install stow",
+			description: "GNU Stow for dotfiles management",
+		},
+	}
+
+	var missing []string
+	for name, dep := range dependencies {
+		if _, err := exec.LookPath(dep.cmd); err != nil {
+			missing = append(missing, name)
+			fmt.Printf("   ❌ Missing: %s (%s)\n", name, dep.description)
+		} else {
+			fmt.Printf("   ✅ Found: %s\n", name)
+		}
+	}
+
+	if len(missing) == 0 {
+		fmt.Println("   All dependencies satisfied!")
+		return nil
+	}
+
+	if skipInteractive {
+		fmt.Printf("   ⚠️  Missing %d dependencies. Install manually.\n", len(missing))
+		return nil
+	}
+
+	fmt.Printf("   Install missing dependencies? (Y/n): ")
+	if !askConfirmation("", true) {
+		return nil
+	}
+
+	for _, name := range missing {
+		dep := dependencies[name]
+		fmt.Printf("   Installing %s...\n", name)
+
+		cmd := exec.Command("bash", "-c", dep.installCmd)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("   ❌ Failed to install %s: %v\n", name, err)
+		} else {
+			fmt.Printf("   ✅ Installed %s\n", name)
+		}
+	}
+
+	return nil
 }
 
 // Note: contains function is already defined in add.go
