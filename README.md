@@ -113,7 +113,7 @@ Available Commands:
   private     Add private files to stow packages                   🔒 NEW!
   share       Share your configuration with others                 🤝 NEW!
   clone       Clone a shared configuration                         📥 NEW!
-  templates   Browse and use configuration templates               📚 NEW!
+  templates   Create, manage and discover templates                📚 ENHANCED!
   discover    Discover shared configurations from community        🔍 NEW!
   add         Add packages to your configuration
   backup      Backup your configuration to a file
@@ -174,22 +174,61 @@ dotfiles templates show web-dev
 
 # Apply a template
 dotfiles clone template:web-dev
+
+# Discover community templates 🆕
+dotfiles templates discover --search "web-dev" --featured
+
+# Browse all featured templates 🆕
+dotfiles templates discover --featured
 ```
 
-**Available Templates:**
+**Available Built-in Templates:**
 - `web-dev` - Web development with Node.js, Python, Docker
 - `mobile-dev` - iOS/Android with Flutter, React Native
 - `data-science` - Python, R, Jupyter, analytics tools
 - `devops` - Kubernetes, Terraform, cloud tools
 - `minimal` - Essential tools only
 
+### 📚 Create & Share Templates 🆕
+
+Create reusable templates for the community:
+
+```bash
+# Create a new template with inheritance
+dotfiles templates create my-web-setup --extends web-dev --add-only
+
+# Create and immediately push to API
+dotfiles templates create my-setup --push --public --featured
+
+# Push existing template to API
+dotfiles templates push my-template.json --public
+
+# Validate template structure
+dotfiles templates validate my-template.json
+```
+
+**🤔 Templates vs Configurations - What's the Difference?**
+
+| **Configuration** | **Template** |
+|------------------|-------------|
+| Your current dotfiles setup | Reusable blueprint for others |
+| Generated from `~/.dotfiles/config.json` | Created with inheritance & customization |
+| Shared via GitHub Gist/files | Shared via community API |
+| "Here's my current setup" | "Here's a starter kit you can build upon" |
+| Use: `dotfiles share gist` | Use: `dotfiles templates create` |
+
+Templates support inheritance (`--extends`), additive mode (`--add-only`), and community features like search, tags, and featured status.
+
 ### 📤 Share Your Configuration
 
-Share your setup with the community:
+Share your current setup with the community:
 
 ```bash
 # Share via GitHub Gist (public)
 dotfiles share gist --name="My Web Dev Setup" --description="Full-stack config" --author="YourName"
+
+# Share + push as template to API 🆕
+dotfiles share gist --name="My Config" --api --featured
 
 # Share privately
 dotfiles share gist --name="My Config" --private
@@ -423,7 +462,11 @@ For `.config` files, use the auto-created `config` package:
 | `dotfiles private <package> <file>` 🔒 | Add private file to stow package | `--dry-run`, `--verbose` |
 | `dotfiles templates list` 📚 | Browse configuration templates | None |
 | `dotfiles templates show <name>` | Preview template details | None |
-| `dotfiles share gist` 🤝 | Share config via GitHub Gist | `--name=<name>`, `--description`, `--private` |
+| `dotfiles templates create <name>` 🆕 | Create new template | `--extends=<template>`, `--add-only`, `--push`, `--public`, `--featured` |
+| `dotfiles templates push <file>` 🆕 | Push template to API | `--public`, `--featured` |
+| `dotfiles templates discover` 🆕 | Discover community templates | `--search=<term>`, `--tags=<tags>`, `--featured` |
+| `dotfiles templates validate <file>` 🆕 | Validate template structure | None |
+| `dotfiles share gist` 🤝 | Share config via GitHub Gist | `--name=<name>`, `--description`, `--private`, `--api`, `--featured` |
 | `dotfiles share file <path>` | Export config to file | `--name=<name>`, `--description` |
 | `dotfiles clone <source>` 📥 | Import shared configuration | `--merge`, `--preview` |
 | `dotfiles discover search` 🔍 | Search community configs | `--tags=<tags>` |
