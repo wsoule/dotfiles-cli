@@ -73,8 +73,8 @@ jobs:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
           GH_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
         with:
-          token: ${{ secrets.HOMEBREW_TOKEN }}     # classic PAT, `repo` scope
-          tap: wsoule/homebrew-tap                 # your tap repo (now public)
+          token: ${{ secrets.HOMEBREW_TOKEN }}     
+          tap: wsoule/homebrew-tap                 
           formula: dotfiles
           tag: ${{ github.ref_name }}
           revision: ${{ github.sha }}
