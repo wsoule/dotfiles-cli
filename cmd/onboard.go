@@ -14,8 +14,28 @@ import (
 
 var onboardCmd = &cobra.Command{
 	Use:   "onboard",
-	Short: "Complete developer onboarding and environment setup",
-	Long:  `Interactive setup wizard for new developers to configure their entire development environment`,
+	Short: "🎯 Complete developer onboarding and environment setup",
+	Long: `🎯 Developer Onboarding - Complete Environment Setup
+
+Perfect for new developers or setting up fresh machines. This single command will:
+
+1. 🔧 Initialize your dotfiles configuration
+2. 🔒 Create private directory for sensitive files (SSH keys, env vars)
+3. 🐚 Set up shell configuration with zsh and aliases
+4. 🔐 Generate GitHub SSH keys and show setup instructions
+5. 📦 Install curated essential development packages
+6. 📋 Guide you through next steps
+
+Essential packages included:
+• CLI Tools: git, curl, wget, tree, jq, stow, gh
+• Applications: Visual Studio Code, Ghostty, Raycast
+• Fonts: JetBrains Mono, Ubuntu Mono (Nerd Font variants)
+
+Examples:
+  dotfiles onboard                           # Full interactive setup
+  dotfiles onboard --email you@email.com    # With GitHub email
+  dotfiles onboard --skip-packages          # Skip package installation
+  dotfiles onboard --skip-interactive       # Use defaults, no prompts`,
 	Run: func(cmd *cobra.Command, args []string) {
 		skipInteractive, _ := cmd.Flags().GetBool("skip-interactive")
 		skipGithub, _ := cmd.Flags().GetBool("skip-github")

@@ -240,11 +240,33 @@ var shareFileCmd = &cobra.Command{
 
 var cloneCmd = &cobra.Command{
 	Use:   "clone <source>",
-	Short: "Clone a shared configuration",
-	Long:  `Import a shared configuration from:
-  - GitHub Gist URL: https://gist.github.com/user/id
-  - Local file: /path/to/config.json
-  - Built-in template: template:web-dev`,
+	Short: "📥 Clone a shared configuration or template",
+	Long: `📥 Clone Configuration - Import Shared Setups
+
+Import shared configurations or templates from various sources:
+• Community API templates (recommended)
+• GitHub Gist URLs
+• Local configuration files
+• Built-in templates
+
+Sources:
+• Template: template:web-dev
+• API URL: https://new-dotfiles-production.up.railway.app/api/templates/id
+• Gist: https://gist.github.com/user/gist-id
+• File: /path/to/config.json
+
+Examples:
+  dotfiles clone template:web-dev                    # Apply built-in template
+  dotfiles clone <api-template-url>                  # Apply community template
+  dotfiles clone https://gist.github.com/user/id    # Import from GitHub Gist
+  dotfiles clone my-config.json                     # Import from local file
+  dotfiles clone <source> --preview                 # Preview before applying
+  dotfiles clone <source> --merge                   # Merge with existing config
+
+Popular templates:
+• template:web-dev - Web development with Node.js, Python, Docker
+• template:minimal - Essential tools only
+• template:data-science - Python, R, Jupyter, analytics tools`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		source := args[0]

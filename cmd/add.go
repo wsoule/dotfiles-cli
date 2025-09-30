@@ -13,8 +13,29 @@ import (
 
 var addCmd = &cobra.Command{
 	Use:   "add <packages>",
-	Short: "Add packages to your configuration",
-	Long:  `Add brew, cask, or tap packages to your config.json`,
+	Short: "📦 Add packages to your configuration",
+	Long: `📦 Add Packages - Expand Your Development Environment
+
+Add Homebrew packages (brews), applications (casks), repositories (taps),
+or dotfile packages (stow) to your configuration.
+
+Package Types:
+• brew  - Command-line tools (git, curl, node, etc.)
+• cask  - GUI applications (VS Code, Docker, etc.)
+• tap   - Additional Homebrew repositories
+• stow  - Dotfile packages for symlinking
+
+Examples:
+  dotfiles add git curl wget                    # Add CLI tools (default: brew)
+  dotfiles add --type=cask visual-studio-code  # Add GUI applications
+  dotfiles add --type=tap homebrew/cask-fonts  # Add font repository
+  dotfiles add --type=stow vim zsh tmux        # Add dotfile packages
+  dotfiles add --file=packages.txt             # Add from file (one per line)
+
+Popular packages:
+• Essential: git, curl, wget, tree, jq, gh, docker
+• Productivity: fzf, ripgrep, bat, eza, tmux, neovim
+• Applications: visual-studio-code, rectangle, slack`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {

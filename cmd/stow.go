@@ -14,8 +14,30 @@ import (
 
 var stowCmd = &cobra.Command{
 	Use:   "stow <packages>",
-	Short: "Stow dotfile packages using GNU Stow",
-	Long:  `Create symlinks for dotfile packages using GNU Stow`,
+	Short: "🔗 Create dotfile symlinks using GNU Stow",
+	Long: `🔗 Stow Dotfiles - Manage Configuration Symlinks
+
+Create symlinks for dotfile packages using GNU Stow. This allows you to
+keep your dotfiles organized in ~/.dotfiles/stow/ while having them
+appear in their expected locations in your home directory.
+
+How it works:
+1. Files in ~/.dotfiles/stow/vim/.vimrc become ~/.vimrc
+2. Directories in ~/.dotfiles/stow/zsh/.zsh become ~/.zsh
+3. Config files in ~/.dotfiles/stow/config/.config/app become ~/.config/app
+
+Examples:
+  dotfiles stow vim zsh tmux                 # Stow multiple packages
+  dotfiles stow --dir=/custom/path vim       # Use custom stow directory
+  dotfiles stow --target=/tmp vim            # Stow to custom target
+  dotfiles stow --dry-run --verbose vim      # Preview what would happen
+  dotfiles stow config                       # Stow .config applications
+
+Common packages to stow:
+• vim, zsh, tmux - Core development tools
+• git - Git configuration and aliases
+• config - Applications that use ~/.config/
+• shell - Shell environment and aliases`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {

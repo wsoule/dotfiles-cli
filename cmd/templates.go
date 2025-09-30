@@ -162,8 +162,33 @@ var configTemplates = map[string]ShareableConfig{
 
 var templatesCmd = &cobra.Command{
 	Use:   "templates",
-	Short: "Browse and use configuration templates",
-	Long:  `Discover and apply pre-made configuration templates for different development workflows`,
+	Short: "📚 Browse and use configuration templates",
+	Long: `📚 Configuration Templates - Pre-built Development Environments
+
+Discover, create, and share pre-made configuration templates for different
+development workflows. Templates are reusable blueprints that set up complete
+development environments with curated packages and settings.
+
+Available Templates:
+• Web Development - Node.js, Python, Docker, essential web tools
+• Mobile Development - Flutter, React Native, iOS/Android tools
+• Data Science - Python, R, Jupyter, analytics tools
+• DevOps - Kubernetes, Terraform, cloud tools
+• Minimal - Essential tools only, lightweight setup
+
+Commands:
+  templates list              # Browse built-in templates
+  templates discover          # Find community templates from API
+  templates show <name>       # Preview template details
+  templates create <name>     # Create template from current config
+  templates push <file>       # Share template with community
+
+Examples:
+  dotfiles templates list                    # See available templates
+  dotfiles templates discover --search web   # Find web development templates
+  dotfiles templates show web-dev           # Preview web-dev template
+  dotfiles clone template:web-dev           # Apply built-in template
+  dotfiles clone <api-url>                  # Apply community template`,
 }
 
 var templatesListCmd = &cobra.Command{
