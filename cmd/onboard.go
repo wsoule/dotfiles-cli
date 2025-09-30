@@ -75,6 +75,16 @@ var onboardCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		fmt.Println("✅ Configuration initialized!")
+
+		// Set up complete environment (private dir + shell packages + stow)
+		fmt.Println("🔒 Setting up dotfiles environment...")
+		home, _ := os.UserHomeDir()
+		dotfilesDir := filepath.Join(home, ".dotfiles")
+		if err := setupCompleteEnvironment(dotfilesDir, true); err != nil {
+			fmt.Printf("⚠️  Environment setup had issues: %v\n", err)
+		} else {
+			fmt.Println("✅ Environment setup complete!")
+		}
 		fmt.Println()
 
 		// Step 4: GitHub setup
@@ -233,12 +243,9 @@ func installEssentialPackages(skipInteractive bool) error {
 	essentialPackages := map[string][]string{
 		"brews": {
 			"git",
-			"curl",
-			"wget",
 			"tree",
 			"jq",
 			"stow",
-			"gh",
 		},
 		"casks": {
 			"visual-studio-code",
@@ -307,7 +314,7 @@ func installEssentialPackages(skipInteractive bool) error {
 
 func runInstallCommand() error {
 	// Generate Brewfile
-	brewfileCmd := exec.Command("./dotfiles", "brewfile")
+	brewfileCmd := exec.Command("dotfiles", "brewfile")
 	if err := brewfileCmd.Run(); err != nil {
 		return fmt.Errorf("failed to generate Brewfile: %v", err)
 	}
