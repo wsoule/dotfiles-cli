@@ -60,22 +60,23 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
-      contents: write          # not strictly needed for a PAT, but harmless
-      pull-requests: write     # lets the action open PRs if needed
-    env:
-      # Make the token visible to both Homebrew and gh
-      HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
-      GH_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Bump Homebrew formula in tap
         uses: dawidd6/action-homebrew-bump-formula@v3
+        env:
+          # Make sure the action's *own* process sees these:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
         with:
-          token: ${{ secrets.HOMEBREW_TOKEN }}      # must be a PAT, not GITHUB_TOKEN
-          tap: wsoule/homebrew-tap                # <--- IMPORTANT: set your tap repo
-          formula: dotfiles                         # formula file name (Formula/dotfiles.rb)
-          tag: ${{ github.ref_name }}               # e.g. v1.2.3
-          revision: ${{ github.sha }}               # optional but fine
+          token: ${{ secrets.HOMEBREW_TOKEN }}     # classic PAT, `repo` scope
+          tap: wsoule/homebrew-tap                 # your tap repo (now public)
+          formula: dotfiles
+          tag: ${{ github.ref_name }}
+          revision: ${{ github.sha }}
+          commit-message: "dotfiles: bump to ${{ github.ref_name }}"
 
