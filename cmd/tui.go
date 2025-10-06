@@ -326,22 +326,30 @@ var tuiCmd = &cobra.Command{
 	Short: "🎨 Interactive TUI for package management",
 	Long: `🎨 Interactive Terminal UI
 
-Launch an interactive terminal interface to manage your packages.
-Browse, add, and remove packages with a visual interface.
+Launch a feature-rich interactive terminal interface to manage your dotfiles.
+
+Features:
+  📦 Packages - Browse, search, add/remove packages
+  📸 Snapshots - View and restore snapshots
+  🪝 Hooks - View configured hooks
+  📊 Stats - System statistics and health
+  📋 Profiles - Browse and import profiles
 
 Controls:
-  ↑/k - Move up
-  ↓/j - Move down
-  space - Select/deselect package
-  a - Add selected packages to config
-  r - Remove selected packages from config
-  s - Save and quit
-  q - Quit without saving
+  Navigation:  ↑/k up • ↓/j down • ←/h prev tab • →/l next tab
+  Selection:   space select • ctrl+a select all • ctrl+d deselect all
+  Actions:     a add • r remove • s save • d toggle details
+  Search:      / search • S cycle sort
+  Other:       : command mode • ? help • q quit
 
 Examples:
   dotfiles tui                # Launch interactive interface`,
 	Run: func(cmd *cobra.Command, args []string) {
-		p := tea.NewProgram(initialModel())
+		p := tea.NewProgram(
+			enhancedInitialModel(),
+			tea.WithAltScreen(),
+			tea.WithMouseCellMotion(),
+		)
 		if _, err := p.Run(); err != nil {
 			fmt.Printf("Error running TUI: %v\n", err)
 			os.Exit(1)
