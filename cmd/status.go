@@ -93,7 +93,11 @@ func checkBrews(configuredBrews []string) {
 	fmt.Println("\n🍺 Brews:")
 
 	// Get installed brews
-	installedBrews := getInstalledBrews()
+	installedBrews, err := getInstalledBrews()
+	if err != nil {
+		fmt.Printf("  ❌ Error getting installed brews: %v\n", err)
+		return
+	}
 	installedSet := make(map[string]bool)
 	for _, brew := range installedBrews {
 		installedSet[brew] = true
@@ -118,7 +122,11 @@ func checkCasks(configuredCasks []string) {
 	fmt.Println("\n📦 Casks:")
 
 	// Get installed casks
-	installedCasks := getInstalledCasks()
+	installedCasks, err := getInstalledCasks()
+	if err != nil {
+		fmt.Printf("  ❌ Error getting installed casks: %v\n", err)
+		return
+	}
 	installedSet := make(map[string]bool)
 	for _, cask := range installedCasks {
 		installedSet[cask] = true
@@ -154,40 +162,6 @@ func getInstalledTaps() []string {
 		}
 	}
 	return taps
-}
-
-func getInstalledBrews() []string {
-	cmd := exec.Command("brew", "list", "--formula")
-	output, err := cmd.Output()
-	if err != nil {
-		return []string{}
-	}
-
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	var brews []string
-	for _, line := range lines {
-		if line != "" {
-			brews = append(brews, strings.TrimSpace(line))
-		}
-	}
-	return brews
-}
-
-func getInstalledCasks() []string {
-	cmd := exec.Command("brew", "list", "--cask")
-	output, err := cmd.Output()
-	if err != nil {
-		return []string{}
-	}
-
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	var casks []string
-	for _, line := range lines {
-		if line != "" {
-			casks = append(casks, strings.TrimSpace(line))
-		}
-	}
-	return casks
 }
 
 func checkStowPackages(configuredStow []string) {

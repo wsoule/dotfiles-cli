@@ -107,9 +107,16 @@ Examples:
 		}
 		fmt.Println()
 
-		// Step 4: GitHub setup
+		// Step 4: Scan for installed packages
+		fmt.Println("📦 Step 4: Scanning for installed packages...")
+		if err := scanAndOfferPackages(skipInteractive); err != nil {
+			fmt.Printf("⚠️  Package scan had issues: %v\n", err)
+		}
+		fmt.Println()
+
+		// Step 5: GitHub setup
 		if !skipGithub {
-			fmt.Println("🔐 Step 4: Setting up GitHub SSH authentication...")
+			fmt.Println("🔐 Step 5: Setting up GitHub SSH authentication...")
 			if email == "" && !skipInteractive {
 				reader := bufio.NewReader(os.Stdin)
 				fmt.Print("Enter your GitHub email: ")
@@ -131,9 +138,9 @@ Examples:
 			fmt.Println()
 		}
 
-		// Step 5: Install essential packages
+		// Step 6: Install essential packages
 		if !skipPackages {
-			fmt.Println("📦 Step 5: Installing essential development packages...")
+			fmt.Println("📦 Step 6: Installing essential development packages...")
 			if err := installEssentialPackages(skipInteractive); err != nil {
 				fmt.Printf("⚠️  Package installation had issues: %v\n", err)
 			} else {
@@ -142,8 +149,8 @@ Examples:
 			fmt.Println()
 		}
 
-		// Step 6: Final steps and guidance
-		fmt.Println("🎯 Step 6: Final setup and next steps...")
+		// Step 7: Final steps and guidance
+		fmt.Println("🎯 Step 7: Final setup and next steps...")
 		showNextSteps()
 		fmt.Println()
 
@@ -629,6 +636,96 @@ func checkAndInstallDependencies(skipInteractive bool) error {
 	}
 
 	return nil
+}
+
+func scanAndOfferPackages(skipInteractive bool) error {
+	// Check if Homebrew is installed
+	if _, err := exec.LookPath("brew"); err != nil {
+		fmt.Println("   ⚠️  Homebrew not installed, skipping package scan")
+		return nil
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	configPath := filepath.Join(home, ".dotfiles", "config.json")
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %v", err)
+	}
+
+	// Get installed packages
+	installedBrews, err := getInstalledBrews()
+	if err != nil {
+		return fmt.Errorf("failed to scan brews: %v", err)
+	}
+
+	installedCasks, err := getInstalledCasks()
+	if err != nil {
+		return fmt.Errorf("failed to scan casks: %v", err)
+	}
+
+	// Filter out packages already in config
+	newBrews := filterNewPackages(installedBrews, cfg.Brews)
+	newCasks := filterNewPackages(installedCasks, cfg.Casks)
+
+	if len(newBrews) == 0 && len(newCasks) == 0 {
+		fmt.Println("   ✅ No new packages found (all installed packages already in config)")
+		return nil
+	}
+
+	fmt.Printf("   Found %d brews and %d casks not in your config\n", len(newBrews), len(newCasks))
+
+	if skipInteractive {
+		fmt.Println("   Skipping package import (use --skip-interactive=false or run 'dotfiles scan' later)")
+		return nil
+	}
+
+	if !askConfirmation("   Would you like to add these to your config? (Y/n): ", true) {
+		fmt.Println("   You can run 'dotfiles scan' later to add them")
+		return nil
+	}
+
+	// Show brief preview
+	if len(newBrews) > 0 {
+		fmt.Printf("   📋 Brews: %s", strings.Join(newBrews[:min(3, len(newBrews))], ", "))
+		if len(newBrews) > 3 {
+			fmt.Printf(" ... and %d more", len(newBrews)-3)
+		}
+		fmt.Println()
+	}
+
+	if len(newCasks) > 0 {
+		fmt.Printf("   📦 Casks: %s", strings.Join(newCasks[:min(3, len(newCasks))], ", "))
+		if len(newCasks) > 3 {
+			fmt.Printf(" ... and %d more", len(newCasks)-3)
+		}
+		fmt.Println()
+	}
+
+	if askConfirmation("   Add all packages? (Y/n): ", true) {
+		cfg.Brews = append(cfg.Brews, newBrews...)
+		cfg.Casks = append(cfg.Casks, newCasks...)
+
+		if err := cfg.Save(configPath); err != nil {
+			return fmt.Errorf("failed to save config: %v", err)
+		}
+
+		fmt.Printf("   ✅ Added %d brews and %d casks to config\n", len(newBrews), len(newCasks))
+	} else {
+		fmt.Println("   Run 'dotfiles scan' later to selectively add packages")
+	}
+
+	return nil
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // Note: contains function is already defined in add.go
