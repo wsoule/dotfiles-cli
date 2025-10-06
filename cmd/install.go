@@ -28,6 +28,14 @@ var installCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		// Run pre-install hooks
+		if cfg.Hooks != nil && len(cfg.Hooks.PreInstall) > 0 {
+			if err := RunHooks(cfg.Hooks.PreInstall, "pre-install"); err != nil {
+				fmt.Printf("⚠️  Pre-install hook failed: %v\n", err)
+				os.Exit(1)
+			}
+		}
+
 		// Generate Brewfile content
 		brewfileContent := cfg.GenerateBrewfile()
 		if brewfileContent == "" {
@@ -73,6 +81,13 @@ var installCmd = &cobra.Command{
 		}
 
 		fmt.Println("✅ Installation complete!")
+
+		// Run post-install hooks
+		if cfg.Hooks != nil && len(cfg.Hooks.PostInstall) > 0 {
+			if err := RunHooks(cfg.Hooks.PostInstall, "post-install"); err != nil {
+				fmt.Printf("⚠️  Post-install hook failed: %v\n", err)
+			}
+		}
 	},
 }
 

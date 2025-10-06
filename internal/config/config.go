@@ -6,12 +6,23 @@ import (
 	"path/filepath"
 )
 
+// Hooks represents pre/post commands for various operations
+type Hooks struct {
+	PreInstall  []string `json:"pre_install,omitempty"`
+	PostInstall []string `json:"post_install,omitempty"`
+	PreSync     []string `json:"pre_sync,omitempty"`
+	PostSync    []string `json:"post_sync,omitempty"`
+	PreStow     []string `json:"pre_stow,omitempty"`
+	PostStow    []string `json:"post_stow,omitempty"`
+}
+
 // Config represents the dotfiles configuration
 type Config struct {
 	Brews []string `json:"brews"`
 	Casks []string `json:"casks"`
 	Taps  []string `json:"taps"`
 	Stow  []string `json:"stow"`
+	Hooks *Hooks   `json:"hooks,omitempty"`
 }
 
 // Load reads configuration from JSON file
