@@ -27,7 +27,7 @@ Quick Start:
   dotfiles templates discover         # Browse community templates
   dotfiles add git curl tmux          # Add essential packages
 
-Get started: https://github.com/wsoule/new-dotfiles`,
+Get started: https://github.com/wsoule/dotfiles-cli`,
 }
 
 func Execute() {

@@ -32,16 +32,16 @@ brew install dotfiles
 
 ### 🚀 One-liner Install
 ```bash
-curl -fsSL https://raw.githubusercontent.com/wsoule/new-dotfiles/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/wsoule/dotfiles-cli/main/install.sh | bash
 ```
 
 ### 📦 GitHub Releases
-Download the latest binary from [releases](https://github.com/wsoule/new-dotfiles/releases/latest)
+Download the latest binary from [releases](https://github.com/wsoule/dotfiles-cli/releases/latest)
 
 ### 🔨 Build from Source
 ```bash
-git clone https://github.com/wsoule/new-dotfiles.git
-cd new-dotfiles
+git clone https://github.com/wsoule/dotfiles-cli.git
+cd dotfiles-cli
 go build -o dotfiles
 ```
 
