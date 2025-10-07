@@ -99,3 +99,12 @@ func (c *Config) GenerateBrewfile() string {
 
 	return content
 }
+
+// GetAllPackages returns all packages (brews + casks) as a single list
+// Useful for Linux package managers that don't distinguish between them
+func (c *Config) GetAllPackages() []string {
+	all := make([]string, 0, len(c.Brews)+len(c.Casks))
+	all = append(all, c.Brews...)
+	all = append(all, c.Casks...)
+	return all
+}

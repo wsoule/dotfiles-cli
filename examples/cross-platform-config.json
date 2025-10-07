@@ -1,0 +1,30 @@
+{
+  "brews": [
+    "git",
+    "curl",
+    "wget",
+    "tree",
+    "jq",
+    "stow",
+    "neovim",
+    "tmux",
+    "ripgrep",
+    "fd",
+    "bat",
+    "fzf",
+    "htop",
+    "zsh"
+  ],
+  "casks": [
+    "visual-studio-code",
+    "firefox",
+    "alacritty"
+  ],
+  "taps": [],
+  "stow": [
+    "vim",
+    "zsh",
+    "tmux",
+    "git"
+  ]
+}

@@ -2,18 +2,21 @@
 
 > The complete solution for new developer environment setup
 
-A comprehensive command-line tool that manages your entire development environment: Homebrew packages, dotfiles with GNU Stow, GitHub SSH setup, and complete developer onboarding automation.
+A comprehensive **cross-platform** command-line tool that manages your entire development environment: package management (Homebrew, pacman, apt, yum), dotfiles with GNU Stow, GitHub SSH setup, and complete developer onboarding automation.
+
+**Works on macOS, Arch Linux, Debian/Ubuntu, and RHEL/Fedora with a single config file!**
 
 ## Features
 
+- 🌍 **Cross-Platform** - Single config works on macOS, Arch Linux, Debian/Ubuntu, RHEL/Fedora
 - 🎉 **Complete Developer Onboarding** - One command to set up everything for new developers
 - 🔐 **GitHub SSH Integration** - Automated SSH key generation and GitHub configuration
-- 📦 **Smart Package Management** - Curated essential packages for developers
+- 📦 **Smart Package Management** - Auto-detects and uses your system's package manager
 - 🤝 **Configuration Sharing** - Share and discover configs via GitHub Gist
 - 📚 **Template Library** - Pre-built configs for web-dev, data science, DevOps, and more
 - 🌍 **Community Discovery** - Find and browse configurations from other developers
 - 📋 **JSON Configuration** - Store your setup in simple, versionable JSON
-- 🍺 **Brewfile Support** - Generate and import Brewfiles with full automation
+- 🍺 **Multi-Package Manager** - Supports Homebrew, pacman, apt, yum/dnf
 - 🔗 **GNU Stow Integration** - Manage dotfiles with symbolic links
 - 📊 **Status Checking** - Verify installation status across all components
 - 💾 **Backup & Restore** - Save and restore complete configurations
@@ -24,25 +27,59 @@ A comprehensive command-line tool that manages your entire development environme
 
 ## 📦 Installation
 
-### 🍺 Homebrew (Recommended)
+### macOS
+
+#### 🍺 Homebrew (Recommended)
 ```bash
 brew tap wsoule/tap
 brew install dotfiles
 ```
 
-### 🚀 One-liner Install
+#### 🚀 One-liner Install
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wsoule/dotfiles-cli/main/install.sh | bash
 ```
 
-### 📦 GitHub Releases
+### Linux (Arch, Debian/Ubuntu, RHEL/Fedora)
+
+#### 🚀 One-liner Install
+```bash
+curl -fsSL https://raw.githubusercontent.com/wsoule/dotfiles-cli/main/install-linux.sh | bash
+```
+
+#### 📦 Manual Download
+```bash
+# Download the latest release
+curl -L https://github.com/wsoule/dotfiles-cli/releases/latest/download/dotfiles_Linux_x86_64.tar.gz -o dotfiles.tar.gz
+
+# Extract
+tar -xzf dotfiles.tar.gz
+
+# Install (requires sudo)
+sudo mv dotfiles /usr/local/bin/
+
+# Verify
+dotfiles --help
+```
+
+### All Platforms
+
+#### 📦 GitHub Releases
 Download the latest binary from [releases](https://github.com/wsoule/dotfiles-cli/releases/latest)
 
-### 🔨 Build from Source
+#### 🔨 Build from Source
 ```bash
 git clone https://github.com/wsoule/dotfiles-cli.git
 cd dotfiles-cli
 go build -o dotfiles
+
+# macOS
+sudo mv dotfiles /usr/local/bin/
+
+# Linux
+sudo mv dotfiles /usr/local/bin/
+# or install to user directory
+mkdir -p ~/.local/bin && mv dotfiles ~/.local/bin/
 ```
 
 ## 🚀 Quick Start
@@ -485,12 +522,37 @@ For `.config` files, use the auto-created `config` package:
 | `dotfiles unstow <packages>` | Remove symlinks | `--dir=<path>`, `--target=<path>`, `--all`, `--keep-config` |
 | `dotfiles restow <packages>` | Restow (unstow + stow) | `--dir=<path>`, `--target=<path>`, `--all` |
 
+## 🌍 Cross-Platform Support
+
+This tool works seamlessly across multiple operating systems with a **single configuration file**:
+
+- **macOS**: Uses Homebrew for package management
+- **Arch Linux**: Uses pacman/yay for package management
+- **Debian/Ubuntu**: Uses apt for package management
+- **RHEL/Fedora**: Uses yum/dnf for package management
+
+The same `config.json` file works on all platforms! See [CROSS_PLATFORM.md](CROSS_PLATFORM.md) for detailed information.
+
+### Example: One Config, Multiple Platforms
+
+```json
+{
+  "brews": ["git", "curl", "neovim", "tmux"],
+  "casks": ["visual-studio-code", "firefox"],
+  "stow": ["vim", "zsh", "tmux"]
+}
+```
+
+- On **macOS**: Installs formulas + casks via Homebrew
+- On **Linux**: Installs all as regular packages via pacman/apt/yum
+
 ## 🛠 Development
 
 ### Prerequisites
 - Go 1.25.1 or later
-- Homebrew (for package management features)
-- GNU Stow (for dotfiles symlinking features): `brew install stow`
+- **macOS**: Homebrew (for package management features)
+- **Linux**: Your distribution's package manager (pacman, apt, yum)
+- GNU Stow (for dotfiles symlinking): `brew install stow` or `sudo pacman -S stow`
 
 ### Building
 ```bash

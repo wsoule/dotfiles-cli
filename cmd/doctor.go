@@ -5,9 +5,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"dotfiles/internal/config"
+	"dotfiles/internal/pkgmanager"
 	"github.com/spf13/cobra"
 )
 
@@ -103,28 +105,53 @@ Examples:
 
 		// Check 4: Required dependencies
 		fmt.Println("📋 Checking Dependencies...")
-		deps := map[string]bool{
-			"brew": false,
-			"git":  false,
-			"stow": false,
-		}
 
-		for dep := range deps {
-			if _, err := exec.LookPath(dep); err == nil {
-				deps[dep] = true
-				fmt.Printf("✅ %s installed\n", dep)
-			} else {
-				deps[dep] = false
-				fmt.Printf("❌ %s not found\n", dep)
-				issues++
+		// Get package manager
+		pm, err := pkgmanager.GetPackageManager()
+		pmAvailable := false
+		if err == nil && pm.IsAvailable() {
+			fmt.Printf("✅ %s installed\n", pm.GetName())
+			pmAvailable = true
+		} else {
+			fmt.Printf("❌ Package manager not found\n")
+			issues++
+			if runtime.GOOS == "darwin" {
+				fmt.Println("   💡 Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
 			}
 		}
 
-		if !deps["brew"] {
-			fmt.Println("   💡 Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+		// Check git
+		if _, err := exec.LookPath("git"); err == nil {
+			fmt.Printf("✅ git installed\n")
+		} else {
+			fmt.Printf("❌ git not found\n")
+			issues++
+			if pmAvailable {
+				if pm.GetName() == "homebrew" {
+					fmt.Println("   💡 Install git: brew install git")
+				} else if pm.GetName() == "pacman" {
+					fmt.Println("   💡 Install git: sudo pacman -S git")
+				} else {
+					fmt.Println("   💡 Install git with your package manager")
+				}
+			}
 		}
-		if !deps["stow"] {
-			fmt.Println("   💡 Install GNU Stow: brew install stow")
+
+		// Check stow
+		if _, err := exec.LookPath("stow"); err == nil {
+			fmt.Printf("✅ stow installed\n")
+		} else {
+			fmt.Printf("❌ stow not found\n")
+			issues++
+			if pmAvailable {
+				if pm.GetName() == "homebrew" {
+					fmt.Println("   💡 Install GNU Stow: brew install stow")
+				} else if pm.GetName() == "pacman" {
+					fmt.Println("   💡 Install GNU Stow: sudo pacman -S stow")
+				} else {
+					fmt.Println("   💡 Install GNU Stow with your package manager")
+				}
+			}
 		}
 		fmt.Println()
 
@@ -149,21 +176,21 @@ Examples:
 		}
 
 		// Check 6: Configuration drift
-		if deps["brew"] && cfg != nil {
+		if pmAvailable && cfg != nil {
 			fmt.Println("📊 Checking Configuration Drift...")
 			drift := checkConfigDrift(cfg)
 			if drift.MissingBrews > 0 || drift.MissingCasks > 0 {
 				fmt.Printf("⚠️  Configuration drift detected:\n")
 				if drift.MissingBrews > 0 {
-					fmt.Printf("   • %d brews configured but not installed\n", drift.MissingBrews)
+					fmt.Printf("   • %d packages configured but not installed\n", drift.MissingBrews)
 				}
-				if drift.MissingCasks > 0 {
+				if drift.MissingCasks > 0 && runtime.GOOS == "darwin" {
 					fmt.Printf("   • %d casks configured but not installed\n", drift.MissingCasks)
 				}
 				if drift.ExtraBrews > 0 {
-					fmt.Printf("   • %d brews installed but not in config\n", drift.ExtraBrews)
+					fmt.Printf("   • %d packages installed but not in config\n", drift.ExtraBrews)
 				}
-				if drift.ExtraCasks > 0 {
+				if drift.ExtraCasks > 0 && runtime.GOOS == "darwin" {
 					fmt.Printf("   • %d casks installed but not in config\n", drift.ExtraCasks)
 				}
 				fmt.Println("   💡 Run: dotfiles diff")

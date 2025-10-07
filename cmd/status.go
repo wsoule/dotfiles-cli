@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"dotfiles/internal/config"
+	"dotfiles/internal/pkgmanager"
 	"github.com/spf13/cobra"
 )
 
@@ -29,28 +30,37 @@ var statusCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Check if brew is available
-		if _, err := exec.LookPath("brew"); err != nil {
-			fmt.Println("⚠️  Homebrew not found. Cannot check package status.")
+		// Get the appropriate package manager for this OS
+		pm, err := pkgmanager.GetPackageManager()
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Check if package manager is available
+		if !pm.IsAvailable() {
+			fmt.Printf("⚠️  %s not found. Cannot check package status.\n", pm.GetName())
 			return
 		}
 
 		fmt.Println("📊 Package Status Report")
 		fmt.Println("=" + strings.Repeat("=", 23))
+		fmt.Printf("Package Manager: %s\n", pm.GetName())
+		fmt.Println()
 
-		// Check taps
+		// Check taps (only relevant for Homebrew)
 		if len(cfg.Taps) > 0 {
-			checkTaps(cfg.Taps)
+			checkTapsWithPM(cfg.Taps, pm)
 		}
 
 		// Check brews
 		if len(cfg.Brews) > 0 {
-			checkBrews(cfg.Brews)
+			checkPackagesWithPM("Packages", cfg.Brews, "brew", pm)
 		}
 
-		// Check casks
+		// Check casks (only relevant for Homebrew)
 		if len(cfg.Casks) > 0 {
-			checkCasks(cfg.Casks)
+			checkPackagesWithPM("Applications/Casks", cfg.Casks, "cask", pm)
 		}
 
 		// Check stow packages
@@ -62,6 +72,78 @@ var statusCmd = &cobra.Command{
 			fmt.Println("No packages configured. Run 'dotfiles add <package>' to get started.")
 		}
 	},
+}
+
+func checkTapsWithPM(configuredTaps []string, pm pkgmanager.PackageManager) {
+	// Only show taps section for Homebrew
+	if pm.GetName() != "homebrew" {
+		return
+	}
+
+	fmt.Println("\n📋 Taps:")
+
+	missing := []string{}
+	for _, tap := range configuredTaps {
+		installed, err := pm.IsInstalled(tap, "tap")
+		if err != nil {
+			fmt.Printf("  ⚠️  %s (error checking: %v)\n", tap, err)
+			continue
+		}
+
+		if installed {
+			fmt.Printf("  ✅ %s\n", tap)
+		} else {
+			fmt.Printf("  ❌ %s (not tapped)\n", tap)
+			missing = append(missing, tap)
+		}
+	}
+
+	if len(missing) > 0 {
+		fmt.Printf("  → Run: dotfiles add --type=tap %s\n", strings.Join(missing, " "))
+	}
+}
+
+func checkPackagesWithPM(label string, packages []string, pkgType string, pm pkgmanager.PackageManager) {
+	icon := "🍺"
+	if pkgType == "cask" {
+		icon = "📦"
+		// Skip casks on non-macOS systems
+		if pm.GetName() != "homebrew" {
+			return
+		}
+	}
+
+	fmt.Printf("\n%s %s:\n", icon, label)
+
+	missing := []string{}
+	for _, pkg := range packages {
+		installed, err := pm.IsInstalled(pkg, pkgType)
+		if err != nil {
+			fmt.Printf("  ⚠️  %s (error checking: %v)\n", pkg, err)
+			continue
+		}
+
+		if installed {
+			fmt.Printf("  ✅ %s\n", pkg)
+		} else {
+			fmt.Printf("  ❌ %s (not installed)\n", pkg)
+			missing = append(missing, pkg)
+		}
+	}
+
+	if len(missing) > 0 {
+		if pm.GetName() == "homebrew" {
+			if pkgType == "cask" {
+				fmt.Printf("  → Run: brew install --cask %s\n", strings.Join(missing, " "))
+			} else {
+				fmt.Printf("  → Run: brew install %s\n", strings.Join(missing, " "))
+			}
+		} else if pm.GetName() == "pacman" {
+			fmt.Printf("  → Run: yay -S %s\n", strings.Join(missing, " "))
+		} else {
+			fmt.Printf("  → Run: dotfiles install\n")
+		}
+	}
 }
 
 func checkTaps(configuredTaps []string) {

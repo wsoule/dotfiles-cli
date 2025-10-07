@@ -6,9 +6,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"dotfiles/internal/config"
+	"dotfiles/internal/pkgmanager"
 	"github.com/spf13/cobra"
 )
 
@@ -267,21 +269,10 @@ func showSSHInstructions(pubKeyPath string) {
 }
 
 func installEssentialPackages(skipInteractive bool) error {
-	essentialPackages := map[string][]string{
-		"brews": {
-			"git",
-			"tree",
-			"jq",
-			"stow",
-		},
-		"casks": {
-			"visual-studio-code",
-			"ghostty",
-			"raycast",
-			"font-jetbrains-mono-nerd-font",
-			"font-ubuntu-mono-nerd-font",
-		},
-	}
+	// Get platform-specific essential packages
+	essentialPackages := getEssentialPackages()
+
+	// Show packages that will be installed
 
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -294,11 +285,14 @@ func installEssentialPackages(skipInteractive bool) error {
 		return fmt.Errorf("failed to load config: %v", err)
 	}
 
-	// Show packages that will be installed
 	fmt.Println("   The following essential packages will be added:")
-	fmt.Printf("   📋 Taps: %s\n", strings.Join(essentialPackages["taps"], ", "))
-	fmt.Printf("   🍺 Brews: %s\n", strings.Join(essentialPackages["brews"], ", "))
-	fmt.Printf("   📦 Casks: %s\n", strings.Join(essentialPackages["casks"], ", "))
+	if len(essentialPackages["taps"]) > 0 {
+		fmt.Printf("   📋 Taps: %s\n", strings.Join(essentialPackages["taps"], ", "))
+	}
+	fmt.Printf("   🍺 Packages: %s\n", strings.Join(essentialPackages["brews"], ", "))
+	if len(essentialPackages["casks"]) > 0 {
+		fmt.Printf("   📦 Apps: %s\n", strings.Join(essentialPackages["casks"], ", "))
+	}
 	fmt.Println()
 
 	if !skipInteractive && !askConfirmation("   Continue with package installation? (Y/n): ", true) {
@@ -572,27 +566,108 @@ func copyDir(src, dst string) error {
 	})
 }
 
+func getEssentialPackages() map[string][]string {
+	if runtime.GOOS == "darwin" {
+		// macOS packages
+		return map[string][]string{
+			"taps": {},
+			"brews": {
+				"git",
+				"tree",
+				"jq",
+				"stow",
+			},
+			"casks": {
+				"visual-studio-code",
+				"ghostty",
+				"raycast",
+			},
+		}
+	} else {
+		// Linux packages (generic - works for Arch, Debian, etc.)
+		return map[string][]string{
+			"taps": {},
+			"brews": {
+				"git",
+				"tree",
+				"jq",
+				"stow",
+				"base-devel", // For Arch
+			},
+			"casks": {}, // No casks on Linux
+		}
+	}
+}
+
 func checkAndInstallDependencies(skipInteractive bool) error {
-	dependencies := map[string]struct {
+	var dependencies map[string]struct {
 		cmd         string
 		installCmd  string
 		description string
-	}{
-		"brew": {
-			cmd:         "brew",
-			installCmd:  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
-			description: "Homebrew package manager",
-		},
-		"git": {
-			cmd:         "git",
-			installCmd:  "brew install git",
-			description: "Git version control",
-		},
-		"stow": {
-			cmd:         "stow",
-			installCmd:  "brew install stow",
-			description: "GNU Stow for dotfiles management",
-		},
+	}
+
+	if runtime.GOOS == "darwin" {
+		// macOS dependencies
+		dependencies = map[string]struct {
+			cmd         string
+			installCmd  string
+			description string
+		}{
+			"brew": {
+				cmd:         "brew",
+				installCmd:  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+				description: "Homebrew package manager",
+			},
+			"git": {
+				cmd:         "git",
+				installCmd:  "brew install git",
+				description: "Git version control",
+			},
+			"stow": {
+				cmd:         "stow",
+				installCmd:  "brew install stow",
+				description: "GNU Stow for dotfiles management",
+			},
+		}
+	} else {
+		// Linux dependencies
+		pm, _ := pkgmanager.GetPackageManager()
+		pmName := "package manager"
+		installGit := "sudo pacman -S git"
+		installStow := "sudo pacman -S stow"
+
+		if pm != nil {
+			pmName = pm.GetName()
+			if pmName == "apt" {
+				installGit = "sudo apt-get install git"
+				installStow = "sudo apt-get install stow"
+			} else if pmName == "yum" {
+				installGit = "sudo yum install git"
+				installStow = "sudo yum install stow"
+			}
+		}
+
+		dependencies = map[string]struct {
+			cmd         string
+			installCmd  string
+			description string
+		}{
+			pmName: {
+				cmd:         pmName,
+				installCmd:  "N/A - should be pre-installed",
+				description: "Package manager",
+			},
+			"git": {
+				cmd:         "git",
+				installCmd:  installGit,
+				description: "Git version control",
+			},
+			"stow": {
+				cmd:         "stow",
+				installCmd:  installStow,
+				description: "GNU Stow for dotfiles management",
+			},
+		}
 	}
 
 	var missing []string

@@ -1,12 +1,25 @@
 package cmd
 
 import (
+	"dotfiles/internal/pkgmanager"
 	"os/exec"
 	"strings"
 )
 
-// getInstalledBrews returns a list of all Homebrew formulas installed on the system
+// getInstalledBrews returns a list of all packages installed on the system
+// Uses the appropriate package manager for the current OS
 func getInstalledBrews() ([]string, error) {
+	pm, err := pkgmanager.GetPackageManager()
+	if err != nil {
+		// Fallback to brew if package manager detection fails
+		return getInstalledBrewsDirect()
+	}
+
+	return pm.ListInstalled("brew")
+}
+
+// getInstalledBrewsDirect returns a list of all Homebrew formulas (legacy fallback)
+func getInstalledBrewsDirect() ([]string, error) {
 	cmd := exec.Command("brew", "list", "--formula")
 	output, err := cmd.Output()
 	if err != nil {
@@ -24,8 +37,19 @@ func getInstalledBrews() ([]string, error) {
 	return brews, nil
 }
 
-// getInstalledCasks returns a list of all Homebrew casks installed on the system
+// getInstalledCasks returns a list of all casks/applications installed on the system
 func getInstalledCasks() ([]string, error) {
+	pm, err := pkgmanager.GetPackageManager()
+	if err != nil {
+		// Fallback to brew if package manager detection fails
+		return getInstalledCasksDirect()
+	}
+
+	return pm.ListInstalled("cask")
+}
+
+// getInstalledCasksDirect returns a list of all Homebrew casks (legacy fallback)
+func getInstalledCasksDirect() ([]string, error) {
 	cmd := exec.Command("brew", "list", "--cask")
 	output, err := cmd.Output()
 	if err != nil {
