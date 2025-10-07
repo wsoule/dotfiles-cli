@@ -89,14 +89,25 @@ var installCmd = &cobra.Command{
 			}
 		}
 
-		// Run package-specific post-install hooks
+		// Run package-specific hooks (pre-install and post-install)
 		if cfg.PackageConfigs != nil {
 			allPackages := append(append([]string{}, cfg.Brews...), cfg.Casks...)
 			for _, pkg := range allPackages {
-				if pkgConfig, exists := cfg.PackageConfigs[pkg]; exists && len(pkgConfig.PostInstall) > 0 {
-					fmt.Printf("🔧 Running post-install hooks for package: %s\n", pkg)
-					if err := RunHooks(pkgConfig.PostInstall, fmt.Sprintf("%s post-install", pkg)); err != nil {
-						fmt.Printf("⚠️  Package hook failed for %s: %v\n", pkg, err)
+				if pkgConfig, exists := cfg.PackageConfigs[pkg]; exists {
+					// Run pre-install hooks for this package
+					if len(pkgConfig.PreInstall) > 0 {
+						fmt.Printf("🔧 Running pre-install hooks for package: %s\n", pkg)
+						if err := RunHooks(pkgConfig.PreInstall, fmt.Sprintf("%s pre-install", pkg)); err != nil {
+							fmt.Printf("⚠️  Package pre-install hook failed for %s: %v\n", pkg, err)
+						}
+					}
+
+					// Run post-install hooks for this package
+					if len(pkgConfig.PostInstall) > 0 {
+						fmt.Printf("🔧 Running post-install hooks for package: %s\n", pkg)
+						if err := RunHooks(pkgConfig.PostInstall, fmt.Sprintf("%s post-install", pkg)); err != nil {
+							fmt.Printf("⚠️  Package post-install hook failed for %s: %v\n", pkg, err)
+						}
 					}
 				}
 			}
