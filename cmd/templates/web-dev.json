@@ -1,0 +1,45 @@
+{
+  "name": "web-dev",
+  "description": "Web development stack with Node.js, Python, Docker, and modern tools",
+  "author": "dotfiles-cli",
+  "category": "development",
+  "tags": ["web", "development", "nodejs", "python", "docker"],
+  "version": "1.0.0",
+  "brews": [
+    "git",
+    "stow",
+    "neovim",
+    "tmux",
+    "curl",
+    "wget",
+    "tree",
+    "jq",
+    "ripgrep",
+    "fzf",
+    "node",
+    "python",
+    "docker",
+    "docker-compose",
+    "postgresql",
+    "redis",
+    "nginx",
+    "gh",
+    "httpie",
+    "pnpm",
+    "yarn"
+  ],
+  "casks": [
+    "visual-studio-code",
+    "docker",
+    "postman",
+    "firefox",
+    "iterm2"
+  ],
+  "taps": [],
+  "stow": [
+    "shell",
+    "git",
+    "vim",
+    "tmux"
+  ]
+}

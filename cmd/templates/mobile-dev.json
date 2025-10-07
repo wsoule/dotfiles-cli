@@ -1,0 +1,38 @@
+{
+  "name": "mobile-dev",
+  "description": "Mobile development for iOS and Android with Xcode, Android Studio, and React Native",
+  "author": "dotfiles-cli",
+  "category": "development",
+  "tags": ["mobile", "ios", "android", "react-native", "xcode"],
+  "version": "1.0.0",
+  "brews": [
+    "git",
+    "stow",
+    "vim",
+    "curl",
+    "wget",
+    "tree",
+    "jq",
+    "node",
+    "watchman",
+    "cocoapods",
+    "fastlane",
+    "swiftlint",
+    "xcbeautify",
+    "scrcpy"
+  ],
+  "casks": [
+    "visual-studio-code",
+    "android-studio",
+    "android-platform-tools",
+    "react-native-debugger",
+    "flipper",
+    "proxyman"
+  ],
+  "taps": [],
+  "stow": [
+    "shell",
+    "git",
+    "vim"
+  ]
+}

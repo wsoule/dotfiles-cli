@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,6 +18,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//go:embed templates/*.json
+var templatesFS embed.FS
+
 // Template with inheritance support
 type ExtendedTemplate struct {
 	ShareableConfig
@@ -27,79 +31,150 @@ type ExtendedTemplate struct {
 	Featured   bool     `json:"featured,omitempty"`   // Whether template is featured
 }
 
-// Built-in config templates
-var configTemplates = map[string]ShareableConfig{
-	"essential": {
-		Config: config.Config{
-			Taps: []string{
-				"homebrew/cask-fonts",
-			},
-			Brews: []string{
-				"git", "curl", "wget", "tree", "jq", "stow", "gh",
-				"starship", "neovim", "tmux", "fzf", "ripgrep",
-				"bat", "eza", "zoxide",
-			},
-			Casks: []string{
-				"visual-studio-code", "ghostty", "raycast",
-				"rectangle", "obsidian", "1password",
-				"font-jetbrains-mono-nerd-font",
-			},
-			Stow: []string{"vim", "zsh", "tmux", "starship", "git"},
-			Hooks: &config.Hooks{
-				PreInstall: []string{
-					"brew update",
-				},
-				PostInstall: []string{
-					"echo '✅ Installation complete! Run dotfiles stow to symlink your config files.'",
-				},
-				PreStow: []string{
-					"echo '🔗 Creating symlinks...'",
-				},
-				PostStow: []string{
-					"echo '✅ Dotfiles stowed successfully!'",
-				},
-			},
-			PackageConfigs: map[string]config.PackageConfig{
-				"starship": {
-					PostInstall: []string{
-						"echo 'eval \"$(starship init bash)\"' >> ~/.bashrc",
-						"echo 'eval \"$(starship init zsh)\"' >> ~/.zshrc",
-					},
-				},
-				"zoxide": {
-					PostInstall: []string{
-						"echo 'eval \"$(zoxide init bash)\"' >> ~/.bashrc",
-						"echo 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc",
-					},
-				},
-				"fzf": {
-					PostInstall: []string{
-						"$(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc",
-					},
-				},
-				"neovim": {
-					PostInstall: []string{
-						"mkdir -p ~/.config/nvim",
-						"echo '-- Neovim configuration will be managed via stow' > ~/.config/nvim/init.lua",
-					},
-				},
-				"tmux": {
-					PostInstall: []string{
-						"git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm || echo 'TPM already installed'",
-					},
-				},
-			},
-		},
-		Metadata: ShareMetadata{
-			Name:        "Essential Developer Setup",
-			Description: "Complete modern developer setup with CLI tools, shell enhancements, and essential apps with automated post-install configuration",
-			Author:      "Dotfiles Manager",
-			Tags:        []string{"essential", "developer", "productivity", "shell", "cli"},
-			CreatedAt:   time.Now(),
-			Version:     "1.0.0",
-		},
-	},
+// Template structure for JSON files
+type JSONTemplate struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Author      string   `json:"author"`
+	Category    string   `json:"category"`
+	Tags        []string `json:"tags"`
+	Version     string   `json:"version"`
+	Brews       []string `json:"brews"`
+	Casks       []string `json:"casks"`
+	Taps        []string `json:"taps"`
+	Stow        []string `json:"stow"`
 }
+
+// loadTemplatesFromFS loads all templates from embedded filesystem
+func loadTemplatesFromFS() map[string]ShareableConfig {
+	templates := make(map[string]ShareableConfig)
+
+	entries, err := templatesFS.ReadDir("templates")
+	if err != nil {
+		return templates
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+
+		data, err := templatesFS.ReadFile("templates/" + entry.Name())
+		if err != nil {
+			continue
+		}
+
+		var tmpl JSONTemplate
+		if err := json.Unmarshal(data, &tmpl); err != nil {
+			continue
+		}
+
+		// Convert to ShareableConfig
+		shareableConfig := ShareableConfig{
+			Config: config.Config{
+				Taps:  tmpl.Taps,
+				Brews: tmpl.Brews,
+				Casks: tmpl.Casks,
+				Stow:  tmpl.Stow,
+			},
+			Metadata: ShareMetadata{
+				Name:        tmpl.Description,
+				Description: tmpl.Description,
+				Author:      tmpl.Author,
+				Tags:        tmpl.Tags,
+				CreatedAt:   time.Now(),
+				Version:     tmpl.Version,
+			},
+		}
+
+		templates[tmpl.Name] = shareableConfig
+	}
+
+	return templates
+}
+
+// Built-in config templates (hard-coded + embedded JSON files)
+var configTemplates = func() map[string]ShareableConfig {
+	templates := map[string]ShareableConfig{
+		"essential": {
+			Config: config.Config{
+				Taps: []string{
+					"homebrew/cask-fonts",
+				},
+				Brews: []string{
+					"git", "curl", "wget", "tree", "jq", "stow", "gh",
+					"starship", "neovim", "tmux", "fzf", "ripgrep",
+					"bat", "eza", "zoxide",
+				},
+				Casks: []string{
+					"visual-studio-code", "ghostty", "raycast",
+					"rectangle", "obsidian", "1password",
+					"font-jetbrains-mono-nerd-font",
+				},
+				Stow: []string{"vim", "zsh", "tmux", "starship", "git"},
+				Hooks: &config.Hooks{
+					PreInstall: []string{
+						"brew update",
+					},
+					PostInstall: []string{
+						"echo '✅ Installation complete! Run dotfiles stow to symlink your config files.'",
+					},
+					PreStow: []string{
+						"echo '🔗 Creating symlinks...'",
+					},
+					PostStow: []string{
+						"echo '✅ Dotfiles stowed successfully!'",
+					},
+				},
+				PackageConfigs: map[string]config.PackageConfig{
+					"starship": {
+						PostInstall: []string{
+							"echo 'eval \"$(starship init bash)\"' >> ~/.bashrc",
+							"echo 'eval \"$(starship init zsh)\"' >> ~/.zshrc",
+						},
+					},
+					"zoxide": {
+						PostInstall: []string{
+							"echo 'eval \"$(zoxide init bash)\"' >> ~/.bashrc",
+							"echo 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc",
+						},
+					},
+					"fzf": {
+						PostInstall: []string{
+							"$(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc",
+						},
+					},
+					"neovim": {
+						PostInstall: []string{
+							"mkdir -p ~/.config/nvim",
+							"echo '-- Neovim configuration will be managed via stow' > ~/.config/nvim/init.lua",
+						},
+					},
+					"tmux": {
+						PostInstall: []string{
+							"git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm || echo 'TPM already installed'",
+						},
+					},
+				},
+			},
+			Metadata: ShareMetadata{
+				Name:        "Essential Developer Setup",
+				Description: "Complete modern developer setup with CLI tools, shell enhancements, and essential apps with automated post-install configuration",
+				Author:      "Dotfiles Manager",
+				Tags:        []string{"essential", "developer", "productivity", "shell", "cli"},
+				CreatedAt:   time.Now(),
+				Version:     "1.0.0",
+			},
+		},
+	}
+
+	// Merge with embedded templates
+	for name, tmpl := range loadTemplatesFromFS() {
+		templates[name] = tmpl
+	}
+
+	return templates
+}()
 
 var templatesCmd = &cobra.Command{
 	Use:   "templates",
@@ -673,7 +748,7 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 	apiURL := os.Getenv("DOTFILES_API_URL")
 	if apiURL == "" {
-		apiURL = "https://dotfiles.wyat.me"
+		apiURL = "https://api.dotfiles.wyat.me"
 	}
 
 	apiEndpoint := apiURL + "/api/templates"

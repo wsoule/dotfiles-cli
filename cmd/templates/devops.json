@@ -1,0 +1,48 @@
+{
+  "name": "devops",
+  "description": "DevOps and cloud infrastructure tools - Kubernetes, Terraform, Docker, cloud CLIs",
+  "author": "dotfiles-cli",
+  "category": "development",
+  "tags": ["devops", "kubernetes", "docker", "terraform", "cloud", "infrastructure"],
+  "version": "1.0.0",
+  "brews": [
+    "git",
+    "stow",
+    "vim",
+    "curl",
+    "wget",
+    "tree",
+    "jq",
+    "docker",
+    "docker-compose",
+    "kubectl",
+    "helm",
+    "terraform",
+    "ansible",
+    "packer",
+    "vault",
+    "awscli",
+    "azure-cli",
+    "google-cloud-sdk",
+    "k9s",
+    "kubectx",
+    "stern",
+    "tmux",
+    "watch",
+    "htop"
+  ],
+  "casks": [
+    "docker",
+    "visual-studio-code",
+    "lens",
+    "postman",
+    "iterm2"
+  ],
+  "taps": [],
+  "stow": [
+    "shell",
+    "git",
+    "vim",
+    "tmux"
+  ]
+}

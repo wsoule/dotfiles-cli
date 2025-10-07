@@ -1,0 +1,42 @@
+{
+  "name": "data-science",
+  "description": "Data science and analytics stack with Python, R, Jupyter, and ML tools",
+  "author": "dotfiles-cli",
+  "category": "development",
+  "tags": ["data-science", "python", "r", "jupyter", "ml", "analytics"],
+  "version": "1.0.0",
+  "brews": [
+    "git",
+    "stow",
+    "vim",
+    "curl",
+    "wget",
+    "tree",
+    "jq",
+    "python",
+    "r",
+    "pipx",
+    "pyenv",
+    "jupyter",
+    "numpy",
+    "pandas",
+    "scipy",
+    "graphviz",
+    "ffmpeg",
+    "imagemagick"
+  ],
+  "casks": [
+    "visual-studio-code",
+    "rstudio",
+    "anaconda",
+    "tableau-reader"
+  ],
+  "taps": [
+    "homebrew/science"
+  ],
+  "stow": [
+    "shell",
+    "git",
+    "vim"
+  ]
+}

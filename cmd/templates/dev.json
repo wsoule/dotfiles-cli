@@ -1,0 +1,248 @@
+{
+  "name": "10x Dev",
+  "description": "All the tools you need for a complete modern developer setup with CLI tools, shell enhancements, git tools, system monitors, and essential apps with automated post-install configuration.",
+  "author": "dotfiles-cli",
+  "category": "development",
+  "tags": ["cli", "developer", "productivity", "shell", "git", "monitoring", "tools", "essential"],
+  "version": "1.0.0",
+  "taps": [
+    "homebrew/cask-fonts"
+  ],
+  "brews": [
+    "git",
+    "curl",
+    "wget",
+    "tree",
+    "jq",
+    "stow",
+    "gh",
+    "starship",
+    "neovim",
+    "tmux",
+    "fzf",
+    "ripgrep",
+    "bat",
+    "eza",
+    "zoxide",
+    "lazygit",
+    "git-delta",
+    "tldr",
+    "httpie",
+    "direnv",
+    "fd",
+    "dust",
+    "duf",
+    "btop",
+    "procs",
+    "zsh-autosuggestions",
+    "zsh-syntax-highlighting",
+    "thefuck",
+    "just",
+    "watchexec",
+    "entr",
+    "lazydocker",
+    "asdf",
+    "navi",
+    "htop"
+  ],
+  "casks": [
+    "visual-studio-code",
+    "ghostty",
+    "raycast",
+    "rectangle",
+    "obsidian",
+    "1password",
+    "font-jetbrains-mono-nerd-font"
+  ],
+  "stow": [
+    "vim",
+    "zsh",
+    "tmux",
+    "starship",
+    "git",
+    "nvim",
+    "shell"
+  ],
+  "addOnly": false,
+  "public": true,
+  "featured": true,
+  "package_configs": {
+    "fzf": {
+      "post_install": [
+        "$(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc",
+        "echo 'export FZF_DEFAULT_OPTS=\"--height 40% --layout=reverse --border\"' >> ~/.zshrc",
+        "echo 'export FZF_DEFAULT_COMMAND=\"rg --files --hidden --follow --glob \\\"!.git/*\\\"\"' >> ~/.zshrc"
+      ]
+    },
+    "neovim": {
+      "post_install": [
+        "mkdir -p ~/.config/nvim",
+        "echo '-- Neovim configuration will be managed via stow' > ~/.config/nvim/init.lua"
+      ]
+    },
+    "starship": {
+      "post_install": [
+        "echo 'eval \"$(starship init bash)\"' >> ~/.bashrc",
+        "echo 'eval \"$(starship init zsh)\"' >> ~/.zshrc"
+      ]
+    },
+    "tmux": {
+      "post_install": [
+        "git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm || echo 'TPM already installed'",
+        "echo 'Run \"prefix + I\" inside tmux to install plugins' "
+      ]
+    },
+    "zoxide": {
+      "post_install": [
+        "echo 'eval \"$(zoxide init bash)\"' >> ~/.bashrc",
+        "echo 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc"
+      ]
+    },
+    "git-delta": {
+      "post_install": [
+        "git config --global core.pager delta",
+        "git config --global interactive.diffFilter 'delta --color-only'",
+        "git config --global delta.navigate true",
+        "git config --global delta.light false",
+        "git config --global delta.line-numbers true",
+        "git config --global delta.side-by-side true",
+        "git config --global merge.conflictstyle diff3",
+        "git config --global diff.colorMoved default"
+      ]
+    },
+    "direnv": {
+      "post_install": [
+        "echo 'eval \"$(direnv hook bash)\"' >> ~/.bashrc",
+        "echo 'eval \"$(direnv hook zsh)\"' >> ~/.zshrc"
+      ]
+    },
+    "zsh-autosuggestions": {
+      "post_install": [
+        "echo 'source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh' >> ~/.zshrc"
+      ]
+    },
+    "zsh-syntax-highlighting": {
+      "post_install": [
+        "echo 'source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh' >> ~/.zshrc"
+      ]
+    },
+    "thefuck": {
+      "post_install": [
+        "echo 'eval $(thefuck --alias)' >> ~/.bashrc",
+        "echo 'eval $(thefuck --alias)' >> ~/.zshrc"
+      ]
+    },
+    "asdf": {
+      "post_install": [
+        "echo '. $(brew --prefix asdf)/libexec/asdf.sh' >> ~/.bashrc",
+        "echo '. $(brew --prefix asdf)/libexec/asdf.sh' >> ~/.zshrc",
+        "echo '# Common asdf plugins (uncomment to install):' >> ~/.zshrc",
+        "echo '# asdf plugin add nodejs' >> ~/.zshrc",
+        "echo '# asdf plugin add python' >> ~/.zshrc",
+        "echo '# asdf plugin add ruby' >> ~/.zshrc"
+      ]
+    },
+    "bat": {
+      "post_install": [
+        "echo 'export BAT_THEME=\"Monokai Extended\"' >> ~/.zshrc",
+        "echo 'export MANPAGER=\"sh -c '\"'\"'col -bx | bat -l man -p'\"'\"'\"' >> ~/.zshrc",
+        "echo 'alias cat=bat' >> ~/.zshrc"
+      ]
+    },
+    "eza": {
+      "post_install": [
+        "echo '# eza aliases' >> ~/.zshrc",
+        "echo 'alias ls=\"eza --icons\"' >> ~/.zshrc",
+        "echo 'alias ll=\"eza -l --icons --git\"' >> ~/.zshrc",
+        "echo 'alias la=\"eza -la --icons --git\"' >> ~/.zshrc",
+        "echo 'alias lt=\"eza --tree --level=2 --icons\"' >> ~/.zshrc",
+        "echo 'alias llt=\"eza -l --tree --level=2 --icons --git\"' >> ~/.zshrc"
+      ]
+    },
+    "ripgrep": {
+      "post_install": [
+        "echo 'export RIPGREP_CONFIG_PATH=\"$HOME/.ripgreprc\"' >> ~/.zshrc",
+        "echo '# Add ripgrep config: --smart-case --hidden' > ~/.ripgreprc"
+      ]
+    },
+    "fd": {
+      "post_install": [
+        "echo 'alias find=fd' >> ~/.zshrc"
+      ]
+    },
+    "procs": {
+      "post_install": [
+        "echo 'alias ps=procs' >> ~/.zshrc"
+      ]
+    },
+    "dust": {
+      "post_install": [
+        "echo 'alias du=dust' >> ~/.zshrc"
+      ]
+    },
+    "duf": {
+      "post_install": [
+        "echo 'alias df=duf' >> ~/.zshrc"
+      ]
+    },
+    "btop": {
+      "post_install": [
+        "echo 'alias top=btop' >> ~/.zshrc",
+        "mkdir -p ~/.config/btop"
+      ]
+    },
+    "lazygit": {
+      "post_install": [
+        "echo 'alias lg=lazygit' >> ~/.zshrc",
+        "mkdir -p ~/.config/lazygit"
+      ]
+    },
+    "lazydocker": {
+      "post_install": [
+        "echo 'alias ld=lazydocker' >> ~/.zshrc"
+      ]
+    },
+    "httpie": {
+      "post_install": [
+        "echo 'alias get=\"http GET\"' >> ~/.zshrc",
+        "echo 'alias post=\"http POST\"' >> ~/.zshrc"
+      ]
+    },
+    "gh": {
+      "post_install": [
+        "echo 'Run \"gh auth login\" to authenticate with GitHub'"
+      ]
+    },
+    "tldr": {
+      "post_install": [
+        "tldr --update || echo 'Run tldr --update to download pages'"
+      ]
+    },
+    "navi": {
+      "post_install": [
+        "echo 'eval \"$(navi widget zsh)\"' >> ~/.zshrc",
+        "echo 'Press Ctrl+G to open navi'"
+      ]
+    }
+  },
+  "post_install_complete": {
+    "commands": [
+      "echo '\\n=== Setup Complete ==='",
+      "echo 'Please run: source ~/.zshrc'",
+      "echo '\\nOptional setup steps:'",
+      "echo '1. Run \"gh auth login\" to authenticate with GitHub'",
+      "echo '2. Run \"tldr --update\" to download tldr pages'",
+      "echo '3. Open tmux and press \"prefix + I\" to install plugins'",
+      "echo '4. Install asdf plugins: asdf plugin add nodejs && asdf install nodejs latest'",
+      "echo '5. Configure lazygit: lg (then edit config if needed)'",
+      "echo '\\nQuick test commands:'",
+      "echo '  z --help      # Test zoxide'",
+      "echo '  lg            # Test lazygit'",
+      "echo '  btop          # Test system monitor'",
+      "echo '  fzf           # Test fuzzy finder'",
+      "echo '  tldr git      # Test tldr'",
+      "echo '\\nCheatsheet created! Check artifacts for complete reference.'",
+      "echo '\\nHappy coding! 🚀'"
+    ]
+  }
+}

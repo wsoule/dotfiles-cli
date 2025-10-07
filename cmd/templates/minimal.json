@@ -1,0 +1,23 @@
+{
+  "name": "minimal",
+  "description": "Essential tools only - minimal setup for any development environment",
+  "author": "dotfiles-cli",
+  "category": "general",
+  "tags": ["minimal", "essential", "base"],
+  "version": "1.0.0",
+  "brews": [
+    "git",
+    "stow",
+    "vim",
+    "curl",
+    "wget",
+    "tree",
+    "jq"
+  ],
+  "casks": [],
+  "taps": [],
+  "stow": [
+    "shell",
+    "git"
+  ]
+}

@@ -211,33 +211,15 @@ func newAdvancedModel() advancedModel {
 }
 
 func loadTemplatesList() []TemplateMetadata {
-	// Built-in templates
-	templates := []TemplateMetadata{
-		{
-			Name:        "minimal",
-			Description: "Essential tools only",
-			Category:    "general",
-		},
-		{
-			Name:        "web-dev",
-			Description: "Web development stack",
-			Category:    "development",
-		},
-		{
-			Name:        "data-science",
-			Description: "Python, R, Jupyter, analytics",
-			Category:    "development",
-		},
-		{
-			Name:        "devops",
-			Description: "Kubernetes, Docker, Terraform",
-			Category:    "development",
-		},
-		{
-			Name:        "mobile-dev",
-			Description: "iOS/Android development",
-			Category:    "development",
-		},
+	templates := []TemplateMetadata{}
+
+	// Load from configTemplates (includes both hard-coded and embedded)
+	for name, tmpl := range configTemplates {
+		templates = append(templates, TemplateMetadata{
+			Name:        name,
+			Description: tmpl.Metadata.Description,
+			Category:    strings.Join(tmpl.Metadata.Tags, ", "),
+		})
 	}
 
 	return templates

@@ -7,6 +7,7 @@ import (
 
 	"dotfiles/internal/config"
 	"dotfiles/internal/pkgmanager"
+	"dotfiles/internal/snapshot"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +43,18 @@ var installCmd = &cobra.Command{
 				fmt.Println("   /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
 			}
 			return
+		}
+
+		// Create auto-snapshot before installation (unless --no-snapshot flag)
+		noSnapshot, _ := cmd.Flags().GetBool("no-snapshot")
+		if !noSnapshot {
+			fmt.Println("📸 Creating snapshot before installation...")
+			timestamp, err := snapshot.CreateAutoSnapshot("Before package installation")
+			if err != nil {
+				fmt.Printf("⚠️  Warning: Could not create snapshot: %v\n", err)
+			} else {
+				fmt.Printf("   ✅ Snapshot created: %s\n", timestamp)
+			}
 		}
 
 		// Run pre-install hooks
@@ -154,6 +167,7 @@ var installCmd = &cobra.Command{
 
 func init() {
 	installCmd.Flags().StringP("output", "o", "", "Output path for the package file (default: ./Brewfile or ./packages.txt)")
+	installCmd.Flags().Bool("no-snapshot", false, "Skip creating automatic snapshot before installation")
 	installCmd.Flags().Bool("dry-run", false, "Show what would be installed without executing")
 	rootCmd.AddCommand(installCmd)
 }

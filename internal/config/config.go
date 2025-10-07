@@ -30,6 +30,8 @@ type Config struct {
 	Stow           []string                 `json:"stow"`
 	Hooks          *Hooks                   `json:"hooks,omitempty"`
 	PackageConfigs map[string]PackageConfig `json:"package_configs,omitempty"`
+	Groups         map[string][]string      `json:"groups,omitempty"`         // Package groups/tags
+	PackageTags    map[string][]string      `json:"package_tags,omitempty"`   // Tags per package
 }
 
 // Load reads configuration from JSON file
