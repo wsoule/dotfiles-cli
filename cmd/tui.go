@@ -324,29 +324,40 @@ func isInConfig(name, pkgType string, cfg *config.Config) bool {
 var tuiCmd = &cobra.Command{
 	Use:   "tui",
 	Short: "🎨 Interactive TUI for package management",
-	Long: `🎨 Interactive Terminal UI
+	Long: `🎨 Interactive Terminal UI - Complete Dotfiles Hub
 
-Launch a feature-rich interactive terminal interface to manage your dotfiles.
+Launch a lazygit-inspired interface to manage your entire dotfiles setup.
+
+Views:
+  1. 📦 Packages   - Browse, search, add/remove packages
+  2. 📚 Templates  - Apply configuration templates
+  3. 📊 Status     - System statistics and health
+  4. 🔗 Stow       - Manage dotfile symlinks
+  5. 📸 Snapshots  - View and restore snapshots
+  6. ⚡ Install    - Install packages directly
 
 Features:
-  📦 Packages - Browse, search, add/remove packages
-  📸 Snapshots - View and restore snapshots
-  🪝 Hooks - View configured hooks
-  📊 Stats - System statistics and health
-  📋 Profiles - Browse and import profiles
+  • Windowed layout with main, detail, and legend panels
+  • Real-time package installation
+  • Multi-select with batch operations
+  • Template application
+  • Cross-platform aware (macOS, Linux)
+  • Auto-save on changes
+  • Symbol legend for easy reference
 
 Controls:
-  Navigation:  ↑/k up • ↓/j down • ←/h prev tab • →/l next tab
-  Selection:   space select • ctrl+a select all • ctrl+d deselect all
-  Actions:     a add • r remove • s save • d toggle details
-  Search:      / search • S cycle sort
-  Other:       : command mode • ? help • q quit
+  Navigation:  j/k up/down • g/G top/bottom • ctrl+d/u page
+  Views:       1-6 switch views • tab switch panels
+  Selection:   space select • enter quick-add
+  Actions:     a add • r remove • i install • s save
+  Search:      / search (packages view)
+  Other:       q quit
 
 Examples:
-  dotfiles tui                # Launch interactive interface`,
+  dotfiles tui                # Launch interactive hub`,
 	Run: func(cmd *cobra.Command, args []string) {
 		p := tea.NewProgram(
-			enhancedInitialModel(),
+			newAdvancedModel(),
 			tea.WithAltScreen(),
 			tea.WithMouseCellMotion(),
 		)

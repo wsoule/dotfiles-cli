@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
 
 	"dotfiles/internal/config"
+	"dotfiles/internal/pkgmanager"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -167,6 +169,8 @@ type Stats struct {
 	DiskSpaceUsed     string
 	LastSync          string
 	DriftCount        int
+	PackageManager    string
+	OperatingSystem   string
 }
 
 type packageDetails struct {
@@ -205,8 +209,15 @@ func enhancedInitialModel() enhancedModel {
 	// Load profiles
 	profiles := loadProfiles()
 
+	// Get package manager info
+	pm, _ := pkgmanager.GetPackageManager()
+	pmName := "unknown"
+	if pm != nil {
+		pmName = pm.GetName()
+	}
+
 	// Calculate stats
-	stats := calculateStats(cfg, installedBrews, installedCasks)
+	stats := calculateStats(cfg, installedBrews, installedCasks, pmName)
 
 	// Initialize search input
 	searchInput := textinput.New()
@@ -357,7 +368,7 @@ func loadProfiles() []MachineProfile {
 	return profiles
 }
 
-func calculateStats(cfg *config.Config, installedBrews, installedCasks []string) Stats {
+func calculateStats(cfg *config.Config, installedBrews, installedCasks []string, pmName string) Stats {
 	totalPkgs := len(cfg.Brews) + len(cfg.Casks)
 	installedPkgs := len(installedBrews) + len(installedCasks)
 
@@ -381,6 +392,8 @@ func calculateStats(cfg *config.Config, installedBrews, installedCasks []string)
 		DiskSpaceUsed:      "Calculating...",
 		LastSync:           "Unknown",
 		DriftCount:         drift,
+		PackageManager:     pmName,
+		OperatingSystem:    runtime.GOOS,
 	}
 }
 
@@ -618,7 +631,14 @@ func (m enhancedModel) renderTabs() string {
 		}
 	}
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
+	tabsLine := lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
+
+	// Add OS and package manager info on the right
+	osInfo := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("240")).
+		Render(fmt.Sprintf(" %s • %s ", m.stats.OperatingSystem, m.stats.PackageManager))
+
+	return tabsLine + osInfo
 }
 
 func (m enhancedModel) renderPackagesView() string {
@@ -831,16 +851,21 @@ func (m enhancedModel) renderStatsView() string {
 	s.WriteString(headerStyle.Render("System Statistics") + "\n\n")
 
 	stats := []string{
-		fmt.Sprintf("📦 Total Packages:      %d", m.stats.TotalPackages),
-		fmt.Sprintf("✅ Installed:           %d", m.stats.InstalledPackages),
-		fmt.Sprintf("📋 In Config:           %d", m.stats.ConfiguredPackages),
-		fmt.Sprintf("⚠️  Configuration Drift: %d", m.stats.DriftCount),
+		lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("212")).Render("📊 Package Statistics"),
+		fmt.Sprintf("   Total Packages:      %d", m.stats.TotalPackages),
+		fmt.Sprintf("   Installed:           %d", m.stats.InstalledPackages),
+		fmt.Sprintf("   In Config:           %d", m.stats.ConfiguredPackages),
+		fmt.Sprintf("   Configuration Drift: %d", m.stats.DriftCount),
 		"",
-		fmt.Sprintf("💾 Disk Space:          %s", m.stats.DiskSpaceUsed),
-		fmt.Sprintf("🔄 Last Sync:           %s", m.stats.LastSync),
+		lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("39")).Render("💻 System Information"),
+		fmt.Sprintf("   Operating System:    %s", m.stats.OperatingSystem),
+		fmt.Sprintf("   Package Manager:     %s", m.stats.PackageManager),
 		"",
-		fmt.Sprintf("📸 Snapshots:           %d", len(m.snapshots)),
-		fmt.Sprintf("📋 Profiles:            %d", len(m.profiles)),
+		lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("214")).Render("📂 Additional Data"),
+		fmt.Sprintf("   Disk Space:          %s", m.stats.DiskSpaceUsed),
+		fmt.Sprintf("   Last Sync:           %s", m.stats.LastSync),
+		fmt.Sprintf("   Snapshots:           %d", len(m.snapshots)),
+		fmt.Sprintf("   Profiles:            %d", len(m.profiles)),
 	}
 
 	for _, stat := range stats {
@@ -853,6 +878,20 @@ func (m enhancedModel) renderStatsView() string {
 			"  ⚠️  %d package(s) in config but not installed. Run 'dotfiles install'",
 			m.stats.DriftCount,
 		)) + "\n")
+	} else {
+		s.WriteString("\n" + successStyle.Render("  ✅ All configured packages are installed!") + "\n")
+	}
+
+	// Platform-specific notes
+	s.WriteString("\n")
+	if m.stats.OperatingSystem == "darwin" {
+		s.WriteString(normalStyle.Render("  💡 Using Homebrew for package management") + "\n")
+		s.WriteString(normalStyle.Render("     Brews are CLI tools, Casks are GUI applications") + "\n")
+	} else if m.stats.PackageManager == "pacman" {
+		s.WriteString(normalStyle.Render("  💡 Using pacman/yay for package management") + "\n")
+		s.WriteString(normalStyle.Render("     Both brews and casks are installed as packages") + "\n")
+	} else {
+		s.WriteString(normalStyle.Render(fmt.Sprintf("  💡 Using %s for package management", m.stats.PackageManager)) + "\n")
 	}
 
 	return s.String()
