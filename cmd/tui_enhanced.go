@@ -759,31 +759,66 @@ func (m enhancedModel) renderHooksView() string {
 
 	s.WriteString(headerStyle.Render("Configured Hooks") + "\n\n")
 
-	if m.config.Hooks == nil || isHooksEmpty(m.config.Hooks) {
+	hasGlobalHooks := m.config.Hooks != nil && !isHooksEmpty(m.config.Hooks)
+	hasPackageHooks := m.config.PackageConfigs != nil && len(m.config.PackageConfigs) > 0
+
+	if !hasGlobalHooks && !hasPackageHooks {
 		s.WriteString("  No hooks configured\n")
-		s.WriteString("  Add hooks with: dotfiles hooks add <type> <command>\n")
+		s.WriteString("  Add global hooks with: dotfiles hooks add <type> <command>\n")
+		s.WriteString("  Add package hooks with: dotfiles hooks pkg <package> add <type> <command>\n")
 		return s.String()
 	}
 
-	hooks := []struct {
-		name  string
-		hooks []string
-	}{
-		{"Pre-Install", m.config.Hooks.PreInstall},
-		{"Post-Install", m.config.Hooks.PostInstall},
-		{"Pre-Sync", m.config.Hooks.PreSync},
-		{"Post-Sync", m.config.Hooks.PostSync},
-		{"Pre-Stow", m.config.Hooks.PreStow},
-		{"Post-Stow", m.config.Hooks.PostStow},
+	// Global hooks
+	if hasGlobalHooks {
+		s.WriteString(lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("212")).Render("  Global Hooks:") + "\n\n")
+
+		hooks := []struct {
+			name  string
+			hooks []string
+		}{
+			{"Pre-Install", m.config.Hooks.PreInstall},
+			{"Post-Install", m.config.Hooks.PostInstall},
+			{"Pre-Sync", m.config.Hooks.PreSync},
+			{"Post-Sync", m.config.Hooks.PostSync},
+			{"Pre-Stow", m.config.Hooks.PreStow},
+			{"Post-Stow", m.config.Hooks.PostStow},
+		}
+
+		for _, h := range hooks {
+			if len(h.hooks) > 0 {
+				s.WriteString(fmt.Sprintf("  📌 %s:\n", h.name))
+				for i, hook := range h.hooks {
+					s.WriteString(fmt.Sprintf("     %d. %s\n", i, hook))
+				}
+				s.WriteString("\n")
+			}
+		}
 	}
 
-	for _, h := range hooks {
-		if len(h.hooks) > 0 {
-			s.WriteString(fmt.Sprintf("  📌 %s:\n", h.name))
-			for i, hook := range h.hooks {
-				s.WriteString(fmt.Sprintf("     %d. %s\n", i, hook))
+	// Package-specific hooks
+	if hasPackageHooks {
+		s.WriteString(lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("39")).Render("  Package-Specific Hooks:") + "\n\n")
+
+		for pkg, pkgConfig := range m.config.PackageConfigs {
+			if len(pkgConfig.PreInstall) > 0 || len(pkgConfig.PostInstall) > 0 {
+				s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render(fmt.Sprintf("  🔧 %s:", pkg)) + "\n")
+
+				if len(pkgConfig.PreInstall) > 0 {
+					s.WriteString("     Pre-Install:\n")
+					for i, hook := range pkgConfig.PreInstall {
+						s.WriteString(fmt.Sprintf("       %d. %s\n", i, hook))
+					}
+				}
+
+				if len(pkgConfig.PostInstall) > 0 {
+					s.WriteString("     Post-Install:\n")
+					for i, hook := range pkgConfig.PostInstall {
+						s.WriteString(fmt.Sprintf("       %d. %s\n", i, hook))
+					}
+				}
+				s.WriteString("\n")
 			}
-			s.WriteString("\n")
 		}
 	}
 

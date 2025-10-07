@@ -16,13 +16,20 @@ type Hooks struct {
 	PostStow    []string `json:"post_stow,omitempty"`
 }
 
+// PackageConfig represents configuration for a specific package
+type PackageConfig struct {
+	PostInstall []string `json:"post_install,omitempty"`
+	PreInstall  []string `json:"pre_install,omitempty"`
+}
+
 // Config represents the dotfiles configuration
 type Config struct {
-	Brews []string `json:"brews"`
-	Casks []string `json:"casks"`
-	Taps  []string `json:"taps"`
-	Stow  []string `json:"stow"`
-	Hooks *Hooks   `json:"hooks,omitempty"`
+	Brews          []string                 `json:"brews"`
+	Casks          []string                 `json:"casks"`
+	Taps           []string                 `json:"taps"`
+	Stow           []string                 `json:"stow"`
+	Hooks          *Hooks                   `json:"hooks,omitempty"`
+	PackageConfigs map[string]PackageConfig `json:"package_configs,omitempty"`
 }
 
 // Load reads configuration from JSON file

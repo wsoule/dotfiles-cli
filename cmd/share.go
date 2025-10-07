@@ -288,7 +288,7 @@ Popular templates:
 
 		if strings.HasPrefix(source, "http") {
 			// Check if it's a template or config URL from our Railway app
-			if strings.Contains(source, "dotfiles.wyat.me") {
+			if strings.Contains(source, "dotfiles.wyat.me") || strings.Contains(source, "localhost") {
 				if strings.Contains(source, "/templates/") {
 					shareableConfig, err = downloadTemplate(source)
 				} else {

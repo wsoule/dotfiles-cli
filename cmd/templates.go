@@ -29,131 +29,72 @@ type ExtendedTemplate struct {
 
 // Built-in config templates
 var configTemplates = map[string]ShareableConfig{
-	"web-dev": {
-		Config: config.Config{
-			Taps: []string{
-				"homebrew/cask-fonts",
-				"homebrew/cask-versions",
-			},
-			Brews: []string{
-				"git", "curl", "wget", "tree", "jq", "stow", "gh",
-				"node", "npm", "yarn", "pnpm",
-				"python", "python3", "pip3",
-				"docker", "docker-compose",
-				"nginx", "postgresql", "redis",
-			},
-			Casks: []string{
-				"visual-studio-code", "google-chrome", "firefox",
-				"iterm2", "rectangle", "docker",
-				"figma", "postman", "tableplus",
-			},
-			Stow: []string{"git", "zsh", "vim", "vscode"},
-		},
-		Metadata: ShareMetadata{
-			Name:        "Web Development",
-			Description: "Complete setup for web developers with Node.js, Python, Docker, and essential tools",
-			Author:      "Dotfiles Manager",
-			Tags:        []string{"web-dev", "javascript", "python", "docker"},
-			CreatedAt:   time.Now(),
-			Version:     "1.0.0",
-		},
-	},
-	"mobile-dev": {
-		Config: config.Config{
-			Taps: []string{
-				"homebrew/cask-fonts",
-				"dart-lang/dart",
-			},
-			Brews: []string{
-				"git", "curl", "wget", "tree", "jq", "stow", "gh",
-				"node", "npm", "yarn",
-				"dart", "flutter",
-				"cocoapods", "fastlane",
-			},
-			Casks: []string{
-				"visual-studio-code", "android-studio", "xcode",
-				"iterm2", "rectangle", "figma",
-				"simulator", "proxyman",
-			},
-			Stow: []string{"git", "zsh", "vim", "vscode"},
-		},
-		Metadata: ShareMetadata{
-			Name:        "Mobile Development",
-			Description: "Setup for iOS and Android development with Flutter, React Native, and native tools",
-			Author:      "Dotfiles Manager",
-			Tags:        []string{"mobile-dev", "flutter", "react-native", "ios", "android"},
-			CreatedAt:   time.Now(),
-			Version:     "1.0.0",
-		},
-	},
-	"data-science": {
+	"essential": {
 		Config: config.Config{
 			Taps: []string{
 				"homebrew/cask-fonts",
 			},
 			Brews: []string{
 				"git", "curl", "wget", "tree", "jq", "stow", "gh",
-				"python", "python3", "pip3",
-				"r", "jupyter", "jupyterlab",
-				"postgresql", "sqlite",
+				"starship", "neovim", "tmux", "fzf", "ripgrep",
+				"bat", "eza", "zoxide",
 			},
 			Casks: []string{
-				"visual-studio-code", "rstudio", "tableau-public",
-				"iterm2", "rectangle", "docker",
-				"jupyter-notebook-viewer",
+				"visual-studio-code", "ghostty", "raycast",
+				"rectangle", "obsidian", "1password",
+				"font-jetbrains-mono-nerd-font",
 			},
-			Stow: []string{"git", "zsh", "vim", "python", "jupyter"},
+			Stow: []string{"vim", "zsh", "tmux", "starship", "git"},
+			Hooks: &config.Hooks{
+				PreInstall: []string{
+					"brew update",
+				},
+				PostInstall: []string{
+					"echo '✅ Installation complete! Run dotfiles stow to symlink your config files.'",
+				},
+				PreStow: []string{
+					"echo '🔗 Creating symlinks...'",
+				},
+				PostStow: []string{
+					"echo '✅ Dotfiles stowed successfully!'",
+				},
+			},
+			PackageConfigs: map[string]config.PackageConfig{
+				"starship": {
+					PostInstall: []string{
+						"echo 'eval \"$(starship init bash)\"' >> ~/.bashrc",
+						"echo 'eval \"$(starship init zsh)\"' >> ~/.zshrc",
+					},
+				},
+				"zoxide": {
+					PostInstall: []string{
+						"echo 'eval \"$(zoxide init bash)\"' >> ~/.bashrc",
+						"echo 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc",
+					},
+				},
+				"fzf": {
+					PostInstall: []string{
+						"$(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc",
+					},
+				},
+				"neovim": {
+					PostInstall: []string{
+						"mkdir -p ~/.config/nvim",
+						"echo '-- Neovim configuration will be managed via stow' > ~/.config/nvim/init.lua",
+					},
+				},
+				"tmux": {
+					PostInstall: []string{
+						"git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm || echo 'TPM already installed'",
+					},
+				},
+			},
 		},
 		Metadata: ShareMetadata{
-			Name:        "Data Science",
-			Description: "Python, R, Jupyter, and data analysis tools for data scientists",
+			Name:        "Essential Developer Setup",
+			Description: "Complete modern developer setup with CLI tools, shell enhancements, and essential apps with automated post-install configuration",
 			Author:      "Dotfiles Manager",
-			Tags:        []string{"data-science", "python", "r", "jupyter", "analytics"},
-			CreatedAt:   time.Now(),
-			Version:     "1.0.0",
-		},
-	},
-	"devops": {
-		Config: config.Config{
-			Taps: []string{
-				"homebrew/cask-fonts",
-				"hashicorp/tap",
-			},
-			Brews: []string{
-				"git", "curl", "wget", "tree", "jq", "stow", "gh",
-				"docker", "docker-compose", "kubernetes-cli",
-				"terraform", "ansible", "helm",
-				"aws-cli", "azure-cli", "gcloud",
-				"prometheus", "grafana",
-			},
-			Casks: []string{
-				"visual-studio-code", "iterm2", "rectangle",
-				"docker", "lens", "postman",
-				"aws-vault", "cyberduck",
-			},
-			Stow: []string{"git", "zsh", "vim", "kubectl", "terraform"},
-		},
-		Metadata: ShareMetadata{
-			Name:        "DevOps & Cloud",
-			Description: "Infrastructure, containerization, and cloud tools for DevOps engineers",
-			Author:      "Dotfiles Manager",
-			Tags:        []string{"devops", "cloud", "kubernetes", "terraform", "aws", "docker"},
-			CreatedAt:   time.Now(),
-			Version:     "1.0.0",
-		},
-	},
-	"minimal": {
-		Config: config.Config{
-			Taps:  []string{},
-			Brews: []string{"git", "curl", "wget", "tree", "stow", "gh"},
-			Casks: []string{"visual-studio-code", "iterm2"},
-			Stow:  []string{"git", "zsh", "vim"},
-		},
-		Metadata: ShareMetadata{
-			Name:        "Minimal Setup",
-			Description: "Essential tools only - perfect for lightweight development environments",
-			Author:      "Dotfiles Manager",
-			Tags:        []string{"minimal", "essential", "lightweight"},
+			Tags:        []string{"essential", "developer", "productivity", "shell", "cli"},
 			CreatedAt:   time.Now(),
 			Version:     "1.0.0",
 		},
@@ -170,11 +111,7 @@ development workflows. Templates are reusable blueprints that set up complete
 development environments with curated packages and settings.
 
 Available Templates:
-• Web Development - Node.js, Python, Docker, essential web tools
-• Mobile Development - Flutter, React Native, iOS/Android tools
-• Data Science - Python, R, Jupyter, analytics tools
-• DevOps - Kubernetes, Terraform, cloud tools
-• Minimal - Essential tools only, lightweight setup
+• Essential Developer Setup - Modern CLI tools, shell enhancements, and productivity apps
 
 Commands:
   templates list              # Browse built-in templates
@@ -184,11 +121,11 @@ Commands:
   templates push <file>       # Share template with community
 
 Examples:
-  dotfiles templates list                    # See available templates
-  dotfiles templates discover --search web   # Find web development templates
-  dotfiles templates show web-dev           # Preview web-dev template
-  dotfiles clone template:web-dev           # Apply built-in template
-  dotfiles clone <api-url>                  # Apply community template`,
+  dotfiles templates list                      # See available templates
+  dotfiles templates discover --search web     # Find web development templates
+  dotfiles templates show essential            # Preview essential template
+  dotfiles clone template:essential            # Apply built-in template
+  dotfiles clone <api-url>                     # Apply community template`,
 }
 
 var templatesListCmd = &cobra.Command{

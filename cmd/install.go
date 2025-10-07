@@ -88,6 +88,19 @@ var installCmd = &cobra.Command{
 				fmt.Printf("⚠️  Post-install hook failed: %v\n", err)
 			}
 		}
+
+		// Run package-specific post-install hooks
+		if cfg.PackageConfigs != nil {
+			allPackages := append(append([]string{}, cfg.Brews...), cfg.Casks...)
+			for _, pkg := range allPackages {
+				if pkgConfig, exists := cfg.PackageConfigs[pkg]; exists && len(pkgConfig.PostInstall) > 0 {
+					fmt.Printf("🔧 Running post-install hooks for package: %s\n", pkg)
+					if err := RunHooks(pkgConfig.PostInstall, fmt.Sprintf("%s post-install", pkg)); err != nil {
+						fmt.Printf("⚠️  Package hook failed for %s: %v\n", pkg, err)
+					}
+				}
+			}
+		}
 	},
 }
 
