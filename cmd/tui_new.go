@@ -383,7 +383,7 @@ func (m advancedModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selected[m.cursor] = true
 					count := m.addSelectedToConfig()
 					m.selected = make(map[int]bool)
-					m.message = fmt.Sprintf("✓ Added to config", count)
+					m.message = fmt.Sprintf("✓ Added %d to config", count)
 					m.messageType = "success"
 				}
 			}
