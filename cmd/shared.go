@@ -31,13 +31,21 @@ func createPrivateDirectoryStructure(dotfilesDir string) error {
 # Add your private environment variables here
 export DOTFILES_PRIVATE="true"
 `,
+		".env-private": `# Private environment variables
+# Add sensitive environment variables here
+# This file is git-ignored and kept private
+
+# Example:
+# export API_KEY="your-secret-key"
+# export DATABASE_URL="your-db-connection"
+`,
 		".gitconfig.local": `# Personal git configuration
 # Add your personal git settings here
 [user]
 	# name = Your Name
 	# email = your.email@example.com
 `,
-		"env-private": `# Private environment variables
+		"env-private": `# Private environment variables (deprecated - use .env-private instead)
 # Add sensitive environment variables here
 # This file is git-ignored and kept private
 
@@ -69,6 +77,35 @@ export DOTFILES_PRIVATE="true"
 	return nil
 }
 
+// createSSHStowPackage creates an SSH stow package with a symlink to private/.ssh
+func createSSHStowPackage(dotfilesDir string) error {
+	stowDir := filepath.Join(dotfilesDir, "stow")
+	sshStowDir := filepath.Join(stowDir, "ssh")
+
+	// Create ssh stow package directory
+	if err := os.MkdirAll(sshStowDir, 0755); err != nil {
+		return fmt.Errorf("failed to create ssh stow directory: %v", err)
+	}
+
+	// Create relative symlink from stow package to private .ssh directory
+	stowSshLink := filepath.Join(sshStowDir, ".ssh")
+	relativePrivatePath := filepath.Join("..", "..", "private", ".ssh")
+
+	// Remove existing symlink if it exists
+	if _, err := os.Lstat(stowSshLink); err == nil {
+		if err := os.Remove(stowSshLink); err != nil {
+			return fmt.Errorf("failed to remove existing symlink: %v", err)
+		}
+	}
+
+	// Create the symlink
+	if err := os.Symlink(relativePrivatePath, stowSshLink); err != nil {
+		return fmt.Errorf("failed to create symlink: %v", err)
+	}
+
+	return nil
+}
+
 // createShellStowPackages creates shell and git stow packages with all configuration files
 func createShellStowPackages(stowDir string) error {
 	// Create shell stow package
@@ -86,7 +123,8 @@ func createShellStowPackages(stowDir string) error {
 [[ -f ~/.env ]] && source ~/.env
 [[ -f ~/.common.env ]] && source ~/.common.env
 [[ -f ~/.aliases.env ]] && source ~/.aliases.env
-[[ -f ~/.dotfiles/private/env-private ]] && source ~/.dotfiles/private/env-private
+[[ -f ~/.env.local ]] && source ~/.env.local
+[[ -f ~/.env-private ]] && source ~/.env-private
 
 # Basic zsh options
 setopt AUTO_CD
@@ -161,6 +199,25 @@ alias reload="source ~/.zshrc"
 		}
 	}
 
+	// Create symlinks to private env files
+	privateEnvFiles := []string{".env.local", ".env-private"}
+	for _, filename := range privateEnvFiles {
+		stowLinkPath := filepath.Join(shellStowDir, filename)
+		relativePrivatePath := filepath.Join("..", "..", "private", filename)
+
+		// Remove existing symlink if it exists
+		if _, err := os.Lstat(stowLinkPath); err == nil {
+			if err := os.Remove(stowLinkPath); err != nil {
+				return fmt.Errorf("failed to remove existing symlink %s: %v", filename, err)
+			}
+		}
+
+		// Create the symlink
+		if err := os.Symlink(relativePrivatePath, stowLinkPath); err != nil {
+			return fmt.Errorf("failed to create symlink for %s: %v", filename, err)
+		}
+	}
+
 	// Create git stow package for git config
 	gitStowDir := filepath.Join(stowDir, "git")
 	if err := os.MkdirAll(gitStowDir, 0755); err != nil {
@@ -191,19 +248,22 @@ alias reload="source ~/.zshrc"
 	return nil
 }
 
-// addStowPackagesToConfig adds shell and git packages to the stow configuration
+// addStowPackagesToConfig adds shell, git, and ssh packages to the stow configuration
 func addStowPackagesToConfig(configPath string) error {
 	cfg, err := config.Load(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %v", err)
 	}
 
-	// Add shell and git to stow packages if not already present
+	// Add shell, git, and ssh to stow packages if not already present
 	if !contains(cfg.Stow, "shell") {
 		cfg.Stow = append(cfg.Stow, "shell")
 	}
 	if !contains(cfg.Stow, "git") {
 		cfg.Stow = append(cfg.Stow, "git")
+	}
+	if !contains(cfg.Stow, "ssh") {
+		cfg.Stow = append(cfg.Stow, "ssh")
 	}
 
 	// Save updated config
@@ -246,6 +306,11 @@ func setupCompleteEnvironment(dotfilesDir string, shouldStow bool) error {
 	// Create shell stow packages
 	if err := createShellStowPackages(stowDir); err != nil {
 		return fmt.Errorf("failed to create shell packages: %v", err)
+	}
+
+	// Create SSH stow package that links to private/.ssh
+	if err := createSSHStowPackage(dotfilesDir); err != nil {
+		return fmt.Errorf("failed to create ssh stow package: %v", err)
 	}
 
 	// Add packages to config
