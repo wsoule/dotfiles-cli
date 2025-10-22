@@ -14,8 +14,9 @@ import (
 )
 
 var doctorCmd = &cobra.Command{
-	Use:   "doctor",
-	Short: "🏥 Run health checks on your dotfiles setup",
+	Use:     "doctor",
+	GroupID: "getting-started",
+	Short:   "🏥 Run health checks on your dotfiles setup",
 	Long: `🏥 Dotfiles Health Check
 
 Runs comprehensive diagnostics on your dotfiles setup to identify issues:
@@ -52,7 +53,17 @@ Examples:
 		if _, err := os.Stat(dotfilesDir); os.IsNotExist(err) {
 			fmt.Println("❌ Dotfiles directory not found")
 			fmt.Println("   Expected: ~/.dotfiles")
-			fmt.Println("   💡 Run: dotfiles setup <repo-url> or dotfiles init")
+			if fix {
+				fmt.Println("   🔧 Creating dotfiles directory...")
+				if err := os.MkdirAll(dotfilesDir, 0755); err != nil {
+					fmt.Printf("   ❌ Failed to create directory: %v\n", err)
+				} else {
+					fmt.Println("   ✅ Created ~/.dotfiles")
+					os.MkdirAll(filepath.Join(dotfilesDir, "stow"), 0755)
+				}
+			} else {
+				fmt.Println("   💡 Run: dotfiles setup <repo-url> or dotfiles init")
+			}
 			issues++
 		} else {
 			fmt.Println("✅ Dotfiles directory exists")
@@ -68,7 +79,23 @@ Examples:
 		if err != nil {
 			fmt.Println("❌ Configuration file invalid or missing")
 			fmt.Printf("   Error: %v\n", err)
-			fmt.Println("   💡 Run: dotfiles init")
+			if fix {
+				fmt.Println("   🔧 Creating default config.json...")
+				newCfg := &config.Config{
+					Brews: []string{},
+					Casks: []string{},
+					Taps:  []string{},
+					Stow:  []string{},
+				}
+				if err := newCfg.Save(configPath); err != nil {
+					fmt.Printf("   ❌ Failed to create config: %v\n", err)
+				} else {
+					fmt.Println("   ✅ Created config.json")
+					cfg = newCfg
+				}
+			} else {
+				fmt.Println("   💡 Run: dotfiles init")
+			}
 			issues++
 		} else {
 			fmt.Println("✅ Configuration file is valid")
@@ -84,7 +111,17 @@ Examples:
 		gitDir := filepath.Join(dotfilesDir, ".git")
 		if _, err := os.Stat(gitDir); os.IsNotExist(err) {
 			fmt.Println("⚠️  Not a git repository")
-			fmt.Println("   💡 Run: git init in ~/.dotfiles to enable version control")
+			if fix {
+				fmt.Println("   🔧 Initializing git repository...")
+				initCmd := exec.Command("git", "-C", dotfilesDir, "init")
+				if err := initCmd.Run(); err != nil {
+					fmt.Printf("   ❌ Failed to initialize git: %v\n", err)
+				} else {
+					fmt.Println("   ✅ Git repository initialized")
+				}
+			} else {
+				fmt.Println("   💡 Run: git init in ~/.dotfiles to enable version control")
+			}
 			warnings++
 		} else {
 			fmt.Println("✅ Git repository initialized")
@@ -125,8 +162,19 @@ Examples:
 			fmt.Printf("✅ git installed\n")
 		} else {
 			fmt.Printf("❌ git not found\n")
-			issues++
-			if pmAvailable {
+			if fix && pmAvailable {
+				fmt.Println("   🔧 Installing git...")
+				if pm.GetName() == "homebrew" {
+					installCmd := exec.Command("brew", "install", "git")
+					installCmd.Stdout = os.Stdout
+					installCmd.Stderr = os.Stderr
+					if err := installCmd.Run(); err != nil {
+						fmt.Printf("   ❌ Failed to install git: %v\n", err)
+					} else {
+						fmt.Println("   ✅ Git installed successfully")
+					}
+				}
+			} else if pmAvailable {
 				if pm.GetName() == "homebrew" {
 					fmt.Println("   💡 Install git: brew install git")
 				} else if pm.GetName() == "pacman" {
@@ -135,6 +183,7 @@ Examples:
 					fmt.Println("   💡 Install git with your package manager")
 				}
 			}
+			issues++
 		}
 
 		// Check stow
@@ -142,8 +191,19 @@ Examples:
 			fmt.Printf("✅ stow installed\n")
 		} else {
 			fmt.Printf("❌ stow not found\n")
-			issues++
-			if pmAvailable {
+			if fix && pmAvailable {
+				fmt.Println("   🔧 Installing stow...")
+				if pm.GetName() == "homebrew" {
+					installCmd := exec.Command("brew", "install", "stow")
+					installCmd.Stdout = os.Stdout
+					installCmd.Stderr = os.Stderr
+					if err := installCmd.Run(); err != nil {
+						fmt.Printf("   ❌ Failed to install stow: %v\n", err)
+					} else {
+						fmt.Println("   ✅ Stow installed successfully")
+					}
+				}
+			} else if pmAvailable {
 				if pm.GetName() == "homebrew" {
 					fmt.Println("   💡 Install GNU Stow: brew install stow")
 				} else if pm.GetName() == "pacman" {
@@ -152,6 +212,7 @@ Examples:
 					fmt.Println("   💡 Install GNU Stow with your package manager")
 				}
 			}
+			issues++
 		}
 		fmt.Println()
 

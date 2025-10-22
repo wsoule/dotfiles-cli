@@ -10,8 +10,9 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:   "update",
-	Short: "⬆️  Update Homebrew packages to latest versions",
+	Use:     "update",
+	GroupID: "package",
+	Short:   "⬆️  Update Homebrew packages to latest versions",
 	Long: `⬆️  Update Homebrew Packages
 
 Update packages managed by Homebrew to their latest versions.

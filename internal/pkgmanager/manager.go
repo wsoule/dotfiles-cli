@@ -2,6 +2,7 @@ package pkgmanager
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -75,6 +76,8 @@ func (h *HomebrewManager) Install(packages []string, packageType string) error {
 	} else if packageType == "tap" {
 		for _, pkg := range packages {
 			cmd := exec.Command("brew", "tap", pkg)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
 			if err := cmd.Run(); err != nil {
 				return fmt.Errorf("failed to tap %s: %v", pkg, err)
 			}
@@ -85,6 +88,8 @@ func (h *HomebrewManager) Install(packages []string, packageType string) error {
 	}
 
 	cmd := exec.Command("brew", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
@@ -171,8 +176,8 @@ func (h *HomebrewManager) GenerateInstallFile(brews, casks, taps []string) (stri
 
 func (h *HomebrewManager) InstallFromFile(filePath string) error {
 	cmd := exec.Command("brew", "bundle", "--file="+filePath)
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
@@ -206,6 +211,8 @@ func (p *PacmanManager) Install(packages []string, packageType string) error {
 		cmd = exec.Command("sudo", append([]string{"pacman", "-S", "--noconfirm"}, packages...)...)
 	}
 
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
@@ -300,6 +307,8 @@ func (a *AptManager) Install(packages []string, packageType string) error {
 	}
 
 	cmd := exec.Command("sudo", append([]string{"apt-get", "install", "-y"}, packages...)...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 
@@ -393,6 +402,8 @@ func (y *YumManager) Install(packages []string, packageType string) error {
 	}
 
 	cmd := exec.Command("sudo", append([]string{cmdName, "install", "-y"}, packages...)...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 

@@ -13,8 +13,9 @@ import (
 )
 
 var addCmd = &cobra.Command{
-	Use:   "add <packages>",
-	Short: "📦 Add packages to your configuration",
+	Use:     "add <packages>",
+	GroupID: "package",
+	Short:   "📦 Add packages to your configuration",
 	Long: `📦 Add Packages - Expand Your Development Environment
 
 Add Homebrew packages (brews), applications (casks), repositories (taps),
@@ -130,6 +131,7 @@ Popular packages:
 }
 
 var removeCmd = &cobra.Command{
+	GroupID: "package",
 	Use:   "remove <packages>",
 	Short: "🗑️  Remove packages from configuration and optionally uninstall",
 	Long: `🗑️  Remove Packages

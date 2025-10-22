@@ -177,8 +177,9 @@ var configTemplates = func() map[string]ShareableConfig {
 }()
 
 var templatesCmd = &cobra.Command{
-	Use:   "templates",
-	Short: "📚 Browse and use configuration templates",
+	Use:     "templates",
+	GroupID: "advanced",
+	Short:   "📚 Browse and use configuration templates",
 	Long: `📚 Configuration Templates - Pre-built Development Environments
 
 Discover, create, and share pre-made configuration templates for different

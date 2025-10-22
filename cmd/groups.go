@@ -12,8 +12,9 @@ import (
 )
 
 var groupsCmd = &cobra.Command{
-	Use:   "groups",
-	Short: "🏷️  Manage package groups and tags",
+	Use:     "groups",
+	GroupID: "advanced",
+	Short:   "🏷️  Manage package groups and tags",
 	Long: `🏷️  Package Groups & Tags - Organize Your Packages
 
 Group related packages together for easier management.

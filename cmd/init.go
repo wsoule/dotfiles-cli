@@ -10,8 +10,9 @@ import (
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a new dotfiles configuration",
+	Use:     "init",
+	GroupID: "dotfiles",
+	Short:   "Initialize a new dotfiles configuration",
 	Long:  `Creates a new config.json file in ~/.dotfiles/`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()

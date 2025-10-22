@@ -23,8 +23,9 @@ type MachineProfile struct {
 }
 
 var exportCmd = &cobra.Command{
-	Use:   "export <profile-name>",
-	Short: "📤 Export current configuration as a machine-specific profile",
+	Use:     "export <profile-name>",
+	GroupID: "advanced",
+	Short:   "📤 Export current configuration as a machine-specific profile",
 	Long: `📤 Export Configuration Profile
 
 Create machine-specific configuration profiles for different setups (work, personal, etc.).

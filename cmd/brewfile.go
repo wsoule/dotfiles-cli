@@ -10,8 +10,9 @@ import (
 )
 
 var brewfileCmd = &cobra.Command{
-	Use:   "brewfile",
-	Short: "Generate a Brewfile from your configuration",
+	Use:     "brewfile",
+	GroupID: "advanced",
+	Short:   "Generate a Brewfile from your configuration",
 	Long:  `Creates a Brewfile based on your config.json packages`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()

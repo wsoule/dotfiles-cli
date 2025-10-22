@@ -42,8 +42,9 @@ type FeaturedConfig struct {
 }
 
 var discoverCmd = &cobra.Command{
-	Use:   "discover",
-	Short: "Discover shared configurations from the community",
+	Use:     "discover",
+	GroupID: "advanced",
+	Short:   "Discover shared configurations from the community",
 	Long:  `Find and browse configurations shared by other developers`,
 }
 

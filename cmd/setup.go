@@ -10,8 +10,9 @@ import (
 )
 
 var setupCmd = &cobra.Command{
-	Use:   "setup [repo-url]",
-	Short: "Set up dotfiles repository and directory structure",
+	Use:     "setup [repo-url]",
+	GroupID: "getting-started",
+	Short:   "Set up dotfiles repository and directory structure",
 	Long:  `Fork and clone a dotfiles repository to ~/.dotfiles/, create private directory structure, and set up stow packages.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -67,7 +68,8 @@ var setupCmd = &cobra.Command{
 		fmt.Printf("📁 Created .config stow package at %s\n", configStowDir)
 
 		// Set up complete environment (private dir + shell packages, no stowing)
-		if err := setupCompleteEnvironment(dotfilesDir, false); err != nil {
+		// Default to zsh for setup command (user can manually change later)
+		if err := setupCompleteEnvironment(dotfilesDir, false, "zsh"); err != nil {
 			fmt.Printf("❌ Error setting up environment: %v\n", err)
 			return
 		}

@@ -11,8 +11,9 @@ import (
 )
 
 var syncCmd = &cobra.Command{
-	Use:   "sync",
-	Short: "🔄 Sync your dotfiles with remote repository",
+	Use:     "sync",
+	GroupID: "dotfiles",
+	Short:   "🔄 Sync your dotfiles with remote repository",
 	Long: `🔄 Sync Dotfiles Repository
 
 Synchronize your local dotfiles with the remote repository.

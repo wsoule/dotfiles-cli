@@ -49,6 +49,7 @@ type GistRequest struct {
 }
 
 var shareCmd = &cobra.Command{
+	GroupID: "advanced",
 	Use:   "share",
 	Short: "Share your configuration with others",
 	Long:  `Share your dotfiles configuration via GitHub Gist or export to file`,

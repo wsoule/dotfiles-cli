@@ -22,16 +22,40 @@ type PackageConfig struct {
 	PreInstall  []string `json:"pre_install,omitempty"`
 }
 
+// Role represents a set of packages for a specific purpose
+type Role struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Brews       []string `json:"brews"`
+	Casks       []string `json:"casks"`
+	Taps        []string `json:"taps"`
+	Stow        []string `json:"stow"`
+}
+
+// ConditionalConfig represents OS/hostname-specific configurations
+type ConditionalConfig struct {
+	Hostname  string            `json:"hostname,omitempty"`   // Exact match or glob pattern
+	OS        string            `json:"os,omitempty"`         // darwin, linux, etc.
+	Variables map[string]string `json:"variables,omitempty"`  // Template variables
+	Brews     []string          `json:"brews,omitempty"`
+	Casks     []string          `json:"casks,omitempty"`
+}
+
 // Config represents the dotfiles configuration
 type Config struct {
-	Brews          []string                 `json:"brews"`
-	Casks          []string                 `json:"casks"`
-	Taps           []string                 `json:"taps"`
-	Stow           []string                 `json:"stow"`
-	Hooks          *Hooks                   `json:"hooks,omitempty"`
-	PackageConfigs map[string]PackageConfig `json:"package_configs,omitempty"`
-	Groups         map[string][]string      `json:"groups,omitempty"`         // Package groups/tags
-	PackageTags    map[string][]string      `json:"package_tags,omitempty"`   // Tags per package
+	Brews              []string                 `json:"brews"`
+	Casks              []string                 `json:"casks"`
+	Taps               []string                 `json:"taps"`
+	Stow               []string                 `json:"stow"`
+	Hooks              *Hooks                   `json:"hooks,omitempty"`
+	PackageConfigs     map[string]PackageConfig `json:"package_configs,omitempty"`
+	Groups             map[string][]string      `json:"groups,omitempty"`              // Package groups/tags
+	PackageTags        map[string][]string      `json:"package_tags,omitempty"`        // Tags per package
+	Roles              map[string]Role          `json:"roles,omitempty"`               // Named roles (web-dev, data-science, etc.)
+	Conditionals       []ConditionalConfig      `json:"conditionals,omitempty"`        // OS/hostname-specific configs
+	Variables          map[string]string        `json:"variables,omitempty"`           // Template variables
+	ActiveProfile      string                   `json:"active_profile,omitempty"`      // Current active profile
+	PackageDependencies map[string][]string     `json:"package_dependencies,omitempty"` // pkg -> dependencies
 }
 
 // Load reads configuration from JSON file

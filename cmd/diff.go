@@ -12,8 +12,9 @@ import (
 )
 
 var diffCmd = &cobra.Command{
-	Use:   "diff",
-	Short: "📊 Show differences between config and installed packages",
+	Use:     "diff",
+	GroupID: "package",
+	Short:   "📊 Show differences between config and installed packages",
 	Long: `📊 Configuration Diff
 
 Compare your dotfiles configuration with actually installed packages.

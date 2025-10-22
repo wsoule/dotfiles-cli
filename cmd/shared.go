@@ -107,7 +107,7 @@ func createSSHStowPackage(dotfilesDir string) error {
 }
 
 // createShellStowPackages creates shell and git stow packages with all configuration files
-func createShellStowPackages(stowDir string) error {
+func createShellStowPackages(stowDir string, shell string) error {
 	// Create shell stow package
 	shellStowDir := filepath.Join(stowDir, "shell")
 	if err := os.MkdirAll(shellStowDir, 0755); err != nil {
@@ -115,8 +115,49 @@ func createShellStowPackages(stowDir string) error {
 	}
 
 	// Create public shell files directly in stow package
-	publicShellFiles := map[string]string{
-		".zshrc": `# Base zsh configuration
+	publicShellFiles := make(map[string]string)
+
+	// Generate shell-specific config
+	if shell == "fish" {
+		// For fish, we need to create .config/fish subdirectory in the stow package
+		fishConfigDir := filepath.Join(shellStowDir, ".config", "fish")
+		if err := os.MkdirAll(fishConfigDir, 0755); err != nil {
+			return fmt.Errorf("failed to create fish config directory: %v", err)
+		}
+
+		fishConfig := `# Base fish configuration
+# Common fish settings
+
+# Load environment files
+if test -f ~/.env
+    source ~/.env
+end
+if test -f ~/.common.env
+    source ~/.common.env
+end
+if test -f ~/.aliases.env
+    source ~/.aliases.env
+end
+if test -f ~/.env.local
+    source ~/.env.local
+end
+if test -f ~/.env-private
+    source ~/.env-private
+end
+
+# History settings
+set -x HISTFILE ~/.fish_history
+set -x HISTSIZE 10000
+set -x SAVEHIST 10000
+`
+		// Write fish config to the correct location
+		fishConfigPath := filepath.Join(fishConfigDir, "config.fish")
+		if err := os.WriteFile(fishConfigPath, []byte(fishConfig), 0644); err != nil {
+			return fmt.Errorf("failed to create config.fish: %v", err)
+		}
+	} else {
+		// Default to zsh
+		publicShellFiles[".zshrc"] = `# Base zsh configuration
 # Common zsh settings
 
 # Load environment files
@@ -136,8 +177,11 @@ setopt APPEND_HISTORY
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
-`,
-		".env": `# Base environment configuration
+`
+	}
+
+	// Common environment files that work with both shells
+	publicShellFiles[".env"] = `# Base environment configuration
 # Common environment variables for all shells
 export EDITOR="vim"
 export BROWSER="open"
@@ -145,8 +189,8 @@ export DOTFILES_DIR="$HOME/.dotfiles"
 
 # Path additions
 export PATH="$HOME/.local/bin:$PATH"
-`,
-		".common.env": `# Common environment variables
+`
+	publicShellFiles[".common.env"] = `# Common environment variables
 # Shared across all environments
 
 # Development tools
@@ -156,8 +200,40 @@ export LC_ALL="en_US.UTF-8"
 # Better defaults
 export LESS="-R"
 export GREP_OPTIONS="--color=auto"
-`,
-		".aliases.env": `# Common aliases
+`
+
+	// Generate shell-agnostic aliases file
+	if shell == "fish" {
+		publicShellFiles[".aliases.env"] = `# Common aliases for fish
+# Add your aliases here
+
+# File operations
+alias .. "cd .."
+alias ... "cd ../.."
+alias .... "cd ../../.."
+
+# Directory listing
+alias ll "ls -la"
+alias la "ls -A"
+alias l "ls -CF"
+
+# Git shortcuts
+alias gs "git status"
+alias ga "git add"
+alias gc "git commit"
+alias gp "git push"
+alias gl "git pull"
+alias gd "git diff"
+alias gb "git branch"
+alias gco "git checkout"
+
+# Utilities
+alias h "history"
+alias c "clear"
+alias reload "source ~/.config/fish/config.fish"
+`
+	} else {
+		publicShellFiles[".aliases.env"] = `# Common aliases
 # Add your aliases here
 
 # File operations
@@ -186,8 +262,21 @@ alias grep="grep --color=auto"
 alias h="history"
 alias c="clear"
 alias reload="source ~/.zshrc"
-`,
+`
 	}
+
+	// Remove old shell-specific configs that might exist
+	oldConfigs := []string{".zshrc", "config.fish"}
+	for _, oldConfig := range oldConfigs {
+		oldPath := filepath.Join(shellStowDir, oldConfig)
+		if _, err := os.Stat(oldPath); err == nil {
+			// Only remove if it's not the one we're creating
+			if _, shouldCreate := publicShellFiles[oldConfig]; !shouldCreate {
+				os.Remove(oldPath)
+			}
+		}
+	}
+
 
 	// Create public files directly in stow package
 	for filename, content := range publicShellFiles {
@@ -289,7 +378,7 @@ func stowPackages(packages []string, stowDir, target string) error {
 }
 
 // setupCompleteEnvironment sets up the complete dotfiles environment (private dir + shell packages + config)
-func setupCompleteEnvironment(dotfilesDir string, shouldStow bool) error {
+func setupCompleteEnvironment(dotfilesDir string, shouldStow bool, shell string) error {
 	stowDir := filepath.Join(dotfilesDir, "stow")
 	configPath := filepath.Join(dotfilesDir, "config.json")
 
@@ -303,8 +392,8 @@ func setupCompleteEnvironment(dotfilesDir string, shouldStow bool) error {
 		return fmt.Errorf("failed to create private directory: %v", err)
 	}
 
-	// Create shell stow packages
-	if err := createShellStowPackages(stowDir); err != nil {
+	// Create shell stow packages with selected shell
+	if err := createShellStowPackages(stowDir, shell); err != nil {
 		return fmt.Errorf("failed to create shell packages: %v", err)
 	}
 

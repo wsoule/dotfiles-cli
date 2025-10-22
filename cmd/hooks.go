@@ -12,8 +12,9 @@ import (
 )
 
 var hooksCmd = &cobra.Command{
-	Use:   "hooks",
-	Short: "🪝 Manage pre/post operation hooks",
+	Use:     "hooks",
+	GroupID: "advanced",
+	Short:   "🪝 Manage pre/post operation hooks",
 	Long: `🪝 Hooks Management
 
 Configure shell commands to run before/after specific operations.

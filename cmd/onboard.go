@@ -15,15 +15,16 @@ import (
 )
 
 var onboardCmd = &cobra.Command{
-	Use:   "onboard",
-	Short: "🎯 Complete developer onboarding and environment setup",
+	Use:     "onboard",
+	GroupID: "getting-started",
+	Short:   "🎯 Complete developer onboarding and environment setup",
 	Long: `🎯 Developer Onboarding - Complete Environment Setup
 
 Perfect for new developers or setting up fresh machines. This single command will:
 
 1. 🔧 Initialize your dotfiles configuration
 2. 🔒 Create private directory for sensitive files (SSH keys, env vars)
-3. 🐚 Set up shell configuration with zsh and aliases
+3. 🐚 Set up shell configuration (zsh or fish) and aliases
 4. 🔐 Generate GitHub SSH keys and show setup instructions
 5. 📦 Install curated essential development packages
 6. 📋 Guide you through next steps
@@ -63,8 +64,69 @@ Examples:
 		fmt.Println("🚀 Starting onboarding process...")
 		fmt.Println()
 
-		// Step 1: Detect existing dotfiles
-		fmt.Println("🔍 Step 1: Scanning for existing dotfiles...")
+		// Step 1: Check dependencies first
+		fmt.Println("🔧 Step 1: Checking dependencies...")
+		if err := checkAndInstallDependencies(skipInteractive); err != nil {
+			fmt.Printf("⚠️  Dependency check had issues: %v\n", err)
+		}
+		fmt.Println()
+
+		// Step 2: Initialize configuration
+		fmt.Println("📋 Step 2: Initializing dotfiles configuration...")
+		if err := initializeConfig(); err != nil {
+			fmt.Printf("❌ Failed to initialize configuration: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("✅ Configuration initialized!")
+
+		// Step 3: Check if user already has dotfiles setup
+		home, _ := os.UserHomeDir()
+		dotfilesDir := filepath.Join(home, ".dotfiles")
+		stowDir := filepath.Join(dotfilesDir, "stow", "shell")
+
+		hasExistingShellConfig := false
+		if _, err := os.Stat(filepath.Join(stowDir, ".zshrc")); err == nil {
+			hasExistingShellConfig = true
+		}
+		if _, err := os.Stat(filepath.Join(stowDir, ".config/fish/config.fish")); err == nil {
+			hasExistingShellConfig = true
+		}
+
+		if !hasExistingShellConfig {
+			// Ask user which shell they want to use
+			shell := "zsh" // default
+			if !skipInteractive {
+				fmt.Println("🐚 Which shell would you like to use?")
+				fmt.Println("   1) zsh (default)")
+				fmt.Println("   2) fish")
+				reader := bufio.NewReader(os.Stdin)
+				fmt.Print("Enter choice (1/2) [1]: ")
+				choice, _ := reader.ReadString('\n')
+				choice = strings.TrimSpace(choice)
+				if choice == "2" {
+					shell = "fish"
+					fmt.Println("   Selected: fish 🐟")
+				} else {
+					fmt.Println("   Selected: zsh")
+				}
+				fmt.Println()
+			}
+
+			// Set up complete environment (private dir + shell packages + stow)
+			fmt.Println("🔒 Setting up dotfiles environment...")
+			if err := setupCompleteEnvironment(dotfilesDir, true, shell); err != nil {
+				fmt.Printf("⚠️  Environment setup had issues: %v\n", err)
+			} else {
+				fmt.Println("✅ Environment setup complete!")
+			}
+			fmt.Println()
+		} else {
+			fmt.Println("✅ Found existing shell configuration, skipping shell setup")
+			fmt.Println()
+		}
+
+		// Step 4: Detect existing dotfiles and offer to import
+		fmt.Println("🔍 Step 4: Scanning for existing dotfiles in home directory...")
 		existingDotfiles := detectExistingDotfiles()
 		if len(existingDotfiles) > 0 {
 			fmt.Printf("   Found %d existing dotfiles:\n", len(existingDotfiles))
@@ -83,42 +145,16 @@ Examples:
 		}
 		fmt.Println()
 
-		// Step 2: Check dependencies
-		fmt.Println("🔧 Step 2: Checking dependencies...")
-		if err := checkAndInstallDependencies(skipInteractive); err != nil {
-			fmt.Printf("⚠️  Dependency check had issues: %v\n", err)
-		}
-		fmt.Println()
-
-		// Step 3: Initialize configuration
-		fmt.Println("📋 Step 3: Initializing dotfiles configuration...")
-		if err := initializeConfig(); err != nil {
-			fmt.Printf("❌ Failed to initialize configuration: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Println("✅ Configuration initialized!")
-
-		// Set up complete environment (private dir + shell packages + stow)
-		fmt.Println("🔒 Setting up dotfiles environment...")
-		home, _ := os.UserHomeDir()
-		dotfilesDir := filepath.Join(home, ".dotfiles")
-		if err := setupCompleteEnvironment(dotfilesDir, true); err != nil {
-			fmt.Printf("⚠️  Environment setup had issues: %v\n", err)
-		} else {
-			fmt.Println("✅ Environment setup complete!")
-		}
-		fmt.Println()
-
-		// Step 4: Scan for installed packages
-		fmt.Println("📦 Step 4: Scanning for installed packages...")
+		// Step 5: Scan for installed packages
+		fmt.Println("📦 Step 5: Scanning for installed packages...")
 		if err := scanAndOfferPackages(skipInteractive); err != nil {
 			fmt.Printf("⚠️  Package scan had issues: %v\n", err)
 		}
 		fmt.Println()
 
-		// Step 5: GitHub setup
+		// Step 6: GitHub setup
 		if !skipGithub {
-			fmt.Println("🔐 Step 5: Setting up GitHub SSH authentication...")
+			fmt.Println("🔐 Step 6: Setting up GitHub SSH authentication...")
 			if email == "" && !skipInteractive {
 				reader := bufio.NewReader(os.Stdin)
 				fmt.Print("Enter your GitHub email: ")
@@ -140,9 +176,9 @@ Examples:
 			fmt.Println()
 		}
 
-		// Step 6: Install essential packages
+		// Step 7: Install essential packages
 		if !skipPackages {
-			fmt.Println("📦 Step 6: Installing essential development packages...")
+			fmt.Println("📦 Step 7: Installing essential development packages...")
 			if err := installEssentialPackages(skipInteractive); err != nil {
 				fmt.Printf("⚠️  Package installation had issues: %v\n", err)
 			} else {
@@ -151,8 +187,8 @@ Examples:
 			fmt.Println()
 		}
 
-		// Step 7: Final steps and guidance
-		fmt.Println("🎯 Step 7: Final setup and next steps...")
+		// Step 8: Final steps and guidance
+		fmt.Println("🎯 Step 8: Final setup and next steps...")
 		showNextSteps()
 		fmt.Println()
 

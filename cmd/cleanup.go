@@ -10,8 +10,9 @@ import (
 )
 
 var cleanupCmd = &cobra.Command{
-	Use:   "cleanup",
-	Short: "🧹 Clean up old Homebrew package versions and cache",
+	Use:     "cleanup",
+	GroupID: "package",
+	Short:   "🧹 Clean up old Homebrew package versions and cache",
 	Long: `🧹 Cleanup Homebrew
 
 Remove old versions of installed packages and clear Homebrew cache to free up disk space.

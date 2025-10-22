@@ -11,8 +11,9 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all packages in your configuration",
+	Use:     "list",
+	GroupID: "package",
+	Short:   "List all packages in your configuration",
 	Long:  `Shows all brews, casks, and taps in your config.json`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()

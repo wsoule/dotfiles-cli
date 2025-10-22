@@ -13,8 +13,9 @@ import (
 )
 
 var stowCmd = &cobra.Command{
-	Use:   "stow <packages>",
-	Short: "🔗 Create dotfile symlinks using GNU Stow",
+	Use:     "stow <packages>",
+	GroupID: "dotfiles",
+	Short:   "🔗 Create dotfile symlinks using GNU Stow",
 	Long: `🔗 Stow Dotfiles - Manage Configuration Symlinks
 
 Create symlinks for dotfile packages using GNU Stow. This allows you to

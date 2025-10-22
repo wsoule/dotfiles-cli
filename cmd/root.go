@@ -24,10 +24,36 @@ Perfect for new developers or setting up fresh machines.
 Quick Start:
   dotfiles onboard                    # Complete setup for new developers
   dotfiles setup <repo-url>           # Setup from existing dotfiles repo
-  dotfiles templates discover         # Browse community templates
+  dotfiles tui                        # Interactive package manager
   dotfiles add git curl tmux          # Add essential packages
 
+Tutorial:
+  dotfiles tutorial                   # Step-by-step interactive tutorial
+
 Get started: https://github.com/wsoule/dotfiles-cli`,
+}
+
+func init() {
+	// Add command groups for better organization
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "getting-started",
+		Title: "Getting Started Commands:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "package",
+		Title: "Package Management:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "dotfiles",
+		Title: "Dotfile Management:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "advanced",
+		Title: "Advanced Commands:",
+	})
+
+	// Add persistent flags
+	rootCmd.PersistentFlags().StringP("dotfiles-dir", "d", "", "Custom dotfiles directory (default: ~/.dotfiles)")
 }
 
 func Execute() {

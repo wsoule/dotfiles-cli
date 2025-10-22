@@ -12,8 +12,9 @@ import (
 )
 
 var githubCmd = &cobra.Command{
-	Use:   "github",
-	Short: "Set up GitHub with SSH keys",
+	Use:     "github",
+	GroupID: "dotfiles",
+	Short:   "Set up GitHub with SSH keys",
 	Long:  `Configure GitHub SSH keys and authentication for development`,
 }
 

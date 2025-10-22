@@ -13,8 +13,9 @@ import (
 )
 
 var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Check package installation status",
+	Use:     "status",
+	GroupID: "package",
+	Short:   "Check package installation status",
 	Long:  `Compare configured packages with what's actually installed on the system`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()

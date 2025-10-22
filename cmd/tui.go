@@ -322,6 +322,7 @@ func isInConfig(name, pkgType string, cfg *config.Config) bool {
 }
 
 var tuiCmd = &cobra.Command{
+	GroupID: "getting-started",
 	Use:   "tui",
 	Short: "🎨 Interactive TUI for package management",
 	Long: `🎨 Interactive Terminal UI - Complete Dotfiles Hub

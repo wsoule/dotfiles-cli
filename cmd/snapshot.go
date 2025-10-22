@@ -21,8 +21,9 @@ type Snapshot struct {
 }
 
 var snapshotCmd = &cobra.Command{
-	Use:   "snapshot",
-	Short: "📸 Manage configuration snapshots",
+	Use:     "snapshot",
+	GroupID: "advanced",
+	Short:   "📸 Manage configuration snapshots",
 	Long: `📸 Snapshot Management
 
 Create timestamped backups of your configuration for easy rollback.

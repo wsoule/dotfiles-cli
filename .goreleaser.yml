@@ -72,6 +72,29 @@ brews:
       bin.install "dotfiles"
     test: |
       system "#{bin}/dotfiles", "--version"
+    caveats: |
+      🎉 dotfiles installed successfully!
+
+      📚 Quick Start:
+        dotfiles onboard              # Complete setup for new developers
+        dotfiles setup <repo-url>     # Setup from existing dotfiles repo
+        dotfiles tui                  # Interactive package manager
+
+      ✨ Enable shell completion:
+        # For zsh:
+        mkdir -p ~/.zsh_completions
+        dotfiles completion zsh > ~/.zsh_completions/_dotfiles
+        echo 'fpath=("$HOME/.zsh_completions" $fpath)' >> ~/.zshrc
+        echo 'autoload -Uz compinit && compinit' >> ~/.zshrc
+        source ~/.zshrc
+
+        # For bash:
+        mkdir -p ~/.bash_completions
+        dotfiles completion bash > ~/.bash_completions/dotfiles
+        echo 'source "$HOME/.bash_completions/dotfiles"' >> ~/.bashrc
+        source ~/.bashrc
+
+      📖 Full documentation: https://github.com/wyatsoule/go-dotfiles
 
 nfpms:
   - id: packages

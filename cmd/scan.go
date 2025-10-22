@@ -13,8 +13,9 @@ import (
 )
 
 var scanCmd = &cobra.Command{
-	Use:   "scan",
-	Short: "🔍 Scan system for installed packages and add them to config",
+	Use:     "scan",
+	GroupID: "package",
+	Short:   "🔍 Scan system for installed packages and add them to config",
 	Long: `🔍 System Package Scanner
 
 Scans your system for packages already installed via Homebrew and helps you

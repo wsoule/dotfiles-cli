@@ -12,8 +12,9 @@ import (
 )
 
 var installCmd = &cobra.Command{
-	Use:   "install",
-	Short: "Generate package file and install packages",
+	Use:     "install",
+	GroupID: "package",
+	Short:   "Generate package file and install packages",
 	Long:  `Generates a package list file from your configuration and installs packages using the system package manager`,
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
