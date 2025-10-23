@@ -36,7 +36,7 @@ Examples:
   dotfiles completion powershell > dotfiles.ps1`,
 	Args:      cobra.ExactArgs(1),
 	ValidArgs: []string{"bash", "zsh", "fish", "powershell"},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		shell := args[0]
 
 		var err error
@@ -52,12 +52,13 @@ Examples:
 		default:
 			fmt.Printf("❌ Unsupported shell: %s\n", shell)
 			fmt.Println("\nSupported shells: bash, zsh, fish, powershell")
+			os.Exit(1)
 		}
 
 		if err != nil {
-			return fmt.Errorf("❌ error generating completion: %w", err)
+			fmt.Printf("❌ Error generating completion: %v\n", err)
+			os.Exit(1)
 		}
-		return nil
 	},
 }
 
@@ -72,7 +73,7 @@ Supported shells:
   • fish`,
 	Args:      cobra.ExactArgs(1),
 	ValidArgs: []string{"bash", "zsh", "fish"},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		shell := args[0]
 		home, _ := os.UserHomeDir()
 
@@ -117,14 +118,14 @@ Supported shells:
 
 		default:
 			fmt.Printf("❌ Unsupported shell: %s\n", shell)
-			return nil
+			return
 		}
 
 		// Generate completion to file
 		file, err := os.Create(completionPath)
 		if err != nil {
-			return fmt.Errorf("❌ failed to create completion file: %w", err)
-			return nil
+			fmt.Printf("❌ Failed to create completion file: %v\n", err)
+			return
 		}
 		defer file.Close()
 
@@ -138,8 +139,8 @@ Supported shells:
 		}
 
 		if err != nil {
-			return fmt.Errorf("❌ failed to generate completion: %w", err)
-			return nil
+			fmt.Printf("❌ Failed to generate completion: %v\n", err)
+			return
 		}
 
 		fmt.Println("✅ Completion script installed!")
@@ -153,7 +154,6 @@ Supported shells:
 			fmt.Println("   Then restart your shell or run:")
 			fmt.Println("   source ~/.bashrc  # or ~/.zshrc")
 		}
-		return nil
 	},
 }
 

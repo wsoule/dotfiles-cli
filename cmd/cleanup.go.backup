@@ -27,13 +27,14 @@ Examples:
   dotfiles cleanup              # Clean up old versions and cache
   dotfiles cleanup --dry-run    # Show what would be cleaned
   dotfiles cleanup --cache-only # Only clear cache, keep old versions`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		cacheOnly, _ := cmd.Flags().GetBool("cache-only")
 
 		// Check if brew is available
 		if _, err := exec.LookPath("brew"); err != nil {
 			fmt.Println("❌ Homebrew not found")
+			os.Exit(1)
 		}
 
 		fmt.Println("🧹 Cleaning up Homebrew...")
@@ -56,7 +57,7 @@ Examples:
 				cleanupCmd.Stdout = os.Stdout
 				cleanupCmd.Stderr = os.Stderr
 				if err := cleanupCmd.Run(); err != nil {
-					return fmt.Errorf("⚠️  cleanup had some errors: %w", err)
+					fmt.Printf("⚠️  Cleanup had some errors: %v\n", err)
 				} else {
 					fmt.Println("✅ Old versions removed")
 				}
@@ -73,7 +74,7 @@ Examples:
 			cacheCmd.Stdout = os.Stdout
 			cacheCmd.Stderr = os.Stderr
 			if err := cacheCmd.Run(); err != nil {
-				return fmt.Errorf("⚠️  cache cleanup had some errors: %w", err)
+				fmt.Printf("⚠️  Cache cleanup had some errors: %v\n", err)
 			} else {
 				fmt.Println("✅ Cache cleared")
 			}
@@ -90,7 +91,7 @@ Examples:
 				pruneCmd.Stdout = os.Stdout
 				pruneCmd.Stderr = os.Stderr
 				if err := pruneCmd.Run(); err != nil {
-					return fmt.Errorf("⚠️  prune had some errors: %w", err)
+					fmt.Printf("⚠️  Prune had some errors: %v\n", err)
 				} else {
 					fmt.Println("✅ Symlinks cleaned")
 				}
@@ -110,7 +111,6 @@ Examples:
 		fmt.Println("💡 Pro tip:")
 		fmt.Println("   • Run this periodically to save disk space")
 		fmt.Println("   • Run 'brew cleanup -n' to preview what would be removed")
-		return nil
 	},
 }
 

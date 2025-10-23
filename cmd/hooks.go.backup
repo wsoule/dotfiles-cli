@@ -46,16 +46,18 @@ Examples:
 var hooksListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all configured hooks",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.Hooks == nil || isHooksEmpty(cfg.Hooks) {
@@ -63,7 +65,7 @@ var hooksListCmd = &cobra.Command{
 			fmt.Println()
 			fmt.Println("💡 Add a hook:")
 			fmt.Println("   dotfiles hooks add pre_install 'brew update'")
-			return nil
+			return
 		}
 
 		fmt.Println("🪝 Configured Hooks:")
@@ -101,7 +103,6 @@ var hooksListCmd = &cobra.Command{
 				}
 			}
 		}
-		return nil
 	},
 }
 
@@ -109,19 +110,21 @@ var hooksAddCmd = &cobra.Command{
 	Use:   "add <hook-type> <command>",
 	Short: "Add a new hook",
 	Args:  cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		hookType := args[0]
 		command := args[1]
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.Hooks == nil {
@@ -144,14 +147,15 @@ var hooksAddCmd = &cobra.Command{
 		default:
 			fmt.Printf("❌ Invalid hook type: %s\n", hookType)
 			fmt.Println("Valid types: pre_install, post_install, pre_sync, post_sync, pre_stow, post_stow")
+			os.Exit(1)
 		}
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ error saving configuration: %w", err)
+			fmt.Printf("❌ Error saving configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Added %s hook: %s\n", hookType, command)
-		return nil
 	},
 }
 
@@ -159,24 +163,27 @@ var hooksRemoveCmd = &cobra.Command{
 	Use:   "remove <hook-type> <index>",
 	Short: "Remove a hook by index",
 	Args:  cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		hookType := args[0]
 		index := 0
 		fmt.Sscanf(args[1], "%d", &index)
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.Hooks == nil {
 			fmt.Println("❌ No hooks configured")
+			os.Exit(1)
 		}
 
 		var hooks *[]string
@@ -195,21 +202,23 @@ var hooksRemoveCmd = &cobra.Command{
 			hooks = &cfg.Hooks.PostStow
 		default:
 			fmt.Printf("❌ Invalid hook type: %s\n", hookType)
+			os.Exit(1)
 		}
 
 		if index < 0 || index >= len(*hooks) {
 			fmt.Printf("❌ Invalid index %d (max: %d)\n", index, len(*hooks)-1)
+			os.Exit(1)
 		}
 
 		removed := (*hooks)[index]
 		*hooks = append((*hooks)[:index], (*hooks)[index+1:]...)
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ error saving configuration: %w", err)
+			fmt.Printf("❌ Error saving configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Removed hook: %s\n", removed)
-		return nil
 	},
 }
 
@@ -217,22 +226,25 @@ var hooksClearCmd = &cobra.Command{
 	Use:   "clear <hook-type>",
 	Short: "Clear all hooks of a specific type",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		hookType := args[0]
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.Hooks == nil {
 			fmt.Println("❌ No hooks configured")
+			os.Exit(1)
 		}
 
 		var count int
@@ -257,14 +269,15 @@ var hooksClearCmd = &cobra.Command{
 			cfg.Hooks.PostStow = []string{}
 		default:
 			fmt.Printf("❌ Invalid hook type: %s\n", hookType)
+			os.Exit(1)
 		}
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ error saving configuration: %w", err)
+			fmt.Printf("❌ Error saving configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Cleared %d %s hook(s)\n", count, hookType)
-		return nil
 	},
 }
 
@@ -321,29 +334,31 @@ var hooksPkgListCmd = &cobra.Command{
 	Use:   "list <package>",
 	Short: "List hooks for a specific package",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.PackageConfigs == nil {
 			fmt.Printf("📦 No hooks configured for package: %s\n", packageName)
-			return nil
+			return
 		}
 
 		pkgConfig, exists := cfg.PackageConfigs[packageName]
 		if !exists || (len(pkgConfig.PreInstall) == 0 && len(pkgConfig.PostInstall) == 0) {
 			fmt.Printf("📦 No hooks configured for package: %s\n", packageName)
-			return nil
+			return
 		}
 
 		fmt.Printf("🔧 Hooks for package: %s\n", packageName)
@@ -365,7 +380,6 @@ var hooksPkgListCmd = &cobra.Command{
 			}
 			fmt.Println()
 		}
-		return nil
 	},
 }
 
@@ -373,24 +387,27 @@ var hooksPkgAddCmd = &cobra.Command{
 	Use:   "add <package> <hook-type> <command>",
 	Short: "Add a hook for a specific package",
 	Args:  cobra.ExactArgs(3),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
 		hookType := args[1]
 		command := args[2]
 
 		if hookType != "pre_install" && hookType != "post_install" {
 			fmt.Println("❌ Invalid hook type. Use 'pre_install' or 'post_install'")
+			os.Exit(1)
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.PackageConfigs == nil {
@@ -406,11 +423,11 @@ var hooksPkgAddCmd = &cobra.Command{
 		cfg.PackageConfigs[packageName] = pkgConfig
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ error saving configuration: %w", err)
+			fmt.Printf("❌ Error saving configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Added %s hook for package '%s': %s\n", hookType, packageName, command)
-		return nil
 	},
 }
 
@@ -418,7 +435,7 @@ var hooksPkgRemoveCmd = &cobra.Command{
 	Use:   "remove <package> <hook-type> <index>",
 	Short: "Remove a hook from a specific package",
 	Args:  cobra.ExactArgs(3),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
 		hookType := args[1]
 		index := 0
@@ -426,26 +443,31 @@ var hooksPkgRemoveCmd = &cobra.Command{
 
 		if hookType != "pre_install" && hookType != "post_install" {
 			fmt.Println("❌ Invalid hook type. Use 'pre_install' or 'post_install'")
+			os.Exit(1)
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		if cfg.PackageConfigs == nil {
 			fmt.Printf("❌ No hooks configured for package: %s\n", packageName)
+			os.Exit(1)
 		}
 
 		pkgConfig, exists := cfg.PackageConfigs[packageName]
 		if !exists {
 			fmt.Printf("❌ No hooks configured for package: %s\n", packageName)
+			os.Exit(1)
 		}
 
 		var hooks *[]string
@@ -457,6 +479,7 @@ var hooksPkgRemoveCmd = &cobra.Command{
 
 		if index < 0 || index >= len(*hooks) {
 			fmt.Printf("❌ Invalid index %d (max: %d)\n", index, len(*hooks)-1)
+			os.Exit(1)
 		}
 
 		removed := (*hooks)[index]
@@ -470,11 +493,11 @@ var hooksPkgRemoveCmd = &cobra.Command{
 		cfg.PackageConfigs[packageName] = pkgConfig
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ error saving configuration: %w", err)
+			fmt.Printf("❌ Error saving configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Removed hook from package '%s': %s\n", packageName, removed)
-		return nil
 	},
 }
 

@@ -59,7 +59,7 @@ var shareGistCmd = &cobra.Command{
 	Use:   "gist",
 	Short: "Share configuration via GitHub Gist",
 	Long:  `Upload your configuration to GitHub Gist for easy sharing`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
 		description, _ := cmd.Flags().GetString("description")
 		author, _ := cmd.Flags().GetString("author")
@@ -70,17 +70,20 @@ var shareGistCmd = &cobra.Command{
 
 		if name == "" {
 			fmt.Println("❌ Config name is required. Use --name flag.")
+			os.Exit(1)
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Create shareable config with metadata
@@ -105,12 +108,13 @@ var shareGistCmd = &cobra.Command{
 			fmt.Printf("🔗 Web App URL: %s\n", webAppURL)
 			fmt.Printf("📋 To clone this config: dotfiles clone %s\n", webAppURL)
 		} else {
-			return fmt.Errorf("⚠️  web app upload failed, trying github gist: %w", err)
+			fmt.Printf("⚠️  Web app upload failed, trying GitHub Gist: %v\n", err)
 
 			// Fallback to GitHub Gist
 			gistURL, err := uploadToGist(shareableConfig, !private)
 			if err != nil {
-				return fmt.Errorf("❌ failed to upload to gist: %w", err)
+				fmt.Printf("❌ Failed to upload to Gist: %v\n", err)
+				os.Exit(1)
 			}
 
 			fmt.Printf("✅ Config shared to GitHub Gist successfully!\n")
@@ -147,16 +151,16 @@ var shareGistCmd = &cobra.Command{
 
 			tempData, err := json.MarshalIndent(templateData, "", "  ")
 			if err != nil {
-				return fmt.Errorf("⚠️  warning: could not format template for api: %w", err)
+				fmt.Printf("⚠️  Warning: Could not format template for API: %v\n", err)
 			} else {
 				if err := os.WriteFile(tempTemplateFile, tempData, 0644); err != nil {
-					return fmt.Errorf("⚠️  warning: could not create temporary template file: %w", err)
+					fmt.Printf("⚠️  Warning: Could not create temporary template file: %v\n", err)
 				} else {
 					defer os.Remove(tempTemplateFile)
 
 					// Import the function from templates.go by calling it directly
 					if err := pushTemplateToAPI(tempTemplateFile, !private, featured); err != nil {
-						return fmt.Errorf("⚠️  warning: could not push to template api: %w", err)
+						fmt.Printf("⚠️  Warning: Could not push to template API: %v\n", err)
 					}
 				}
 			}
@@ -172,7 +176,6 @@ var shareGistCmd = &cobra.Command{
 		if err := copyToClipboard(finalURL); err == nil {
 			fmt.Println("📋 URL copied to clipboard!")
 		}
-		return nil
 	},
 }
 
@@ -181,7 +184,7 @@ var shareFileCmd = &cobra.Command{
 	Short: "Export configuration to a shareable file",
 	Long:  `Export your configuration to a JSON file that others can import`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		outputPath := args[0]
 		name, _ := cmd.Flags().GetString("name")
 		description, _ := cmd.Flags().GetString("description")
@@ -190,17 +193,20 @@ var shareFileCmd = &cobra.Command{
 
 		if name == "" {
 			fmt.Println("❌ Config name is required. Use --name flag.")
+			os.Exit(1)
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Create shareable config with metadata
@@ -219,16 +225,17 @@ var shareFileCmd = &cobra.Command{
 		// Write to file
 		data, err := json.MarshalIndent(shareableConfig, "", "  ")
 		if err != nil {
-			return fmt.Errorf("❌ error marshaling config: %w", err)
+			fmt.Printf("❌ Error marshaling config: %v\n", err)
+			os.Exit(1)
 		}
 
 		if err := os.WriteFile(outputPath, data, 0644); err != nil {
-			return fmt.Errorf("❌ error writing file: %w", err)
+			fmt.Printf("❌ Error writing file: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Configuration exported to: %s\n", outputPath)
 		fmt.Printf("📋 Others can import with: dotfiles clone %s\n", outputPath)
-		return nil
 	},
 }
 
@@ -262,7 +269,7 @@ Popular templates:
 • template:minimal - Essential tools only
 • template:data-science - Python, R, Jupyter, analytics tools`,
 	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		source := args[0]
 		merge, _ := cmd.Flags().GetBool("merge")
 		preview, _ := cmd.Flags().GetBool("preview")
@@ -272,8 +279,9 @@ Popular templates:
 			templateName := strings.TrimPrefix(source, "template:")
 			if err := handleTemplateClone(templateName, merge); err != nil {
 				fmt.Printf("❌ %v\n", err)
+				os.Exit(1)
 			}
-			return nil
+			return
 		}
 
 		var shareableConfig ShareableConfig
@@ -299,7 +307,8 @@ Popular templates:
 		}
 
 		if err != nil {
-			return fmt.Errorf("❌ error loading shared config: %w", err)
+			fmt.Printf("❌ Error loading shared config: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Show preview
@@ -341,17 +350,18 @@ Popular templates:
 			if len(shareableConfig.Stow) > 0 {
 				fmt.Println("Stow:", strings.Join(shareableConfig.Stow, ", "))
 			}
-			return nil
+			return
 		}
 
 		if !askConfirmation("Import this configuration? (y/N): ", false) {
 			fmt.Println("❌ Import cancelled.")
-			return nil
+			return
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
@@ -360,7 +370,7 @@ Popular templates:
 			// Load existing config and merge
 			existingConfig, err := config.Load(configPath)
 			if err != nil {
-				return fmt.Errorf("⚠️  could not load existing config, creating new: %w", err)
+				fmt.Printf("⚠️  Could not load existing config, creating new: %v\n", err)
 				existingConfig = &config.Config{}
 			}
 
@@ -371,7 +381,8 @@ Popular templates:
 			existingConfig.Stow = mergeSlices(existingConfig.Stow, shareableConfig.Stow)
 
 			if err := existingConfig.Save(configPath); err != nil {
-				return fmt.Errorf("❌ error saving merged config: %w", err)
+				fmt.Printf("❌ Error saving merged config: %v\n", err)
+				os.Exit(1)
 			}
 			fmt.Println("✅ Configuration merged successfully!")
 		} else {
@@ -384,7 +395,8 @@ Popular templates:
 			}
 
 			if err := newConfig.Save(configPath); err != nil {
-				return fmt.Errorf("❌ error saving config: %w", err)
+				fmt.Printf("❌ Error saving config: %v\n", err)
+				os.Exit(1)
 			}
 			fmt.Println("✅ Configuration imported successfully!")
 		}
@@ -392,7 +404,6 @@ Popular templates:
 		fmt.Println("💡 Next steps:")
 		fmt.Println("  dotfiles status    # Check what needs to be installed")
 		fmt.Println("  dotfiles install   # Install all packages")
-		return nil
 	},
 }
 

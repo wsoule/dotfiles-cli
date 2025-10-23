@@ -27,7 +27,7 @@ Examples:
   dotfiles scan --auto             # Automatically add all installed packages
   dotfiles scan --brews-only       # Only scan Homebrew formulas
   dotfiles scan --casks-only       # Only scan Homebrew casks`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		auto, _ := cmd.Flags().GetBool("auto")
 		brewsOnly, _ := cmd.Flags().GetBool("brews-only")
 		casksOnly, _ := cmd.Flags().GetBool("casks-only")
@@ -38,13 +38,14 @@ Examples:
 		// Load current config
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("⚠️  could not load config (will create new): %w", err)
+			fmt.Printf("⚠️  Could not load config (will create new): %v\n", err)
 			cfg = &config.Config{
 				Brews: []string{},
 				Casks: []string{},
@@ -59,7 +60,7 @@ Examples:
 		if !casksOnly {
 			installedBrews, err := getInstalledBrews()
 			if err != nil {
-				return fmt.Errorf("⚠️  could not scan homebrew formulas: %w", err)
+				fmt.Printf("⚠️  Could not scan Homebrew formulas: %v\n", err)
 			} else {
 				newBrews = filterNewPackages(installedBrews, cfg.Brews)
 				if len(newBrews) > 0 {
@@ -72,7 +73,7 @@ Examples:
 		if !brewsOnly {
 			installedCasks, err := getInstalledCasks()
 			if err != nil {
-				return fmt.Errorf("⚠️  could not scan homebrew casks: %w", err)
+				fmt.Printf("⚠️  Could not scan Homebrew casks: %v\n", err)
 			} else {
 				newCasks = filterNewPackages(installedCasks, cfg.Casks)
 				if len(newCasks) > 0 {
@@ -83,7 +84,7 @@ Examples:
 
 		if len(newBrews) == 0 && len(newCasks) == 0 {
 			fmt.Println("✅ All installed packages are already in your config!")
-			return nil
+			return
 		}
 
 		fmt.Println()
@@ -98,11 +99,12 @@ Examples:
 			sort.Strings(cfg.Casks)
 
 			if err := cfg.Save(configPath); err != nil {
-				return fmt.Errorf("❌ failed to save config: %w", err)
+				fmt.Printf("❌ Failed to save config: %v\n", err)
+				os.Exit(1)
 			}
 
 			fmt.Printf("✅ Added %d brews and %d casks to config\n", len(newBrews), len(newCasks))
-			return nil
+			return
 		}
 
 		// Interactive mode
@@ -124,7 +126,7 @@ Examples:
 
 		if len(selectedBrews) == 0 && len(selectedCasks) == 0 {
 			fmt.Println("No packages selected. Exiting.")
-			return nil
+			return
 		}
 
 		// Add selected packages to config
@@ -136,7 +138,8 @@ Examples:
 		sort.Strings(cfg.Casks)
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ failed to save config: %w", err)
+			fmt.Printf("❌ Failed to save config: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println()
@@ -145,7 +148,6 @@ Examples:
 		fmt.Println("💡 Next steps:")
 		fmt.Println("   • View your config: dotfiles list")
 		fmt.Println("   • Generate Brewfile: dotfiles brewfile")
-		return nil
 	},
 }
 

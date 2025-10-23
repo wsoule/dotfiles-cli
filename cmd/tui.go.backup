@@ -356,16 +356,16 @@ Controls:
 
 Examples:
   dotfiles tui                # Launch interactive hub`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		p := tea.NewProgram(
 			initialModel(),
 			tea.WithAltScreen(),
 			tea.WithMouseCellMotion(),
 		)
 		if _, err := p.Run(); err != nil {
-			return fmt.Errorf("error running tui: %w", err)
+			fmt.Printf("Error running TUI: %v\n", err)
+			os.Exit(1)
 		}
-		return nil
 	},
 }
 

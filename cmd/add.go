@@ -38,11 +38,10 @@ Popular packages:
 • Essential: git, curl, wget, tree, jq, gh, docker
 • Productivity: fzf, ripgrep, bat, eza, tmux, neovim
 • Applications: visual-studio-code, rectangle, slack`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("Error getting home directory: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
@@ -50,9 +49,8 @@ Popular packages:
 		// Load existing config
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("Error loading configuration: %v\n", err)
 			fmt.Println("Run 'dotfiles init' to create a configuration first.")
-			os.Exit(1)
+			return fmt.Errorf("error loading configuration: %w", err)
 		}
 
 		var packages []string
@@ -61,8 +59,7 @@ Popular packages:
 		if file, _ := cmd.Flags().GetString("file"); file != "" {
 			filePackages, err := readPackagesFromFile(file)
 			if err != nil {
-				fmt.Printf("Error reading packages from file: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error reading packages from file: %w", err)
 			}
 			packages = append(packages, filePackages...)
 		}
@@ -72,7 +69,7 @@ Popular packages:
 
 		if len(packages) == 0 {
 			fmt.Println("No packages specified. Use command line arguments or --file flag.")
-			return
+			return nil
 		}
 
 		packageType, _ := cmd.Flags().GetString("type")
@@ -122,18 +119,18 @@ Popular packages:
 
 		if added > 0 {
 			if err := cfg.Save(configPath); err != nil {
-				fmt.Printf("Error saving configuration: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error saving configuration: %w", err)
 			}
 			fmt.Printf("\n📊 Added %d new packages\n", added)
 		}
+		return nil
 	},
 }
 
 var removeCmd = &cobra.Command{
 	GroupID: "package",
-	Use:   "remove <packages>",
-	Short: "🗑️  Remove packages from configuration and optionally uninstall",
+	Use:     "remove <packages>",
+	Short:   "🗑️  Remove packages from configuration and optionally uninstall",
 	Long: `🗑️  Remove Packages
 
 Remove packages from your configuration and optionally uninstall them from your system.
@@ -145,19 +142,17 @@ Examples:
   dotfiles remove --type=cask --uninstall slack # Remove and uninstall cask
   dotfiles remove --all-brews                   # Remove all brews from config
   dotfiles remove --all-brews --uninstall       # Remove and uninstall all brews`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("Error getting home directory: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("Error loading configuration: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error loading configuration: %w", err)
 		}
 
 		packageType, _ := cmd.Flags().GetString("type")
@@ -210,8 +205,7 @@ Examples:
 		if file, _ := cmd.Flags().GetString("file"); file != "" {
 			filePackages, err := readPackagesFromFile(file)
 			if err != nil {
-				fmt.Printf("Error reading packages from file: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error reading packages from file: %w", err)
 			}
 			packages = append(packages, filePackages...)
 		}
@@ -276,8 +270,7 @@ Examples:
 
 		if removed > 0 {
 			if err := cfg.Save(configPath); err != nil {
-				fmt.Printf("Error saving configuration: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error saving configuration: %w", err)
 			}
 			fmt.Printf("\n📊 Removed %d packages from config\n", removed)
 		}
@@ -287,6 +280,7 @@ Examples:
 			fmt.Println()
 			uninstallPackages(packagesToUninstall, packageTypeForUninstall)
 		}
+		return nil
 	},
 }
 

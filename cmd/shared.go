@@ -277,7 +277,6 @@ alias reload="source ~/.zshrc"
 		}
 	}
 
-
 	// Create public files directly in stow package
 	for filename, content := range publicShellFiles {
 		filePath := filepath.Join(shellStowDir, filename)

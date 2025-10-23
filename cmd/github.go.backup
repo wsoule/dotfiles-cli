@@ -22,7 +22,7 @@ var githubSetupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "Set up GitHub SSH keys and authentication",
 	Long:  `Generate SSH keys, add to ssh-agent, and provide instructions for adding to GitHub`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		email, _ := cmd.Flags().GetString("email")
 		keyType, _ := cmd.Flags().GetString("key-type")
 		skipAgent, _ := cmd.Flags().GetBool("skip-agent")
@@ -36,6 +36,7 @@ var githubSetupCmd = &cobra.Command{
 
 		if email == "" {
 			fmt.Println("❌ Email is required for SSH key generation")
+			os.Exit(1)
 		}
 
 		fmt.Println("🔐 Setting up GitHub SSH authentication...")
@@ -45,7 +46,8 @@ var githubSetupCmd = &cobra.Command{
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Use private directory for SSH keys
@@ -55,7 +57,8 @@ var githubSetupCmd = &cobra.Command{
 
 		// Create private .ssh directory if it doesn't exist
 		if err := os.MkdirAll(privateSshDir, 0700); err != nil {
-			return fmt.Errorf("❌ error creating private .ssh directory: %w", err)
+			fmt.Printf("❌ Error creating private .ssh directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Check if key already exists
@@ -70,7 +73,7 @@ var githubSetupCmd = &cobra.Command{
 			if response != "y" && response != "yes" {
 				fmt.Println("✅ Using existing SSH key")
 				showPublicKey(pubKeyPath)
-				return nil
+				return
 			}
 		}
 
@@ -85,8 +88,9 @@ var githubSetupCmd = &cobra.Command{
 
 		sshKeygenCmd := exec.Command("ssh-keygen", sshKeygenArgs...)
 		if output, err := sshKeygenCmd.CombinedOutput(); err != nil {
-			return fmt.Errorf("❌ error generating ssh key: %w", err)
+			fmt.Printf("❌ Error generating SSH key: %v\n", err)
 			fmt.Printf("Output: %s\n", string(output))
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ SSH key generated successfully!\n")
@@ -102,7 +106,7 @@ var githubSetupCmd = &cobra.Command{
 		if !skipAgent {
 			fmt.Println("🔐 Adding key to SSH agent...")
 			if err := addToSSHAgent(keyPath); err != nil {
-				return fmt.Errorf("⚠️  warning: could not add key to ssh agent: %w", err)
+				fmt.Printf("⚠️  Warning: Could not add key to SSH agent: %v\n", err)
 			} else {
 				fmt.Println("✅ Key added to SSH agent")
 			}
@@ -112,14 +116,13 @@ var githubSetupCmd = &cobra.Command{
 		// Set up SSH stow package
 		fmt.Println("🔗 Setting up SSH stow package...")
 		if err := setupSSHStowPackage(home, privateSshDir); err != nil {
-			return fmt.Errorf("⚠️  warning: could not set up ssh stow package: %w", err)
+			fmt.Printf("⚠️  Warning: Could not set up SSH stow package: %v\n", err)
 		} else {
 			fmt.Println("✅ SSH stow package created")
 		}
 
 		// Show public key and next steps
 		showPublicKey(pubKeyPath)
-		return nil
 	},
 }
 
@@ -127,7 +130,7 @@ var githubTestCmd = &cobra.Command{
 	Use:   "test",
 	Short: "Test GitHub SSH connection",
 	Long:  `Test SSH connection to GitHub`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🧪 Testing GitHub SSH connection...")
 
 		sshCmd := exec.Command("ssh", "-T", "git@github.com")
@@ -139,16 +142,15 @@ var githubTestCmd = &cobra.Command{
 				fmt.Println("✅ GitHub SSH connection successful!")
 				fmt.Printf("Response: %s\n", outputStr)
 			} else {
+				fmt.Printf("❌ GitHub SSH connection failed: %v\n", err)
 				fmt.Printf("Output: %s\n", outputStr)
 				fmt.Println("\n💡 Make sure you've added your SSH key to GitHub:")
 				fmt.Println("   https://github.com/settings/ssh/new")
-				return fmt.Errorf("❌ github ssh connection failed: %w", err)
 			}
 		} else {
 			fmt.Println("✅ GitHub SSH connection successful!")
 			fmt.Printf("Response: %s\n", outputStr)
 		}
-		return nil
 	},
 }
 

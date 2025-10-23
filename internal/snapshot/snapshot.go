@@ -1,3 +1,7 @@
+// Package snapshot provides configuration snapshot and restore functionality.
+// Snapshots capture the current configuration state before major operations (like package installation),
+// allowing users to rollback to previous configurations if needed.
+// Snapshots are stored in ~/.dotfiles/snapshots/ as timestamped JSON files.
 package snapshot
 
 import (
@@ -11,15 +15,26 @@ import (
 	"dotfiles/internal/config"
 )
 
-// Snapshot represents a configuration snapshot
+// Snapshot represents a point-in-time capture of the dotfiles configuration.
+// Each snapshot includes the complete configuration, a timestamp, description, and metadata
+// about when and how it was created.
 type Snapshot struct {
-	Timestamp   string            `json:"timestamp"`
-	Description string            `json:"description"`
-	Config      *config.Config    `json:"config"`
-	Metadata    map[string]string `json:"metadata"`
+	Timestamp   string            `json:"timestamp"`   // Formatted as YYYYMMDD-HHMMSS
+	Description string            `json:"description"` // Human-readable description of why snapshot was created
+	Config      *config.Config    `json:"config"`      // Complete configuration at time of snapshot
+	Metadata    map[string]string `json:"metadata"`    // Additional metadata (platform, created_by, etc.)
 }
 
-// CreateAutoSnapshot creates an automatic snapshot before major operations
+// CreateAutoSnapshot creates an automatic snapshot before major operations.
+// This is typically called before package installations, updates, or other
+// potentially disruptive operations to enable rollback if needed.
+//
+// Parameters:
+//   - description: Human-readable description of why the snapshot is being created
+//
+// Returns:
+//   - string: The timestamp identifier of the created snapshot (format: YYYYMMDD-HHMMSS)
+//   - error: Any error encountered during snapshot creation
 func CreateAutoSnapshot(description string) (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -62,7 +77,13 @@ func CreateAutoSnapshot(description string) (string, error) {
 	return timestamp, nil
 }
 
-// ListSnapshots returns all available snapshots
+// ListSnapshots returns all available snapshots from the snapshots directory.
+// Snapshots are loaded from ~/.dotfiles/snapshots/ and parsed from JSON.
+// If the snapshots directory doesn't exist, an empty slice is returned.
+//
+// Returns:
+//   - []Snapshot: Slice of all available snapshots, ordered by discovery (not chronological)
+//   - error: Any error encountered during directory reading (individual parse errors are skipped)
 func ListSnapshots() ([]Snapshot, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -100,7 +121,16 @@ func ListSnapshots() ([]Snapshot, error) {
 	return snapshots, nil
 }
 
-// RestoreSnapshot restores a snapshot by timestamp
+// RestoreSnapshot restores a configuration snapshot by its timestamp identifier.
+// This replaces the current config.json with the configuration from the specified snapshot.
+// Optionally creates a backup snapshot of the current configuration before restoration.
+//
+// Parameters:
+//   - timestamp: The snapshot identifier in format YYYYMMDD-HHMMSS
+//   - createBackup: If true, creates an auto-backup snapshot before restoration
+//
+// Returns:
+//   - error: Any error encountered during snapshot loading, backup creation, or config restoration
 func RestoreSnapshot(timestamp string, createBackup bool) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -137,7 +167,16 @@ func RestoreSnapshot(timestamp string, createBackup bool) error {
 	return nil
 }
 
-// CleanOldSnapshots removes snapshots older than specified days
+// CleanOldSnapshots removes snapshots older than the specified number of days.
+// This helps manage disk space by removing old snapshots that are no longer needed.
+// Snapshots created within the retention period are preserved.
+//
+// Parameters:
+//   - daysToKeep: Number of days to retain snapshots (snapshots older than this are deleted)
+//
+// Returns:
+//   - int: Number of snapshots that were successfully removed
+//   - error: Any error encountered during snapshot listing or removal
 func CleanOldSnapshots(daysToKeep int) (int, error) {
 	snapshots, err := ListSnapshots()
 	if err != nil {

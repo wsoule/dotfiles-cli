@@ -23,7 +23,7 @@ Examples:
   dotfiles update --brew-only  # Only update Homebrew itself
   dotfiles update --dry-run    # Preview what would be updated
   dotfiles update git curl     # Update specific packages only`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		brewOnly, _ := cmd.Flags().GetBool("brew-only")
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		skipBrewUpdate, _ := cmd.Flags().GetBool("skip-brew-update")
@@ -39,6 +39,7 @@ Examples:
 		if _, err := exec.LookPath("brew"); err != nil {
 			fmt.Println("❌ Homebrew not found")
 			fmt.Println("💡 Install Homebrew first")
+			os.Exit(1)
 		}
 
 		fmt.Println("⬆️  Updating Packages...")
@@ -55,7 +56,7 @@ Examples:
 				updateCmd.Stdout = os.Stdout
 				updateCmd.Stderr = os.Stderr
 				if err := updateCmd.Run(); err != nil {
-					return fmt.Errorf("⚠️  warning: brew update failed: %w", err)
+					fmt.Printf("⚠️  Warning: brew update failed: %v\n", err)
 				} else {
 					fmt.Println("✅ Homebrew updated")
 				}
@@ -65,7 +66,7 @@ Examples:
 
 		if brewOnly {
 			fmt.Println("🎉 Homebrew update complete!")
-			return nil
+			return
 		}
 
 		// Step 2: Show outdated packages
@@ -74,7 +75,7 @@ Examples:
 
 		if len(outdated) == 0 {
 			fmt.Println("✅ All packages are up to date!")
-			return nil
+			return
 		}
 
 		fmt.Printf("Found %d outdated package(s):\n", len(outdated))
@@ -94,7 +95,8 @@ Examples:
 				upgradeCmd.Stdout = os.Stdout
 				upgradeCmd.Stderr = os.Stderr
 				if err := upgradeCmd.Run(); err != nil {
-					return fmt.Errorf("❌ failed to upgrade packages: %w", err)
+					fmt.Printf("❌ Failed to upgrade packages: %v\n", err)
+					os.Exit(1)
 				}
 				fmt.Println("✅ Packages upgraded")
 			}
@@ -108,7 +110,8 @@ Examples:
 				upgradeCmd.Stdout = os.Stdout
 				upgradeCmd.Stderr = os.Stderr
 				if err := upgradeCmd.Run(); err != nil {
-					return fmt.Errorf("❌ failed to upgrade packages: %w", err)
+					fmt.Printf("❌ Failed to upgrade packages: %v\n", err)
+					os.Exit(1)
 				}
 				fmt.Println("✅ All packages upgraded")
 			}
@@ -120,7 +123,6 @@ Examples:
 		fmt.Println("💡 Next steps:")
 		fmt.Println("   • Run: dotfiles cleanup  # Remove old versions")
 		fmt.Println("   • Run: dotfiles doctor   # Verify installation")
-		return nil
 	},
 }
 
@@ -128,8 +130,8 @@ var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
 	Short: "⬆️  Alias for 'update' command",
 	Long:  `⬆️  Upgrade packages (alias for 'update' command)`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return updateCmd.RunE(cmd, args)
+	Run: func(cmd *cobra.Command, args []string) {
+		updateCmd.Run(cmd, args)
 	},
 }
 

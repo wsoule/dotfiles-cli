@@ -12,20 +12,20 @@ import (
 )
 
 type GitHubSearchResponse struct {
-	TotalCount        int           `json:"total_count"`
-	IncompleteResults bool          `json:"incomplete_results"`
-	Items             []GitHubGist  `json:"items"`
+	TotalCount        int          `json:"total_count"`
+	IncompleteResults bool         `json:"incomplete_results"`
+	Items             []GitHubGist `json:"items"`
 }
 
 type GitHubGist struct {
-	ID          string            `json:"id"`
-	HTMLURL     string            `json:"html_url"`
-	Description string            `json:"description"`
-	Public      bool              `json:"public"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at"`
+	ID          string              `json:"id"`
+	HTMLURL     string              `json:"html_url"`
+	Description string              `json:"description"`
+	Public      bool                `json:"public"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
 	Files       map[string]GistFile `json:"files"`
-	Owner       GistOwner         `json:"owner"`
+	Owner       GistOwner           `json:"owner"`
 }
 
 type GistOwner struct {
@@ -45,7 +45,7 @@ var discoverCmd = &cobra.Command{
 	Use:     "discover",
 	GroupID: "advanced",
 	Short:   "Discover shared configurations from the community",
-	Long:  `Find and browse configurations shared by other developers`,
+	Long:    `Find and browse configurations shared by other developers`,
 }
 
 var discoverSearchCmd = &cobra.Command{

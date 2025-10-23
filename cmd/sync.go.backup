@@ -24,7 +24,7 @@ Examples:
   dotfiles sync --pull       # Only pull changes from remote
   dotfiles sync --push       # Only push changes to remote
   dotfiles sync --auto       # Auto-commit and sync all changes`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		pullOnly, _ := cmd.Flags().GetBool("pull")
 		pushOnly, _ := cmd.Flags().GetBool("push")
 		autoCommit, _ := cmd.Flags().GetBool("auto")
@@ -32,7 +32,8 @@ Examples:
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		dotfilesDir := filepath.Join(home, ".dotfiles")
@@ -41,6 +42,7 @@ Examples:
 		if _, err := os.Stat(dotfilesDir); os.IsNotExist(err) {
 			fmt.Println("❌ Dotfiles directory not found at ~/.dotfiles")
 			fmt.Println("💡 Run 'dotfiles setup <repo-url>' first")
+			os.Exit(1)
 		}
 
 		// Check if it's a git repository
@@ -48,6 +50,7 @@ Examples:
 		if _, err := os.Stat(gitDir); os.IsNotExist(err) {
 			fmt.Println("❌ Not a git repository")
 			fmt.Println("💡 Run 'dotfiles setup <repo-url>' to initialize")
+			os.Exit(1)
 		}
 
 		fmt.Println("🔄 Syncing dotfiles...")
@@ -55,7 +58,8 @@ Examples:
 
 		// Change to dotfiles directory
 		if err := os.Chdir(dotfilesDir); err != nil {
-			return fmt.Errorf("❌ error changing to dotfiles directory: %w", err)
+			fmt.Printf("❌ Error changing to dotfiles directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Check for uncommitted changes
@@ -68,7 +72,8 @@ Examples:
 				commitMsg = "Auto-sync: Update dotfiles configuration"
 			}
 			if err := gitCommit(commitMsg); err != nil {
-				return fmt.Errorf("❌ failed to commit changes: %w", err)
+				fmt.Printf("❌ Failed to commit changes: %v\n", err)
+				os.Exit(1)
 			}
 			fmt.Println("✅ Changes committed")
 			fmt.Println()
@@ -78,6 +83,7 @@ Examples:
 			fmt.Println()
 			fmt.Println("💡 Commit your changes first or use --auto to commit automatically")
 			if !pullOnly {
+				os.Exit(1)
 			}
 		}
 
@@ -85,8 +91,9 @@ Examples:
 		if !pushOnly {
 			fmt.Println("⬇️  Pulling changes from remote...")
 			if err := gitPull(); err != nil {
-				return fmt.Errorf("❌ failed to pull changes: %w", err)
+				fmt.Printf("❌ Failed to pull changes: %v\n", err)
 				fmt.Println("💡 You may need to resolve conflicts manually")
+				os.Exit(1)
 			}
 			fmt.Println("✅ Pulled latest changes")
 			fmt.Println()
@@ -96,7 +103,8 @@ Examples:
 		if !pullOnly {
 			fmt.Println("⬆️  Pushing changes to remote...")
 			if err := gitPush(); err != nil {
-				return fmt.Errorf("❌ failed to push changes: %w", err)
+				fmt.Printf("❌ Failed to push changes: %v\n", err)
+				os.Exit(1)
 			}
 			fmt.Println("✅ Pushed changes to remote")
 			fmt.Println()
@@ -107,7 +115,6 @@ Examples:
 		fmt.Println("💡 Next steps:")
 		fmt.Println("   • Check status: dotfiles status")
 		fmt.Println("   • Install new packages: dotfiles install")
-		return nil
 	},
 }
 

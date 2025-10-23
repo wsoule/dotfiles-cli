@@ -14,16 +14,18 @@ var brewfileCmd = &cobra.Command{
 	GroupID: "advanced",
 	Short:   "Generate a Brewfile from your configuration",
 	Long:    `Creates a Brewfile based on your config.json packages`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("error getting home directory: %w", err)
+			fmt.Printf("Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("error loading configuration: %w", err)
+			fmt.Printf("Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		brewfileContent := cfg.GenerateBrewfile()
@@ -34,11 +36,11 @@ var brewfileCmd = &cobra.Command{
 		}
 
 		if err := os.WriteFile(output, []byte(brewfileContent), 0644); err != nil {
-			return fmt.Errorf("error writing brewfile: %w", err)
+			fmt.Printf("Error writing Brewfile: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✓ Generated Brewfile at: %s\n", output)
-		return nil
 	},
 }
 

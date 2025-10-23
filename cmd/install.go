@@ -15,26 +15,23 @@ var installCmd = &cobra.Command{
 	Use:     "install",
 	GroupID: "package",
 	Short:   "Generate package file and install packages",
-	Long:  `Generates a package list file from your configuration and installs packages using the system package manager`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Long:    `Generates a package list file from your configuration and installs packages using the system package manager`,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("Error getting home directory: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("Error loading configuration: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error loading configuration: %w", err)
 		}
 
 		// Get the appropriate package manager for this OS
 		pm, err := pkgmanager.GetPackageManager()
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
+			return err
 		}
 
 		// Check if package manager is available
@@ -43,7 +40,7 @@ var installCmd = &cobra.Command{
 			if pm.GetName() == "homebrew" {
 				fmt.Println("   /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
 			}
-			return
+			return nil
 		}
 
 		// Create auto-snapshot before installation (unless --no-snapshot flag)
@@ -61,21 +58,19 @@ var installCmd = &cobra.Command{
 		// Run pre-install hooks
 		if cfg.Hooks != nil && len(cfg.Hooks.PreInstall) > 0 {
 			if err := RunHooks(cfg.Hooks.PreInstall, "pre-install"); err != nil {
-				fmt.Printf("⚠️  Pre-install hook failed: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("pre-install hook failed: %w", err)
 			}
 		}
 
 		// Generate package list file
 		fileContent, err := pm.GenerateInstallFile(cfg.Brews, cfg.Casks, cfg.Taps)
 		if err != nil {
-			fmt.Printf("Error generating package file: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error generating package file: %w", err)
 		}
 
 		if fileContent == "" {
 			fmt.Println("No packages configured. Run 'dotfiles add <package>' first.")
-			return
+			return nil
 		}
 
 		// Write package file
@@ -94,8 +89,7 @@ var installCmd = &cobra.Command{
 		}
 
 		if err := os.WriteFile(filePath, []byte(fileContent), 0644); err != nil {
-			fmt.Printf("Error writing package file: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error writing package file: %w", err)
 		}
 
 		fmt.Printf("✓ Generated package list at: %s\n", filePath)
@@ -103,7 +97,7 @@ var installCmd = &cobra.Command{
 		// Run install unless --dry-run is specified
 		if dryRun, _ := cmd.Flags().GetBool("dry-run"); dryRun {
 			fmt.Println("🔍 Dry run - would install packages using " + pm.GetName())
-			return
+			return nil
 		}
 
 		fmt.Printf("📦 Installing packages with %s...\n", pm.GetName())
@@ -119,8 +113,7 @@ var installCmd = &cobra.Command{
 		if len(cfg.Brews) > 0 {
 			fmt.Println("Installing packages...")
 			if err := pm.Install(cfg.Brews, "brew"); err != nil {
-				fmt.Printf("Error installing packages: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error installing packages: %w", err)
 			}
 		}
 
@@ -163,6 +156,7 @@ var installCmd = &cobra.Command{
 				}
 			}
 		}
+		return nil
 	},
 }
 

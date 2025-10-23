@@ -31,7 +31,7 @@ Examples:
   dotfiles doctor              # Run all health checks
   dotfiles doctor --fix        # Auto-fix common issues
   dotfiles doctor --verbose    # Show detailed output`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fix, _ := cmd.Flags().GetBool("fix")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
@@ -45,8 +45,7 @@ Examples:
 		// Check 1: Dotfiles directory exists
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("❌ Cannot get home directory: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("cannot get home directory: %w", err)
 		}
 
 		dotfilesDir := filepath.Join(home, ".dotfiles")
@@ -302,6 +301,7 @@ Examples:
 			fmt.Println()
 			fmt.Println("💡 Review the suggestions above to fix issues")
 		}
+		return nil
 	},
 }
 

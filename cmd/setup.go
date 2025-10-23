@@ -13,8 +13,8 @@ var setupCmd = &cobra.Command{
 	Use:     "setup [repo-url]",
 	GroupID: "getting-started",
 	Short:   "Set up dotfiles repository and directory structure",
-	Long:  `Fork and clone a dotfiles repository to ~/.dotfiles/, create private directory structure, and set up stow packages.`,
-	Args:  cobra.ExactArgs(1),
+	Long:    `Fork and clone a dotfiles repository to ~/.dotfiles/, create private directory structure, and set up stow packages.`,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		repoURL := args[0]
 

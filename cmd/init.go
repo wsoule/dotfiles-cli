@@ -13,12 +13,11 @@ var initCmd = &cobra.Command{
 	Use:     "init",
 	GroupID: "dotfiles",
 	Short:   "Initialize a new dotfiles configuration",
-	Long:  `Creates a new config.json file in ~/.dotfiles/`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Long:    `Creates a new config.json file in ~/.dotfiles/`,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Printf("Error getting home directory: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error getting home directory: %w", err)
 		}
 
 		configDir := filepath.Join(home, ".dotfiles")
@@ -27,7 +26,7 @@ var initCmd = &cobra.Command{
 		// Check if config already exists
 		if _, err := os.Stat(configPath); err == nil {
 			fmt.Println("Configuration already exists at:", configPath)
-			return
+			return nil
 		}
 
 		// Create initial empty config
@@ -38,11 +37,11 @@ var initCmd = &cobra.Command{
 		}
 
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("Error creating configuration: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error creating configuration: %w", err)
 		}
 
 		fmt.Println("✓ Created configuration at:", configPath)
+		return nil
 	},
 }
 

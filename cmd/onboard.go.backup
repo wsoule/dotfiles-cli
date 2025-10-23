@@ -39,7 +39,7 @@ Examples:
   dotfiles onboard --email you@email.com    # With GitHub email
   dotfiles onboard --skip-packages          # Skip package installation
   dotfiles onboard --skip-interactive       # Use defaults, no prompts`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		skipInteractive, _ := cmd.Flags().GetBool("skip-interactive")
 		skipGithub, _ := cmd.Flags().GetBool("skip-github")
 		skipPackages, _ := cmd.Flags().GetBool("skip-packages")
@@ -57,7 +57,7 @@ Examples:
 
 		if !skipInteractive && !askConfirmation("Ready to begin? (Y/n): ", true) {
 			fmt.Println("👋 Setup cancelled. Run 'dotfiles onboard' again when ready!")
-			return nil
+			return
 		}
 
 		fmt.Println()
@@ -67,14 +67,15 @@ Examples:
 		// Step 1: Check dependencies first
 		fmt.Println("🔧 Step 1: Checking dependencies...")
 		if err := checkAndInstallDependencies(skipInteractive); err != nil {
-			return fmt.Errorf("⚠️  dependency check had issues: %w", err)
+			fmt.Printf("⚠️  Dependency check had issues: %v\n", err)
 		}
 		fmt.Println()
 
 		// Step 2: Initialize configuration
 		fmt.Println("📋 Step 2: Initializing dotfiles configuration...")
 		if err := initializeConfig(); err != nil {
-			return fmt.Errorf("❌ failed to initialize configuration: %w", err)
+			fmt.Printf("❌ Failed to initialize configuration: %v\n", err)
+			os.Exit(1)
 		}
 		fmt.Println("✅ Configuration initialized!")
 
@@ -114,7 +115,7 @@ Examples:
 			// Set up complete environment (private dir + shell packages + stow)
 			fmt.Println("🔒 Setting up dotfiles environment...")
 			if err := setupCompleteEnvironment(dotfilesDir, true, shell); err != nil {
-				return fmt.Errorf("⚠️  environment setup had issues: %w", err)
+				fmt.Printf("⚠️  Environment setup had issues: %v\n", err)
 			} else {
 				fmt.Println("✅ Environment setup complete!")
 			}
@@ -136,7 +137,7 @@ Examples:
 
 			if !skipInteractive && askConfirmation("   Would you like to import these into your dotfiles setup? (Y/n): ", true) {
 				if err := offerDotfilesImport(existingDotfiles, skipInteractive); err != nil {
-					return fmt.Errorf("⚠️  some imports failed: %w", err)
+					fmt.Printf("⚠️  Some imports failed: %v\n", err)
 				}
 			}
 		} else {
@@ -147,7 +148,7 @@ Examples:
 		// Step 5: Scan for installed packages
 		fmt.Println("📦 Step 5: Scanning for installed packages...")
 		if err := scanAndOfferPackages(skipInteractive); err != nil {
-			return fmt.Errorf("⚠️  package scan had issues: %w", err)
+			fmt.Printf("⚠️  Package scan had issues: %v\n", err)
 		}
 		fmt.Println()
 
@@ -163,7 +164,7 @@ Examples:
 
 			if email != "" {
 				if err := setupGitHubSSH(email); err != nil {
-					return fmt.Errorf("⚠️  github setup had issues: %w", err)
+					fmt.Printf("⚠️  GitHub setup had issues: %v\n", err)
 					fmt.Println("   You can run 'dotfiles github setup' later to complete this.")
 				} else {
 					fmt.Println("✅ GitHub SSH setup completed!")
@@ -179,7 +180,7 @@ Examples:
 		if !skipPackages {
 			fmt.Println("📦 Step 7: Installing essential development packages...")
 			if err := installEssentialPackages(skipInteractive); err != nil {
-				return fmt.Errorf("⚠️  package installation had issues: %w", err)
+				fmt.Printf("⚠️  Package installation had issues: %v\n", err)
 			} else {
 				fmt.Println("✅ Essential packages installed!")
 			}
@@ -201,7 +202,6 @@ Examples:
 		fmt.Println("   dotfiles stow <package>         # Stow dotfiles")
 		fmt.Println()
 		fmt.Println("Happy coding! 🚀")
-		return nil
 	},
 }
 
@@ -286,7 +286,7 @@ func showSSHInstructions(pubKeyPath string) {
 
 	pubKeyContent, err := os.ReadFile(pubKeyPath)
 	if err != nil {
-		fmt.Printf("   ❌ error reading public key: %v\n", err)
+		fmt.Printf("   ❌ Error reading public key: %v\n", err)
 		return
 	}
 

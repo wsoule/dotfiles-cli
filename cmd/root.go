@@ -7,6 +7,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	versionInfo = struct {
+		Version string
+		Commit  string
+		Date    string
+	}{
+		Version: "dev",
+		Commit:  "none",
+		Date:    "unknown",
+	}
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "dotfiles",
 	Short: "🚀 Complete developer environment management toolkit",
@@ -56,9 +68,16 @@ func init() {
 	rootCmd.PersistentFlags().StringP("dotfiles-dir", "d", "", "Custom dotfiles directory (default: ~/.dotfiles)")
 }
 
+// SetVersionInfo sets the version information from main
+func SetVersionInfo(version, commit, date string) {
+	versionInfo.Version = version
+	versionInfo.Commit = commit
+	versionInfo.Date = date
+	rootCmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date)
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }

@@ -17,28 +17,31 @@ var statusCmd = &cobra.Command{
 	GroupID: "package",
 	Short:   "Check package installation status",
 	Long:    `Compare configured packages with what's actually installed on the system`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("error getting home directory: %w", err)
+			fmt.Printf("Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("error loading configuration: %w", err)
+			fmt.Printf("Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Get the appropriate package manager for this OS
 		pm, err := pkgmanager.GetPackageManager()
 		if err != nil {
-			return fmt.Errorf("error: %w", err)
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Check if package manager is available
 		if !pm.IsAvailable() {
 			fmt.Printf("⚠️  %s not found. Cannot check package status.\n", pm.GetName())
-			return nil
+			return
 		}
 
 		fmt.Println("📊 Package Status Report")
@@ -69,7 +72,6 @@ var statusCmd = &cobra.Command{
 		if len(cfg.Taps)+len(cfg.Brews)+len(cfg.Casks)+len(cfg.Stow) == 0 {
 			fmt.Println("No packages configured. Run 'dotfiles add <package>' to get started.")
 		}
-		return nil
 	},
 }
 
@@ -176,7 +178,7 @@ func checkBrews(configuredBrews []string) {
 	// Get installed brews
 	installedBrews, err := getInstalledBrews()
 	if err != nil {
-		fmt.Printf("  ❌ error getting installed brews: %v\n", err)
+		fmt.Printf("  ❌ Error getting installed brews: %v\n", err)
 		return
 	}
 	installedSet := make(map[string]bool)
@@ -205,7 +207,7 @@ func checkCasks(configuredCasks []string) {
 	// Get installed casks
 	installedCasks, err := getInstalledCasks()
 	if err != nil {
-		fmt.Printf("  ❌ error getting installed casks: %v\n", err)
+		fmt.Printf("  ❌ Error getting installed casks: %v\n", err)
 		return
 	}
 	installedSet := make(map[string]bool)
@@ -250,7 +252,7 @@ func checkStowPackages(configuredStow []string) {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Printf("  ❌ error getting home directory: %v\n", err)
+		fmt.Printf("  ❌ Error getting home directory: %v\n", err)
 		return
 	}
 

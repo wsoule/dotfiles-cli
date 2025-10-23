@@ -1,3 +1,7 @@
+// Package pkgmanager provides a unified interface for managing packages across different operating systems.
+// It abstracts package manager operations (install, list, check) for Homebrew (macOS),
+// pacman (Arch Linux), apt (Debian/Ubuntu), and yum/dnf (RHEL/Fedora).
+// This enables write-once package management code that works across all supported platforms.
 package pkgmanager
 
 import (
@@ -8,25 +12,49 @@ import (
 	"strings"
 )
 
-// PackageManager defines the interface for package manager operations
+// PackageManager defines the interface for package manager operations.
+// All platform-specific package managers (Homebrew, pacman, apt, yum) implement this interface,
+// allowing for unified package management across different operating systems.
 type PackageManager interface {
-	// Install installs packages
+	// Install installs one or more packages of the specified type.
+	// packageType can be "brew" (CLI tools), "cask" (GUI apps), or "tap" (repositories).
+	// On Linux, "cask" and "tap" types are treated as regular packages.
 	Install(packages []string, packageType string) error
-	// IsInstalled checks if a package is installed
+
+	// IsInstalled checks if a specific package is installed on the system.
+	// Returns true if the package is installed, false otherwise.
 	IsInstalled(pkg string, packageType string) (bool, error)
-	// ListInstalled returns all installed packages of a given type
+
+	// ListInstalled returns all packages of the given type that are currently installed.
+	// For Homebrew: packageType can be "brew", "cask", or "tap".
+	// For Linux package managers: only "brew" type is meaningful (returns all packages).
 	ListInstalled(packageType string) ([]string, error)
-	// GetName returns the package manager name
+
+	// GetName returns the human-readable name of the package manager.
+	// Examples: "homebrew", "pacman", "apt", "yum"
 	GetName() string
-	// IsAvailable checks if the package manager is available on the system
+
+	// IsAvailable checks if the package manager is installed and accessible on the system.
+	// Returns true if the package manager command is found in PATH.
 	IsAvailable() bool
-	// GenerateInstallFile generates a package list file (like Brewfile)
+
+	// GenerateInstallFile creates a package list file in the package manager's format.
+	// For Homebrew: generates a Brewfile with tap/brew/cask entries.
+	// For Linux: generates a plain text list of package names (one per line).
 	GenerateInstallFile(brews, casks, taps []string) (string, error)
-	// InstallFromFile installs packages from a file
+
+	// InstallFromFile installs all packages listed in a package list file.
+	// For Homebrew: uses `brew bundle` with a Brewfile.
+	// For Linux: reads package names from file and installs them.
 	InstallFromFile(filePath string) error
 }
 
-// GetPackageManager returns the appropriate package manager for the current OS
+// GetPackageManager returns the appropriate package manager for the current OS.
+// It auto-detects the platform and available package managers:
+//   - macOS: Returns HomebrewManager
+//   - Linux: Returns PacmanManager, AptManager, or YumManager (first available)
+//
+// Returns an error if the OS is unsupported or no package manager is found on Linux.
 func GetPackageManager() (PackageManager, error) {
 	switch runtime.GOOS {
 	case "darwin":
@@ -48,13 +76,16 @@ func GetPackageManager() (PackageManager, error) {
 	}
 }
 
-// commandExists checks if a command exists in PATH
+// commandExists checks if a command exists in the system PATH.
+// This is used to detect which package manager is available on the system.
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
 }
 
-// HomebrewManager implements PackageManager for Homebrew (macOS)
+// HomebrewManager implements PackageManager for Homebrew on macOS.
+// Homebrew is the de facto standard package manager for macOS, supporting both
+// CLI tools (brews) and GUI applications (casks).
 type HomebrewManager struct{}
 
 func (h *HomebrewManager) GetName() string {
@@ -181,7 +212,9 @@ func (h *HomebrewManager) InstallFromFile(filePath string) error {
 	return cmd.Run()
 }
 
-// PacmanManager implements PackageManager for pacman (Arch Linux)
+// PacmanManager implements PackageManager for pacman (Arch Linux).
+// Pacman is the package manager for Arch Linux and Arch-based distributions.
+// If yay (AUR helper) is available, it will be used for broader package support.
 type PacmanManager struct{}
 
 func (p *PacmanManager) GetName() string {
@@ -285,7 +318,9 @@ func (p *PacmanManager) InstallFromFile(filePath string) error {
 	return p.Install(packages, "brew")
 }
 
-// AptManager implements PackageManager for apt (Debian/Ubuntu)
+// AptManager implements PackageManager for apt (Debian/Ubuntu).
+// APT is the package manager for Debian, Ubuntu, and their derivatives.
+// This uses apt-get for installations and dpkg for package queries.
 type AptManager struct{}
 
 func (a *AptManager) GetName() string {
@@ -376,7 +411,9 @@ func (a *AptManager) InstallFromFile(filePath string) error {
 	return a.Install(packages, "brew")
 }
 
-// YumManager implements PackageManager for yum/dnf (RHEL/Fedora)
+// YumManager implements PackageManager for yum/dnf (RHEL/Fedora).
+// This supports both yum (older RHEL/CentOS) and dnf (newer Fedora/RHEL).
+// If dnf is available, it will be used; otherwise falls back to yum.
 type YumManager struct{}
 
 func (y *YumManager) GetName() string {

@@ -43,24 +43,27 @@ var snapshotCreateCmd = &cobra.Command{
 	Short: "Create a new snapshot",
 	Long: `Create a timestamped snapshot of your current configuration.
 Useful before making major changes to enable easy rollback.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		message, _ := cmd.Flags().GetString("message")
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Create snapshots directory
 		snapshotsDir := filepath.Join(home, ".dotfiles", "snapshots")
 		if err := os.MkdirAll(snapshotsDir, 0755); err != nil {
-			return fmt.Errorf("❌ error creating snapshots directory: %w", err)
+			fmt.Printf("❌ Error creating snapshots directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Create snapshot
@@ -83,11 +86,13 @@ Useful before making major changes to enable easy rollback.`,
 		snapshotPath := filepath.Join(snapshotsDir, timestamp+".json")
 		data, err := json.MarshalIndent(snapshot, "", "  ")
 		if err != nil {
-			return fmt.Errorf("❌ error marshaling snapshot: %w", err)
+			fmt.Printf("❌ Error marshaling snapshot: %v\n", err)
+			os.Exit(1)
 		}
 
 		if err := os.WriteFile(snapshotPath, data, 0644); err != nil {
-			return fmt.Errorf("❌ error saving snapshot: %w", err)
+			fmt.Printf("❌ Error saving snapshot: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println("📸 Snapshot created successfully!")
@@ -101,17 +106,17 @@ Useful before making major changes to enable easy rollback.`,
 		fmt.Println()
 		fmt.Println("💡 To restore this snapshot:")
 		fmt.Printf("   dotfiles snapshot restore %s\n", timestamp)
-		return nil
 	},
 }
 
 var snapshotListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all snapshots",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		snapshotsDir := filepath.Join(home, ".dotfiles", "snapshots")
@@ -120,12 +125,13 @@ var snapshotListCmd = &cobra.Command{
 			fmt.Println()
 			fmt.Println("💡 Create your first snapshot:")
 			fmt.Println("   dotfiles snapshot create -m 'Initial snapshot'")
-			return nil
+			return
 		}
 
 		entries, err := os.ReadDir(snapshotsDir)
 		if err != nil {
-			return fmt.Errorf("❌ error reading snapshots: %w", err)
+			fmt.Printf("❌ Error reading snapshots: %v\n", err)
+			os.Exit(1)
 		}
 
 		snapshots := []Snapshot{}
@@ -148,7 +154,7 @@ var snapshotListCmd = &cobra.Command{
 
 		if len(snapshots) == 0 {
 			fmt.Println("📸 No snapshots found")
-			return nil
+			return
 		}
 
 		// Sort by timestamp (newest first)
@@ -183,7 +189,6 @@ var snapshotListCmd = &cobra.Command{
 
 		fmt.Println("💡 To restore a snapshot:")
 		fmt.Println("   dotfiles snapshot restore <timestamp>")
-		return nil
 	},
 }
 
@@ -191,13 +196,14 @@ var snapshotRestoreCmd = &cobra.Command{
 	Use:   "restore <timestamp>",
 	Short: "Restore configuration from a snapshot",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		timestamp := args[0]
 		noBackup, _ := cmd.Flags().GetBool("no-backup")
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Load snapshot
@@ -208,11 +214,13 @@ var snapshotRestoreCmd = &cobra.Command{
 			fmt.Println()
 			fmt.Println("💡 List available snapshots:")
 			fmt.Println("   dotfiles snapshot list")
+			os.Exit(1)
 		}
 
 		var snapshot Snapshot
 		if err := json.Unmarshal(data, &snapshot); err != nil {
-			return fmt.Errorf("❌ error reading snapshot: %w", err)
+			fmt.Printf("❌ Error reading snapshot: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println("📸 Restoring snapshot...")
@@ -252,7 +260,8 @@ var snapshotRestoreCmd = &cobra.Command{
 
 		// Restore snapshot
 		if err := snapshot.Config.Save(configPath); err != nil {
-			return fmt.Errorf("❌ error restoring configuration: %w", err)
+			fmt.Printf("❌ Error restoring configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println("✅ Configuration restored successfully!")
@@ -267,7 +276,6 @@ var snapshotRestoreCmd = &cobra.Command{
 		fmt.Println("   • View config: dotfiles list")
 		fmt.Println("   • Install packages: dotfiles install")
 		fmt.Println("   • Check differences: dotfiles diff")
-		return nil
 	},
 }
 
@@ -275,17 +283,19 @@ var snapshotDeleteCmd = &cobra.Command{
 	Use:   "delete <timestamp>",
 	Short: "Delete a snapshot",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		timestamp := args[0]
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		snapshotPath := filepath.Join(home, ".dotfiles", "snapshots", timestamp+".json")
 		if _, err := os.Stat(snapshotPath); os.IsNotExist(err) {
 			fmt.Printf("❌ Snapshot not found: %s\n", timestamp)
+			os.Exit(1)
 		}
 
 		// Read snapshot to show info
@@ -299,11 +309,11 @@ var snapshotDeleteCmd = &cobra.Command{
 		}
 
 		if err := os.Remove(snapshotPath); err != nil {
-			return fmt.Errorf("❌ error deleting snapshot: %w", err)
+			fmt.Printf("❌ Error deleting snapshot: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println("✅ Snapshot deleted")
-		return nil
 	},
 }
 
@@ -312,14 +322,16 @@ var snapshotAutoCmd = &cobra.Command{
 	Short: "Create automatic snapshot before operations",
 	Long: `Create an automatic snapshot with timestamp.
 This is meant to be called before major operations like update, install, etc.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		home, err := os.UserHomeDir()
 		if err != nil {
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
+			os.Exit(1)
 		}
 
 		snapshotsDir := filepath.Join(home, ".dotfiles", "snapshots")
@@ -340,7 +352,6 @@ This is meant to be called before major operations like update, install, etc.`,
 		os.WriteFile(snapshotPath, data, 0644)
 
 		fmt.Printf("📸 Auto-snapshot created: %s\n", timestamp)
-		return nil
 	},
 }
 

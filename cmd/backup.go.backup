@@ -24,12 +24,13 @@ Examples:
   dotfiles backup mybackup.json          # Custom name
   dotfiles backup --dir ~/backups        # Custom directory`,
 	Args: cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		backupDir, _ := cmd.Flags().GetString("dir")
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			fmt.Printf("❌ Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := GetConfigPath(cmd)
@@ -37,7 +38,8 @@ Examples:
 		// Load current config
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			fmt.Printf("❌ Error loading configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Determine backup path
@@ -59,12 +61,14 @@ Examples:
 		// Ensure directory exists
 		backupDirPath := filepath.Dir(backupPath)
 		if err := os.MkdirAll(backupDirPath, 0755); err != nil {
-			return fmt.Errorf("❌ error creating backup directory: %w", err)
+			fmt.Printf("❌ Error creating backup directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Save to backup file
 		if err := cfg.Save(backupPath); err != nil {
-			return fmt.Errorf("❌ error creating backup: %w", err)
+			fmt.Printf("❌ Error creating backup: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println("✅ Configuration backed up successfully!")
@@ -89,7 +93,6 @@ Examples:
 		fmt.Println()
 		fmt.Println("💡 To restore this backup:")
 		fmt.Printf("   dotfiles restore %s\n", backupPath)
-		return nil
 	},
 }
 
@@ -98,17 +101,19 @@ var restoreCmd = &cobra.Command{
 	Short: "Restore configuration from a backup file",
 	Long:  `Restores your config.json from a backup file`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		backupPath := args[0]
 
 		// Check if backup file exists
 		if _, err := os.Stat(backupPath); os.IsNotExist(err) {
 			fmt.Printf("Backup file not found: %s\n", backupPath)
+			os.Exit(1)
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("error getting home directory: %w", err)
+			fmt.Printf("Error getting home directory: %v\n", err)
+			os.Exit(1)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
@@ -122,7 +127,7 @@ var restoreCmd = &cobra.Command{
 				backupCurrent := filepath.Join(backupsDir, fmt.Sprintf("config-pre-restore-%s.json", timestamp))
 
 				if err := copyFile(configPath, backupCurrent); err != nil {
-					return fmt.Errorf("⚠️  warning: could not backup current config: %w", err)
+					fmt.Printf("⚠️  Warning: Could not backup current config: %v\n", err)
 				} else {
 					fmt.Printf("💾 Current config backed up to:\n   %s\n", backupCurrent)
 					fmt.Println()
@@ -133,12 +138,14 @@ var restoreCmd = &cobra.Command{
 		// Load backup config
 		backupCfg, err := config.Load(backupPath)
 		if err != nil {
-			return fmt.Errorf("error loading backup file: %w", err)
+			fmt.Printf("Error loading backup file: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Save as current config
 		if err := backupCfg.Save(configPath); err != nil {
-			return fmt.Errorf("error restoring configuration: %w", err)
+			fmt.Printf("Error restoring configuration: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Configuration restored from: %s\n", backupPath)
@@ -154,7 +161,6 @@ var restoreCmd = &cobra.Command{
 		if len(backupCfg.Casks) > 0 {
 			fmt.Printf("    📦 %d casks\n", len(backupCfg.Casks))
 		}
-		return nil
 	},
 }
 

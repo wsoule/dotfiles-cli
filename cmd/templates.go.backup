@@ -208,7 +208,7 @@ var templatesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available configuration templates",
 	Long:  `Show all built-in configuration templates`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("📋 Available Configuration Templates")
 		fmt.Println("=" + strings.Repeat("=", 35))
 		fmt.Println()
@@ -225,7 +225,6 @@ var templatesListCmd = &cobra.Command{
 		fmt.Println("💡 Usage:")
 		fmt.Println("  dotfiles templates show <template>  # Preview template")
 		fmt.Println("  dotfiles clone template:<template>  # Apply template")
-		return nil
 	},
 }
 
@@ -234,12 +233,13 @@ var templatesShowCmd = &cobra.Command{
 	Short: "Show details of a specific template",
 	Long:  `Display detailed information about a configuration template`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		templateName := args[0]
 		template, exists := configTemplates[templateName]
 		if !exists {
 			fmt.Printf("❌ Template '%s' not found\n", templateName)
 			fmt.Println("Run 'dotfiles templates list' to see available templates")
+			os.Exit(1)
 		}
 
 		fmt.Printf("📋 Template: %s\n", template.Metadata.Name)
@@ -282,7 +282,6 @@ var templatesShowCmd = &cobra.Command{
 
 		fmt.Println("💡 To apply this template:")
 		fmt.Printf("  dotfiles clone template:%s\n", templateName)
-		return nil
 	},
 }
 
@@ -291,7 +290,7 @@ var templatesCreateCmd = &cobra.Command{
 	Short: "Create a custom template from current configuration",
 	Long:  `Create a reusable template based on your current dotfiles configuration`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		templateName := args[0]
 
 		// Get flags
@@ -305,7 +304,8 @@ var templatesCreateCmd = &cobra.Command{
 
 		templateFile, err := createCustomTemplate(templateName, description, author, tagsList, baseTemplate, addOnly)
 		if err != nil {
-			return fmt.Errorf("❌ failed to create template: %w", err)
+			fmt.Printf("❌ Failed to create template: %v\n", err)
+			os.Exit(1)
 		}
 
 		// Optionally push to API immediately
@@ -313,10 +313,10 @@ var templatesCreateCmd = &cobra.Command{
 			fmt.Println("🚀 Pushing template to API...")
 			public, _ := cmd.Flags().GetBool("public")
 			if err := pushTemplateToAPI(templateFile, public, false); err != nil {
-				return fmt.Errorf("❌ failed to push template: %w", err)
+				fmt.Printf("❌ Failed to push template: %v\n", err)
+				os.Exit(1)
 			}
 		}
-		return nil
 	},
 }
 
@@ -325,15 +325,15 @@ var templatesValidateCmd = &cobra.Command{
 	Short: "Validate a template file",
 	Long:  `Check if a template file is valid and can be applied`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		templateFile := args[0]
 
 		if err := validateTemplate(templateFile); err != nil {
-			return fmt.Errorf("❌ template validation failed: %w", err)
+			fmt.Printf("❌ Template validation failed: %v\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Printf("✅ Template '%s' is valid!\n", templateFile)
-		return nil
 	},
 }
 
@@ -342,7 +342,7 @@ var templatesPushCmd = &cobra.Command{
 	Short: "Push a template to the shared repository",
 	Long:  `Upload a custom template to the dotfiles sharing API for others to discover and use`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		templateFile := args[0]
 
 		// Get flags
@@ -350,9 +350,9 @@ var templatesPushCmd = &cobra.Command{
 		featured, _ := cmd.Flags().GetBool("featured")
 
 		if err := pushTemplateToAPI(templateFile, public, featured); err != nil {
-			return fmt.Errorf("❌ failed to push template: %w", err)
+			fmt.Printf("❌ Failed to push template: %v\n", err)
+			os.Exit(1)
 		}
-		return nil
 	},
 }
 
@@ -360,15 +360,15 @@ var templatesDiscoverCmd = &cobra.Command{
 	Use:   "discover",
 	Short: "Discover templates from the community",
 	Long:  `Browse and search templates shared by other users`,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		search, _ := cmd.Flags().GetString("search")
 		tags, _ := cmd.Flags().GetString("tags")
 		featured, _ := cmd.Flags().GetBool("featured")
 
 		if err := discoverTemplatesFromAPI(search, tags, featured); err != nil {
-			return fmt.Errorf("❌ failed to discover templates: %w", err)
+			fmt.Printf("❌ Failed to discover templates: %v\n", err)
+			os.Exit(1)
 		}
-		return nil
 	},
 }
 
@@ -428,7 +428,7 @@ func handleTemplateClone(templateName string, merge bool) error {
 		// Load existing config and merge
 		existingConfig, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("⚠️  could not load existing config, creating new: %w", err)
+			fmt.Printf("⚠️  Could not load existing config, creating new: %v\n", err)
 			existingConfig = &config.Config{}
 		}
 
