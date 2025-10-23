@@ -79,4 +79,5 @@ jobs:
           tag: ${{ github.ref_name }}
           revision: ${{ github.sha }}
           commit-message: "dotfiles: bump to ${{ github.ref_name }}"
+          force: true
 
