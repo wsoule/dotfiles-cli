@@ -13,10 +13,10 @@ import (
 )
 
 var addCmd = &cobra.Command{
-	Use:     "add <packages>",
+	Use: "add <packages>",
 	GroupID: "package",
-	Short:   "📦 Add packages to your configuration",
-	Long: `📦 Add Packages - Expand Your Development Environment
+	Short: " Add packages to your configuration",
+	Long: ` Add Packages - Expand Your Development Environment
 
 Add Homebrew packages (brews), applications (casks), repositories (taps),
 or dotfile packages (stow) to your configuration.
@@ -85,7 +85,7 @@ Popular packages:
 			case "cask":
 				if !contains(cfg.Casks, pkg) {
 					cfg.Casks = append(cfg.Casks, pkg)
-					fmt.Printf("✓ Added cask: %s\n", pkg)
+					fmt.Printf(" Added cask: %s\n", pkg)
 					added++
 				} else {
 					fmt.Printf("- Cask %s already exists\n", pkg)
@@ -93,7 +93,7 @@ Popular packages:
 			case "tap":
 				if !contains(cfg.Taps, pkg) {
 					cfg.Taps = append(cfg.Taps, pkg)
-					fmt.Printf("✓ Added tap: %s\n", pkg)
+					fmt.Printf(" Added tap: %s\n", pkg)
 					added++
 				} else {
 					fmt.Printf("- Tap %s already exists\n", pkg)
@@ -101,7 +101,7 @@ Popular packages:
 			case "stow":
 				if !contains(cfg.Stow, pkg) {
 					cfg.Stow = append(cfg.Stow, pkg)
-					fmt.Printf("✓ Added stow package: %s\n", pkg)
+					fmt.Printf(" Added stow package: %s\n", pkg)
 					added++
 				} else {
 					fmt.Printf("- Stow package %s already exists\n", pkg)
@@ -109,7 +109,7 @@ Popular packages:
 			default: // brew
 				if !contains(cfg.Brews, pkg) {
 					cfg.Brews = append(cfg.Brews, pkg)
-					fmt.Printf("✓ Added brew: %s\n", pkg)
+					fmt.Printf(" Added brew: %s\n", pkg)
 					added++
 				} else {
 					fmt.Printf("- Brew %s already exists\n", pkg)
@@ -121,7 +121,7 @@ Popular packages:
 			if err := cfg.Save(configPath); err != nil {
 				return fmt.Errorf("error saving configuration: %w", err)
 			}
-			fmt.Printf("\n📊 Added %d new packages\n", added)
+			fmt.Printf("\n Added %d new packages\n", added)
 		}
 		return nil
 	},
@@ -129,9 +129,9 @@ Popular packages:
 
 var removeCmd = &cobra.Command{
 	GroupID: "package",
-	Use:     "remove <packages>",
-	Short:   "🗑️  Remove packages from configuration and optionally uninstall",
-	Long: `🗑️  Remove Packages
+	Use: "remove <packages>",
+	Short: "Remove packages from configuration and optionally uninstall",
+	Long: `  Remove Packages
 
 Remove packages from your configuration and optionally uninstall them from your system.
 
@@ -169,7 +169,7 @@ Examples:
 				packageTypeForUninstall = "brew"
 			}
 			cfg.Brews = []string{}
-			fmt.Printf("✓ Removed all %d brews from config\n", removed)
+			fmt.Printf(" Removed all %d brews from config\n", removed)
 		}
 
 		if allCasks, _ := cmd.Flags().GetBool("all-casks"); allCasks {
@@ -179,7 +179,7 @@ Examples:
 				packageTypeForUninstall = "cask"
 			}
 			cfg.Casks = []string{}
-			fmt.Printf("✓ Removed all %d casks from config\n", removed)
+			fmt.Printf(" Removed all %d casks from config\n", removed)
 		}
 
 		if allTaps, _ := cmd.Flags().GetBool("all-taps"); allTaps {
@@ -189,13 +189,13 @@ Examples:
 				packageTypeForUninstall = "tap"
 			}
 			cfg.Taps = []string{}
-			fmt.Printf("✓ Removed all %d taps from config\n", removed)
+			fmt.Printf(" Removed all %d taps from config\n", removed)
 		}
 
 		if allStow, _ := cmd.Flags().GetBool("all-stow"); allStow {
 			removed := len(cfg.Stow)
 			cfg.Stow = []string{}
-			fmt.Printf("✓ Removed all %d stow packages from config\n", removed)
+			fmt.Printf(" Removed all %d stow packages from config\n", removed)
 		}
 
 		// Handle individual package removal
@@ -224,7 +224,7 @@ Examples:
 			case "cask":
 				if contains(cfg.Casks, pkg) {
 					cfg.Casks = removeFromSlice(cfg.Casks, pkg)
-					fmt.Printf("✓ Removed cask from config: %s\n", pkg)
+					fmt.Printf(" Removed cask from config: %s\n", pkg)
 					removed++
 					if uninstall {
 						packagesToUninstall = append(packagesToUninstall, pkg)
@@ -236,7 +236,7 @@ Examples:
 			case "tap":
 				if contains(cfg.Taps, pkg) {
 					cfg.Taps = removeFromSlice(cfg.Taps, pkg)
-					fmt.Printf("✓ Removed tap from config: %s\n", pkg)
+					fmt.Printf(" Removed tap from config: %s\n", pkg)
 					removed++
 					if uninstall {
 						packagesToUninstall = append(packagesToUninstall, pkg)
@@ -248,7 +248,7 @@ Examples:
 			case "stow":
 				if contains(cfg.Stow, pkg) {
 					cfg.Stow = removeFromSlice(cfg.Stow, pkg)
-					fmt.Printf("✓ Removed stow package from config: %s\n", pkg)
+					fmt.Printf(" Removed stow package from config: %s\n", pkg)
 					removed++
 				} else {
 					fmt.Printf("- Stow package %s not found in config\n", pkg)
@@ -256,7 +256,7 @@ Examples:
 			default: // brew
 				if contains(cfg.Brews, pkg) {
 					cfg.Brews = removeFromSlice(cfg.Brews, pkg)
-					fmt.Printf("✓ Removed brew from config: %s\n", pkg)
+					fmt.Printf(" Removed brew from config: %s\n", pkg)
 					removed++
 					if uninstall {
 						packagesToUninstall = append(packagesToUninstall, pkg)
@@ -272,7 +272,7 @@ Examples:
 			if err := cfg.Save(configPath); err != nil {
 				return fmt.Errorf("error saving configuration: %w", err)
 			}
-			fmt.Printf("\n📊 Removed %d packages from config\n", removed)
+			fmt.Printf("\n Removed %d packages from config\n", removed)
 		}
 
 		// Uninstall packages if requested
@@ -327,7 +327,7 @@ func uninstallPackages(packages []string, pkgType string) {
 		return
 	}
 
-	fmt.Printf("🗑️  Uninstalling %d package(s) from system...\n", len(packages))
+	fmt.Printf("Uninstalling %d package(s) from system...\n", len(packages))
 	fmt.Println()
 
 	var cmd *exec.Cmd
@@ -340,9 +340,9 @@ func uninstallPackages(packages []string, pkgType string) {
 			tapCmd.Stdout = os.Stdout
 			tapCmd.Stderr = os.Stderr
 			if err := tapCmd.Run(); err != nil {
-				fmt.Printf("❌ Failed to untap %s: %v\n", tap, err)
+				fmt.Printf(" Failed to untap %s: %v\n", tap, err)
 			} else {
-				fmt.Printf("✅ Untapped %s\n", tap)
+				fmt.Printf(" Untapped %s\n", tap)
 			}
 		}
 		return
@@ -354,9 +354,9 @@ func uninstallPackages(packages []string, pkgType string) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("❌ Failed to uninstall packages: %v\n", err)
+		fmt.Printf(" Failed to uninstall packages: %v\n", err)
 	} else {
-		fmt.Printf("✅ Uninstalled %d package(s)\n", len(packages))
+		fmt.Printf(" Uninstalled %d package(s)\n", len(packages))
 	}
 }
 

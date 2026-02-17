@@ -12,10 +12,10 @@ import (
 )
 
 var diffCmd = &cobra.Command{
-	Use:     "diff",
+	Use: "diff",
 	GroupID: "package",
-	Short:   "📊 Show differences between config and installed packages",
-	Long: `📊 Configuration Diff
+	Short: " Show differences between config and installed packages",
+	Long: ` Configuration Diff
 
 Compare your dotfiles configuration with actually installed packages.
 Shows what's missing, what's extra, and what's in sync.
@@ -31,16 +31,16 @@ Examples:
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			return fmt.Errorf(" error loading configuration: %w", err)
 		}
 
-		fmt.Println("📊 Configuration Diff")
+		fmt.Println(" Configuration Diff")
 		fmt.Println("=" + strings.Repeat("=", 21))
 		fmt.Println()
 
@@ -50,7 +50,7 @@ Examples:
 		if pkgType == "" || pkgType == "brews" || pkgType == "brew" {
 			diffBrews := getDiffBrews(cfg.Brews, verbose)
 			if diffBrews.HasDiff || verbose {
-				fmt.Println("🍺 Homebrew Formulas:")
+				fmt.Println(" Homebrew Formulas:")
 				printDiff(diffBrews, verbose)
 				fmt.Println()
 				hasDiff = hasDiff || diffBrews.HasDiff
@@ -61,7 +61,7 @@ Examples:
 		if pkgType == "" || pkgType == "casks" || pkgType == "cask" {
 			diffCasks := getDiffCasks(cfg.Casks, verbose)
 			if diffCasks.HasDiff || verbose {
-				fmt.Println("📦 Homebrew Casks:")
+				fmt.Println(" Homebrew Casks:")
 				printDiff(diffCasks, verbose)
 				fmt.Println()
 				hasDiff = hasDiff || diffCasks.HasDiff
@@ -70,12 +70,12 @@ Examples:
 
 		// Summary
 		if !hasDiff && !verbose {
-			fmt.Println("✅ No differences found - everything is in sync!")
+			fmt.Println(" No differences found - everything is in sync!")
 		} else if hasDiff {
-			fmt.Println("💡 Suggested actions:")
-			fmt.Println("   • Install missing packages: dotfiles install")
-			fmt.Println("   • Add untracked packages: dotfiles scan")
-			fmt.Println("   • Remove from config: dotfiles remove <package>")
+			fmt.Println(" Suggested actions:")
+			fmt.Println("• Install missing packages: dotfiles install")
+			fmt.Println("• Add untracked packages: dotfiles scan")
+			fmt.Println("• Remove from config: dotfiles remove <package>")
 		}
 		return nil
 	},
@@ -97,7 +97,7 @@ func getDiffBrews(configured []string, verbose bool) PackageDiff {
 
 	installed, err := getInstalledBrews()
 	if err != nil {
-		fmt.Printf("⚠️  could not get installed brews: %v\n", err)
+		fmt.Printf("could not get installed brews: %v\n", err)
 		return diff
 	}
 
@@ -145,7 +145,7 @@ func getDiffCasks(configured []string, verbose bool) PackageDiff {
 
 	installed, err := getInstalledCasks()
 	if err != nil {
-		fmt.Printf("⚠️  could not get installed casks: %v\n", err)
+		fmt.Printf("could not get installed casks: %v\n", err)
 		return diff
 	}
 
@@ -186,28 +186,28 @@ func getDiffCasks(configured []string, verbose bool) PackageDiff {
 
 func printDiff(diff PackageDiff, verbose bool) {
 	if len(diff.Missing) > 0 {
-		fmt.Printf("  ❌ Missing (%d) - in config but not installed:\n", len(diff.Missing))
+		fmt.Printf("Missing (%d) - in config but not installed:\n", len(diff.Missing))
 		for _, pkg := range diff.Missing {
-			fmt.Printf("     - %s\n", pkg)
+			fmt.Printf("- %s\n", pkg)
 		}
 	}
 
 	if len(diff.Extra) > 0 {
-		fmt.Printf("  ⚠️  Extra (%d) - installed but not in config:\n", len(diff.Extra))
+		fmt.Printf("Extra (%d) - installed but not in config:\n", len(diff.Extra))
 		for _, pkg := range diff.Extra {
-			fmt.Printf("     + %s\n", pkg)
+			fmt.Printf("+ %s\n", pkg)
 		}
 	}
 
 	if verbose && len(diff.Synced) > 0 {
-		fmt.Printf("  ✅ Synced (%d) - in both config and installed:\n", len(diff.Synced))
+		fmt.Printf("Synced (%d) - in both config and installed:\n", len(diff.Synced))
 		for _, pkg := range diff.Synced {
-			fmt.Printf("     = %s\n", pkg)
+			fmt.Printf("= %s\n", pkg)
 		}
 	}
 
 	if !diff.HasDiff {
-		fmt.Println("  ✅ All in sync")
+		fmt.Println("All in sync")
 	}
 }
 

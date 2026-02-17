@@ -24,25 +24,25 @@ var templatesFS embed.FS
 // Template with inheritance support
 type ExtendedTemplate struct {
 	ShareableConfig
-	Extends   string   `json:"extends,omitempty"`   // Base template to inherit from
+	Extends string `json:"extends,omitempty"` // Base template to inherit from
 	Overrides []string `json:"overrides,omitempty"` // Fields to override from base
-	AddOnly   bool     `json:"addOnly,omitempty"`   // Only add packages, don't remove any
-	Public    bool     `json:"public,omitempty"`    // Whether template is publicly visible
-	Featured  bool     `json:"featured,omitempty"`  // Whether template is featured
+	AddOnly bool `json:"addOnly,omitempty"` // Only add packages, don't remove any
+	Public bool `json:"public,omitempty"` // Whether template is publicly visible
+	Featured bool `json:"featured,omitempty"` // Whether template is featured
 }
 
 // Template structure for JSON files
 type JSONTemplate struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Author      string   `json:"author"`
-	Category    string   `json:"category"`
-	Tags        []string `json:"tags"`
-	Version     string   `json:"version"`
-	Brews       []string `json:"brews"`
-	Casks       []string `json:"casks"`
-	Taps        []string `json:"taps"`
-	Stow        []string `json:"stow"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	Author string `json:"author"`
+	Category string `json:"category"`
+	Tags []string `json:"tags"`
+	Version string `json:"version"`
+	Brews []string `json:"brews"`
+	Casks []string `json:"casks"`
+	Taps []string `json:"taps"`
+	Stow []string `json:"stow"`
 }
 
 // loadTemplatesFromFS loads all templates from embedded filesystem
@@ -117,13 +117,13 @@ var configTemplates = func() map[string]ShareableConfig {
 						"brew update",
 					},
 					PostInstall: []string{
-						"echo '✅ Installation complete! Run dotfiles stow to symlink your config files.'",
+						"echo ' Installation complete! Run dotfiles stow to symlink your config files.'",
 					},
 					PreStow: []string{
-						"echo '🔗 Creating symlinks...'",
+						"echo ' Creating symlinks...'",
 					},
 					PostStow: []string{
-						"echo '✅ Dotfiles stowed successfully!'",
+						"echo ' Dotfiles stowed successfully!'",
 					},
 				},
 				PackageConfigs: map[string]config.PackageConfig{
@@ -158,12 +158,12 @@ var configTemplates = func() map[string]ShareableConfig {
 				},
 			},
 			Metadata: ShareMetadata{
-				Name:        "Essential Developer Setup",
+				Name: "Essential Developer Setup",
 				Description: "Complete modern developer setup with CLI tools, shell enhancements, and essential apps with automated post-install configuration",
-				Author:      "Dotfiles Manager",
-				Tags:        []string{"essential", "developer", "productivity", "shell", "cli"},
+				Author: "Dotfiles Manager",
+				Tags: []string{"essential", "developer", "productivity", "shell", "cli"},
 				CreatedAt:   time.Now(),
-				Version:     "1.0.0",
+				Version: "1.0.0",
 			},
 		},
 	}
@@ -177,10 +177,10 @@ var configTemplates = func() map[string]ShareableConfig {
 }()
 
 var templatesCmd = &cobra.Command{
-	Use:     "templates",
+	Use: "templates",
 	GroupID: "advanced",
-	Short:   "📚 Browse and use configuration templates",
-	Long: `📚 Configuration Templates - Pre-built Development Environments
+	Short: " Browse and use configuration templates",
+	Long: ` Configuration Templates - Pre-built Development Environments
 
 Discover, create, and share pre-made configuration templates for different
 development workflows. Templates are reusable blueprints that set up complete
@@ -205,32 +205,32 @@ Examples:
 }
 
 var templatesListCmd = &cobra.Command{
-	Use:   "list",
+	Use: "list",
 	Short: "List available configuration templates",
 	Long:  `Show all built-in configuration templates`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("📋 Available Configuration Templates")
+		fmt.Println(" Available Configuration Templates")
 		fmt.Println("=" + strings.Repeat("=", 35))
 		fmt.Println()
 
 		for key, template := range configTemplates {
-			fmt.Printf("🏷️  %s (%s)\n", template.Metadata.Name, key)
-			fmt.Printf("   📝 %s\n", template.Metadata.Description)
-			fmt.Printf("   🏷️  Tags: %s\n", strings.Join(template.Metadata.Tags, ", "))
-			fmt.Printf("   📦 Packages: %d brews, %d casks, %d taps, %d stow\n",
+			fmt.Printf("%s (%s)\n", template.Metadata.Name, key)
+			fmt.Printf("%s\n", template.Metadata.Description)
+			fmt.Printf("Tags: %s\n", strings.Join(template.Metadata.Tags, ", "))
+			fmt.Printf("Packages: %d brews, %d casks, %d taps, %d stow\n",
 				len(template.Brews), len(template.Casks), len(template.Taps), len(template.Stow))
 			fmt.Println()
 		}
 
-		fmt.Println("💡 Usage:")
-		fmt.Println("  dotfiles templates show <template>  # Preview template")
-		fmt.Println("  dotfiles clone template:<template>  # Apply template")
+		fmt.Println(" Usage:")
+		fmt.Println("dotfiles templates show <template> # Preview template")
+		fmt.Println("dotfiles clone template:<template> # Apply template")
 		return nil
 	},
 }
 
 var templatesShowCmd = &cobra.Command{
-	Use:   "show <template>",
+	Use: "show <template>",
 	Short: "Show details of a specific template",
 	Long:  `Display detailed information about a configuration template`,
 	Args:  cobra.ExactArgs(1),
@@ -238,56 +238,55 @@ var templatesShowCmd = &cobra.Command{
 		templateName := args[0]
 		template, exists := configTemplates[templateName]
 		if !exists {
-			fmt.Printf("❌ Template '%s' not found\n", templateName)
-			fmt.Println("Run 'dotfiles templates list' to see available templates")
+			return fmt.Errorf("template '%s' not found\nRun 'dotfiles templates list' to see available templates", templateName)
 		}
 
-		fmt.Printf("📋 Template: %s\n", template.Metadata.Name)
-		fmt.Printf("📝 Description: %s\n", template.Metadata.Description)
-		fmt.Printf("🏷️  Tags: %s\n", strings.Join(template.Metadata.Tags, ", "))
-		fmt.Printf("👤 Author: %s\n", template.Metadata.Author)
+		fmt.Printf(" Template: %s\n", template.Metadata.Name)
+		fmt.Printf(" Description: %s\n", template.Metadata.Description)
+		fmt.Printf("Tags: %s\n", strings.Join(template.Metadata.Tags, ", "))
+		fmt.Printf(" Author: %s\n", template.Metadata.Author)
 		fmt.Println()
 
 		if len(template.Taps) > 0 {
-			fmt.Printf("📋 Taps (%d):\n", len(template.Taps))
+			fmt.Printf(" Taps (%d):\n", len(template.Taps))
 			for _, tap := range template.Taps {
-				fmt.Printf("  - %s\n", tap)
+				fmt.Printf("- %s\n", tap)
 			}
 			fmt.Println()
 		}
 
 		if len(template.Brews) > 0 {
-			fmt.Printf("🍺 Brews (%d):\n", len(template.Brews))
+			fmt.Printf(" Brews (%d):\n", len(template.Brews))
 			for _, brew := range template.Brews {
-				fmt.Printf("  - %s\n", brew)
+				fmt.Printf("- %s\n", brew)
 			}
 			fmt.Println()
 		}
 
 		if len(template.Casks) > 0 {
-			fmt.Printf("📦 Casks (%d):\n", len(template.Casks))
+			fmt.Printf(" Casks (%d):\n", len(template.Casks))
 			for _, cask := range template.Casks {
-				fmt.Printf("  - %s\n", cask)
+				fmt.Printf("- %s\n", cask)
 			}
 			fmt.Println()
 		}
 
 		if len(template.Stow) > 0 {
-			fmt.Printf("🔗 Stow Packages (%d):\n", len(template.Stow))
+			fmt.Printf(" Stow Packages (%d):\n", len(template.Stow))
 			for _, stow := range template.Stow {
-				fmt.Printf("  - %s\n", stow)
+				fmt.Printf("- %s\n", stow)
 			}
 			fmt.Println()
 		}
 
-		fmt.Println("💡 To apply this template:")
-		fmt.Printf("  dotfiles clone template:%s\n", templateName)
+		fmt.Println(" To apply this template:")
+		fmt.Printf("dotfiles clone template:%s\n", templateName)
 		return nil
 	},
 }
 
 var templatesCreateCmd = &cobra.Command{
-	Use:   "create <name>",
+	Use: "create <name>",
 	Short: "Create a custom template from current configuration",
 	Long:  `Create a reusable template based on your current dotfiles configuration`,
 	Args:  cobra.ExactArgs(1),
@@ -305,15 +304,15 @@ var templatesCreateCmd = &cobra.Command{
 
 		templateFile, err := createCustomTemplate(templateName, description, author, tagsList, baseTemplate, addOnly)
 		if err != nil {
-			return fmt.Errorf("❌ failed to create template: %w", err)
+			return fmt.Errorf(" failed to create template: %w", err)
 		}
 
 		// Optionally push to API immediately
 		if push {
-			fmt.Println("🚀 Pushing template to API...")
+			fmt.Println(" Pushing template to API...")
 			public, _ := cmd.Flags().GetBool("public")
 			if err := pushTemplateToAPI(templateFile, public, false); err != nil {
-				return fmt.Errorf("❌ failed to push template: %w", err)
+				return fmt.Errorf(" failed to push template: %w", err)
 			}
 		}
 		return nil
@@ -321,7 +320,7 @@ var templatesCreateCmd = &cobra.Command{
 }
 
 var templatesValidateCmd = &cobra.Command{
-	Use:   "validate <file>",
+	Use: "validate <file>",
 	Short: "Validate a template file",
 	Long:  `Check if a template file is valid and can be applied`,
 	Args:  cobra.ExactArgs(1),
@@ -329,16 +328,16 @@ var templatesValidateCmd = &cobra.Command{
 		templateFile := args[0]
 
 		if err := validateTemplate(templateFile); err != nil {
-			return fmt.Errorf("❌ template validation failed: %w", err)
+			return fmt.Errorf(" template validation failed: %w", err)
 		}
 
-		fmt.Printf("✅ Template '%s' is valid!\n", templateFile)
+		fmt.Printf(" Template '%s' is valid!\n", templateFile)
 		return nil
 	},
 }
 
 var templatesPushCmd = &cobra.Command{
-	Use:   "push <template-file>",
+	Use: "push <template-file>",
 	Short: "Push a template to the shared repository",
 	Long:  `Upload a custom template to the dotfiles sharing API for others to discover and use`,
 	Args:  cobra.ExactArgs(1),
@@ -350,14 +349,14 @@ var templatesPushCmd = &cobra.Command{
 		featured, _ := cmd.Flags().GetBool("featured")
 
 		if err := pushTemplateToAPI(templateFile, public, featured); err != nil {
-			return fmt.Errorf("❌ failed to push template: %w", err)
+			return fmt.Errorf(" failed to push template: %w", err)
 		}
 		return nil
 	},
 }
 
 var templatesDiscoverCmd = &cobra.Command{
-	Use:   "discover",
+	Use: "discover",
 	Short: "Discover templates from the community",
 	Long:  `Browse and search templates shared by other users`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -366,7 +365,7 @@ var templatesDiscoverCmd = &cobra.Command{
 		featured, _ := cmd.Flags().GetBool("featured")
 
 		if err := discoverTemplatesFromAPI(search, tags, featured); err != nil {
-			return fmt.Errorf("❌ failed to discover templates: %w", err)
+			return fmt.Errorf(" failed to discover templates: %w", err)
 		}
 		return nil
 	},
@@ -409,8 +408,8 @@ func handleTemplateClone(templateName string, merge bool) error {
 	}
 
 	// Show template info
-	fmt.Printf("📋 Template: %s\n", template.Metadata.Name)
-	fmt.Printf("📝 Description: %s\n", template.Metadata.Description)
+	fmt.Printf(" Template: %s\n", template.Metadata.Name)
+	fmt.Printf(" Description: %s\n", template.Metadata.Description)
 	fmt.Println()
 
 	if !askConfirmation("Apply this template? (y/N): ", false) {
@@ -428,7 +427,6 @@ func handleTemplateClone(templateName string, merge bool) error {
 		// Load existing config and merge
 		existingConfig, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("⚠️  could not load existing config, creating new: %w", err)
 			existingConfig = &config.Config{}
 		}
 
@@ -441,7 +439,7 @@ func handleTemplateClone(templateName string, merge bool) error {
 		if err := existingConfig.Save(configPath); err != nil {
 			return fmt.Errorf("error saving merged config: %v", err)
 		}
-		fmt.Println("✅ Template merged with existing configuration!")
+		fmt.Println(" Template merged with existing configuration!")
 	} else {
 		// Replace existing config
 		newConfig := &config.Config{
@@ -454,12 +452,12 @@ func handleTemplateClone(templateName string, merge bool) error {
 		if err := newConfig.Save(configPath); err != nil {
 			return fmt.Errorf("error saving config: %v", err)
 		}
-		fmt.Println("✅ Template applied successfully!")
+		fmt.Println(" Template applied successfully!")
 	}
 
-	fmt.Println("💡 Next steps:")
-	fmt.Println("  dotfiles status    # Check what needs to be installed")
-	fmt.Println("  dotfiles install   # Install all packages")
+	fmt.Println(" Next steps:")
+	fmt.Println("dotfiles status # Check what needs to be installed")
+	fmt.Println("dotfiles install # Install all packages")
 
 	return nil
 }
@@ -516,7 +514,7 @@ func createCustomTemplate(name, description, author, tagsList, baseTemplate stri
 				Author:      author,
 				Tags:        tags,
 				CreatedAt:   time.Now(),
-				Version:     "1.0.0",
+				Version: "1.0.0",
 			},
 		},
 		Extends: baseTemplate,
@@ -537,13 +535,13 @@ func createCustomTemplate(name, description, author, tagsList, baseTemplate stri
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
+	encoder.SetIndent("", "")
 	if err := encoder.Encode(template); err != nil {
 		return "", fmt.Errorf("error encoding template: %v", err)
 	}
 
-	fmt.Printf("✅ Created template '%s' at %s\n", name, templateFile)
-	fmt.Println("💡 Share with: dotfiles share file " + templateFile)
+	fmt.Printf(" Created template '%s' at %s\n", name, templateFile)
+	fmt.Println(" Share with: dotfiles share file " + templateFile)
 
 	return templateFile, nil
 }
@@ -578,13 +576,13 @@ func validateTemplate(templateFile string) error {
 		return err
 	}
 
-	fmt.Println("📋 Template validation passed:")
-	fmt.Printf("   Name: %s\n", extTemplate.Metadata.Name)
-	fmt.Printf("   Description: %s\n", extTemplate.Metadata.Description)
+	fmt.Println(" Template validation passed:")
+	fmt.Printf("Name: %s\n", extTemplate.Metadata.Name)
+	fmt.Printf("Description: %s\n", extTemplate.Metadata.Description)
 	if extTemplate.Extends != "" {
-		fmt.Printf("   Extends: %s\n", extTemplate.Extends)
+		fmt.Printf("Extends: %s\n", extTemplate.Extends)
 	}
-	fmt.Printf("   Packages: %d brews, %d casks, %d taps, %d stow\n",
+	fmt.Printf("Packages: %d brews, %d casks, %d taps, %d stow\n",
 		len(extTemplate.Brews), len(extTemplate.Casks), len(extTemplate.Taps), len(extTemplate.Stow))
 
 	return nil
@@ -729,7 +727,7 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 	}
 
 	var result struct {
-		ID  string `json:"id"`
+		ID string `json:"id"`
 		URL string `json:"url"`
 	}
 
@@ -737,10 +735,10 @@ func pushTemplateToAPI(templateFile string, public, featured bool) error {
 		return fmt.Errorf("failed to parse response: %v", err)
 	}
 
-	fmt.Printf("✅ Template pushed successfully!\n")
+	fmt.Printf(" Template pushed successfully!\n")
 	fmt.Printf("🆔 Template ID: %s\n", result.ID)
 	if result.URL != "" {
-		fmt.Printf("🌐 URL: %s\n", result.URL)
+		fmt.Printf(" URL: %s\n", result.URL)
 	}
 
 	return nil
@@ -782,14 +780,14 @@ func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 
 	var result struct {
 		Templates []struct {
-			ID          string   `json:"id"`
-			Name        string   `json:"name"`
-			Description string   `json:"description"`
-			Author      string   `json:"author"`
-			Tags        []string `json:"tags"`
-			Featured    bool     `json:"featured"`
-			Downloads   int      `json:"downloads"`
-			UpdatedAt   string   `json:"updated_at"`
+			ID string `json:"id"`
+			Name string `json:"name"`
+			Description string `json:"description"`
+			Author string `json:"author"`
+			Tags []string `json:"tags"`
+			Featured bool `json:"featured"`
+			Downloads int `json:"downloads"`
+			UpdatedAt string `json:"updated_at"`
 		} `json:"templates"`
 		Total int `json:"total"`
 	}
@@ -799,30 +797,30 @@ func discoverTemplatesFromAPI(search, tags string, featured bool) error {
 	}
 
 	if result.Total == 0 {
-		fmt.Println("📭 No templates found matching your criteria")
+		fmt.Println(" No templates found matching your criteria")
 		return nil
 	}
 
-	fmt.Printf("🔍 Found %d template(s):\n\n", result.Total)
+	fmt.Printf(" Found %d template(s):\n\n", result.Total)
 
 	for _, tmpl := range result.Templates {
-		fmt.Printf("📦 %s", tmpl.Name)
+		fmt.Printf(" %s", tmpl.Name)
 		if tmpl.Featured {
-			fmt.Printf(" ⭐")
+			fmt.Printf(" ")
 		}
 		fmt.Printf("\n")
 
 		if tmpl.Description != "" {
-			fmt.Printf("   %s\n", tmpl.Description)
+			fmt.Printf("%s\n", tmpl.Description)
 		}
 
-		fmt.Printf("   👤 Author: %s", tmpl.Author)
+		fmt.Printf("Author: %s", tmpl.Author)
 		if len(tmpl.Tags) > 0 {
-			fmt.Printf(" | 🏷️  Tags: %s", strings.Join(tmpl.Tags, ", "))
+			fmt.Printf(" | Tags: %s", strings.Join(tmpl.Tags, ", "))
 		}
-		fmt.Printf(" | 📥 Downloads: %d\n", tmpl.Downloads)
+		fmt.Printf(" | Downloads: %d\n", tmpl.Downloads)
 
-		fmt.Printf("   💾 Clone: dotfiles clone https://dotfiles.wyat.me/api/templates/%s\n", tmpl.ID)
+		fmt.Printf("Clone: dotfiles clone https://dotfiles.wyat.me/api/templates/%s\n", tmpl.ID)
 		fmt.Println()
 	}
 

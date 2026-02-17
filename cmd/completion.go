@@ -9,10 +9,10 @@ import (
 )
 
 var completionCmd = &cobra.Command{
-	Use:     "completion <shell>",
+	Use: "completion <shell>",
 	GroupID: "advanced",
-	Short:   "🔧 Generate shell completion scripts",
-	Long: `🔧 Shell Completion Scripts
+	Short: " Generate shell completion scripts",
+	Long: ` Shell Completion Scripts
 
 Generate completion scripts for your shell to enable tab completion.
 
@@ -27,7 +27,7 @@ Examples:
   dotfiles completion bash > /usr/local/etc/bash_completion.d/dotfiles
 
   # Zsh
-  dotfiles completion zsh > "${fpath[1]}/_dotfiles"
+ dotfiles completion zsh > "${fpath[1]}/_dotfiles"
 
   # Fish
   dotfiles completion fish > ~/.config/fish/completions/dotfiles.fish
@@ -50,19 +50,18 @@ Examples:
 		case "powershell":
 			err = rootCmd.GenPowerShellCompletionWithDesc(os.Stdout)
 		default:
-			fmt.Printf("❌ Unsupported shell: %s\n", shell)
-			fmt.Println("\nSupported shells: bash, zsh, fish, powershell")
+			return fmt.Errorf("unsupported shell: %s\nSupported shells: bash, zsh, fish, powershell", shell)
 		}
 
 		if err != nil {
-			return fmt.Errorf("❌ error generating completion: %w", err)
+			return fmt.Errorf("error generating completion: %w", err)
 		}
 		return nil
 	},
 }
 
 var completionInstallCmd = &cobra.Command{
-	Use:   "install <shell>",
+	Use: "install <shell>",
 	Short: "Install completion script for your shell",
 	Long: `Automatically install completion script to the correct location.
 
@@ -116,15 +115,14 @@ Supported shells:
 			instructions = "Fish will automatically load completions from ~/.config/fish/completions/"
 
 		default:
-			fmt.Printf("❌ Unsupported shell: %s\n", shell)
+			fmt.Printf(" Unsupported shell: %s\n", shell)
 			return nil
 		}
 
 		// Generate completion to file
 		file, err := os.Create(completionPath)
 		if err != nil {
-			return fmt.Errorf("❌ failed to create completion file: %w", err)
-			return nil
+			return fmt.Errorf("failed to create completion file: %w", err)
 		}
 		defer file.Close()
 
@@ -138,20 +136,19 @@ Supported shells:
 		}
 
 		if err != nil {
-			return fmt.Errorf("❌ failed to generate completion: %w", err)
-			return nil
+			return fmt.Errorf("failed to generate completion: %w", err)
 		}
 
-		fmt.Println("✅ Completion script installed!")
+		fmt.Println(" Completion script installed!")
 		fmt.Println()
-		fmt.Printf("   Location: %s\n", completionPath)
+		fmt.Printf("Location: %s\n", completionPath)
 		fmt.Println()
 		if instructions != "" {
-			fmt.Println("💡 Setup:")
-			fmt.Println("   " + instructions)
+			fmt.Println(" Setup:")
+			fmt.Println("" + instructions)
 			fmt.Println()
-			fmt.Println("   Then restart your shell or run:")
-			fmt.Println("   source ~/.bashrc  # or ~/.zshrc")
+			fmt.Println("Then restart your shell or run:")
+			fmt.Println("source ~/.bashrc # or ~/.zshrc")
 		}
 		return nil
 	},

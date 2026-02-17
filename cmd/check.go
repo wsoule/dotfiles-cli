@@ -11,10 +11,10 @@ import (
 )
 
 var checkCmd = &cobra.Command{
-	Use:     "check",
+	Use: "check",
 	GroupID: "dotfiles",
-	Short:   "🔍 Verify dotfiles setup and find issues",
-	Long: `🔍 Check Dotfiles Setup
+	Short: " Verify dotfiles setup and find issues",
+	Long: ` Check Dotfiles Setup
 
 Comprehensive check of your dotfiles configuration:
 • Verify config.json is valid
@@ -31,7 +31,7 @@ Examples:
 		autoFix, _ := cmd.Flags().GetBool("fix")
 		onlyLinks, _ := cmd.Flags().GetBool("links")
 
-		fmt.Println("🔍 Checking dotfiles setup...")
+		fmt.Println(" Checking dotfiles setup...")
 		fmt.Println()
 
 		issues := 0
@@ -46,27 +46,27 @@ Examples:
 
 		fmt.Println()
 		if issues == 0 {
-			fmt.Println("✅ No issues found! Your dotfiles setup looks good.")
+			fmt.Println(" No issues found! Your dotfiles setup looks good.")
 		} else {
-			fmt.Printf("⚠️  Found %d issue(s)\n", issues)
+			fmt.Printf("Found %d issue(s)\n", issues)
 			if !autoFix {
-				fmt.Println("💡 Run with --fix to automatically fix issues")
+				fmt.Println(" Run with --fix to automatically fix issues")
 			}
 		}
 	},
 }
 
 func checkConfig(cmd *cobra.Command, autoFix bool) int {
-	fmt.Println("📋 Checking configuration...")
+	fmt.Println(" Checking configuration...")
 	issues := 0
 
 	configPath := GetConfigPath(cmd)
 
 	// Check if config exists
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Printf("   ❌ Config not found: %s\n", configPath)
+		fmt.Printf("Config not found: %s\n", configPath)
 		if autoFix {
-			fmt.Println("   🔧 Creating default config...")
+			fmt.Println("Creating default config...")
 			cfg := &config.Config{
 				Brews: []string{},
 				Casks: []string{},
@@ -74,9 +74,9 @@ func checkConfig(cmd *cobra.Command, autoFix bool) int {
 				Stow:  []string{},
 			}
 			if err := cfg.Save(configPath); err != nil {
-				fmt.Printf("   ❌ Failed to create config: %v\n", err)
+				fmt.Printf("Failed to create config: %v\n", err)
 			} else {
-				fmt.Println("   ✅ Config created")
+				fmt.Println("Config created")
 			}
 		}
 		issues++
@@ -86,35 +86,35 @@ func checkConfig(cmd *cobra.Command, autoFix bool) int {
 	// Try to load config
 	cfg, err := config.Load(configPath)
 	if err != nil {
-		fmt.Printf("   ❌ Failed to load config: %v\n", err)
+		fmt.Printf("Failed to load config: %v\n", err)
 		issues++
 		return issues
 	}
 
-	fmt.Printf("   ✅ Config is valid (%d brews, %d casks, %d stow packages)\n",
+	fmt.Printf("Config is valid (%d brews, %d casks, %d stow packages)\n",
 		len(cfg.Brews), len(cfg.Casks), len(cfg.Stow))
 
 	return issues
 }
 
 func checkDependencies(autoFix bool) int {
-	fmt.Println("🔧 Checking dependencies...")
+	fmt.Println(" Checking dependencies...")
 	issues := 0
 
 	deps := map[string]string{
-		"git":  "Version control",
+		"git": "Version control",
 		"stow": "Symlink manager",
 	}
 
 	for dep, desc := range deps {
 		if _, err := exec.LookPath(dep); err != nil {
-			fmt.Printf("   ❌ Missing: %s (%s)\n", dep, desc)
+			fmt.Printf("Missing: %s (%s)\n", dep, desc)
 			issues++
 			if autoFix {
-				fmt.Printf("   💡 Install with: brew install %s (or your package manager)\n", dep)
+				fmt.Printf("Install with: brew install %s (or your package manager)\n", dep)
 			}
 		} else {
-			fmt.Printf("   ✅ Found: %s\n", dep)
+			fmt.Printf("Found: %s\n", dep)
 		}
 	}
 
@@ -122,20 +122,20 @@ func checkDependencies(autoFix bool) int {
 }
 
 func checkStowPackagesFunc(cmd *cobra.Command, autoFix bool) int {
-	fmt.Println("📦 Checking stow packages...")
+	fmt.Println(" Checking stow packages...")
 	issues := 0
 
 	dotfilesDir := GetDotfilesDir(cmd)
 	stowDir := filepath.Join(dotfilesDir, "stow")
 
 	if _, err := os.Stat(stowDir); os.IsNotExist(err) {
-		fmt.Printf("   ⚠️  Stow directory not found: %s\n", stowDir)
+		fmt.Printf("Stow directory not found: %s\n", stowDir)
 		if autoFix {
-			fmt.Println("   🔧 Creating stow directory...")
+			fmt.Println("Creating stow directory...")
 			if err := os.MkdirAll(stowDir, 0755); err != nil {
-				fmt.Printf("   ❌ Failed: %v\n", err)
+				fmt.Printf("Failed: %v\n", err)
 			} else {
-				fmt.Println("   ✅ Created stow directory")
+				fmt.Println("Created stow directory")
 			}
 		}
 		issues++
@@ -145,19 +145,19 @@ func checkStowPackagesFunc(cmd *cobra.Command, autoFix bool) int {
 	// List stow packages
 	entries, err := os.ReadDir(stowDir)
 	if err != nil {
-		fmt.Printf("   ❌ Failed to read stow directory: %v\n", err)
+		fmt.Printf("Failed to read stow directory: %v\n", err)
 		issues++
 		return issues
 	}
 
 	if len(entries) == 0 {
-		fmt.Println("   ⚠️  No stow packages found")
+		fmt.Println("No stow packages found")
 		issues++
 	} else {
-		fmt.Printf("   ✅ Found %d stow package(s)\n", len(entries))
+		fmt.Printf("Found %d stow package(s)\n", len(entries))
 		for _, entry := range entries {
 			if entry.IsDir() {
-				fmt.Printf("      • %s\n", entry.Name())
+				fmt.Printf("• %s\n", entry.Name())
 			}
 		}
 	}
@@ -166,7 +166,7 @@ func checkStowPackagesFunc(cmd *cobra.Command, autoFix bool) int {
 }
 
 func checkSymlinks(cmd *cobra.Command, autoFix bool) int {
-	fmt.Println("🔗 Checking symlinks...")
+	fmt.Println(" Checking symlinks...")
 	issues := 0
 
 	home, _ := os.UserHomeDir()
@@ -215,21 +215,21 @@ func checkSymlinks(cmd *cobra.Command, autoFix bool) int {
 	}
 
 	if len(brokenLinks) > 0 {
-		fmt.Printf("   ❌ Found %d broken symlink(s):\n", len(brokenLinks))
+		fmt.Printf("Found %d broken symlink(s):\n", len(brokenLinks))
 		for _, link := range brokenLinks {
-			fmt.Printf("      • %s\n", link)
+			fmt.Printf("• %s\n", link)
 			if autoFix {
-				fmt.Printf("      🔧 Removing broken symlink...\n")
+				fmt.Printf("Removing broken symlink...\n")
 				if err := os.Remove(link); err != nil {
-					fmt.Printf("      ❌ Failed: %v\n", err)
+					fmt.Printf("Failed: %v\n", err)
 				} else {
-					fmt.Println("      ✅ Removed")
+					fmt.Println("Removed")
 				}
 			}
 		}
 		issues += len(brokenLinks)
 	} else {
-		fmt.Println("   ✅ No broken symlinks found")
+		fmt.Println("No broken symlinks found")
 	}
 
 	return issues

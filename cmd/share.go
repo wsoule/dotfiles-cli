@@ -22,20 +22,20 @@ type ShareableConfig struct {
 }
 
 type ShareMetadata struct {
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Author      string    `json:"author"`
-	Tags        []string  `json:"tags"`
-	CreatedAt   time.Time `json:"created_at"`
-	Version     string    `json:"version"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	Author string `json:"author"`
+	Tags []string `json:"tags"`
+	CreatedAt time.Time `json:"created_at"`
+	Version string `json:"version"`
 }
 
 type GistResponse struct {
-	ID          string              `json:"id"`
-	HTMLURL     string              `json:"html_url"`
-	Files       map[string]GistFile `json:"files"`
-	Description string              `json:"description"`
-	Public      bool                `json:"public"`
+	ID string `json:"id"`
+	HTMLURL string `json:"html_url"`
+	Files map[string]GistFile `json:"files"`
+	Description string `json:"description"`
+	Public bool `json:"public"`
 }
 
 type GistFile struct {
@@ -43,20 +43,20 @@ type GistFile struct {
 }
 
 type GistRequest struct {
-	Description string              `json:"description"`
-	Public      bool                `json:"public"`
-	Files       map[string]GistFile `json:"files"`
+	Description string `json:"description"`
+	Public bool `json:"public"`
+	Files map[string]GistFile `json:"files"`
 }
 
 var shareCmd = &cobra.Command{
 	GroupID: "advanced",
-	Use:     "share",
-	Short:   "Share your configuration with others",
+	Use: "share",
+	Short: "Share your configuration with others",
 	Long:    `Share your dotfiles configuration via GitHub Gist or export to file`,
 }
 
 var shareGistCmd = &cobra.Command{
-	Use:   "gist",
+	Use: "gist",
 	Short: "Share configuration via GitHub Gist",
 	Long:  `Upload your configuration to GitHub Gist for easy sharing`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,18 +69,18 @@ var shareGistCmd = &cobra.Command{
 		featured, _ := cmd.Flags().GetBool("featured")
 
 		if name == "" {
-			fmt.Println("❌ Config name is required. Use --name flag.")
+			return fmt.Errorf("config name is required. Use --name flag")
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf("error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			return fmt.Errorf("error loading configuration: %w", err)
 		}
 
 		// Create shareable config with metadata
@@ -92,35 +92,38 @@ var shareGistCmd = &cobra.Command{
 				Author:      author,
 				Tags:        tags,
 				CreatedAt:   time.Now(),
-				Version:     "1.0.0",
+				Version: "1.0.0",
 			},
 		}
 
-		fmt.Printf("📤 Sharing config '%s'...\n", name)
+		fmt.Printf("Sharing config '%s'...\n", name)
+
+		var finalURL string
 
 		// Try uploading to web app first
 		webAppURL, err := uploadToWebApp(shareableConfig, !private)
 		if err == nil {
-			fmt.Printf("✅ Config shared to web app successfully!\n")
-			fmt.Printf("🔗 Web App URL: %s\n", webAppURL)
-			fmt.Printf("📋 To clone this config: dotfiles clone %s\n", webAppURL)
+			fmt.Printf("Config shared to web app successfully!\n")
+			fmt.Printf("Web App URL: %s\n", webAppURL)
+			fmt.Printf("To clone this config: dotfiles clone %s\n", webAppURL)
+			finalURL = webAppURL
 		} else {
-			return fmt.Errorf("⚠️  web app upload failed, trying github gist: %w", err)
-
 			// Fallback to GitHub Gist
+			fmt.Printf("Web app upload failed, trying GitHub Gist...\n")
 			gistURL, err := uploadToGist(shareableConfig, !private)
 			if err != nil {
-				return fmt.Errorf("❌ failed to upload to gist: %w", err)
+				return fmt.Errorf("failed to upload to gist: %w", err)
 			}
 
-			fmt.Printf("✅ Config shared to GitHub Gist successfully!\n")
-			fmt.Printf("🔗 Gist URL: %s\n", gistURL)
-			fmt.Printf("📋 To clone this config: dotfiles clone %s\n", gistURL)
+			fmt.Printf("Config shared to GitHub Gist successfully!\n")
+			fmt.Printf("Gist URL: %s\n", gistURL)
+			fmt.Printf("To clone this config: dotfiles clone %s\n", gistURL)
+			finalURL = gistURL
 		}
 
 		// Push to template API if requested
 		if pushToAPI {
-			fmt.Printf("📤 Pushing to template API...\n")
+			fmt.Printf(" Pushing to template API...\n")
 
 			// Create a temporary template file for the API push
 			home, _ := os.UserHomeDir()
@@ -131,53 +134,49 @@ var shareGistCmd = &cobra.Command{
 
 			// Convert ShareableConfig to ExtendedTemplate format
 			templateData := map[string]interface{}{
-				"name":        shareableConfig.Metadata.Name,
+				"name": shareableConfig.Metadata.Name,
 				"description": shareableConfig.Metadata.Description,
-				"author":      shareableConfig.Metadata.Author,
-				"tags":        shareableConfig.Metadata.Tags,
-				"version":     shareableConfig.Metadata.Version,
-				"created_at":  shareableConfig.Metadata.CreatedAt,
-				"public":      !private,
-				"featured":    featured,
-				"taps":        shareableConfig.Taps,
-				"brews":       shareableConfig.Brews,
-				"casks":       shareableConfig.Casks,
-				"stow":        shareableConfig.Stow,
+				"author": shareableConfig.Metadata.Author,
+				"tags": shareableConfig.Metadata.Tags,
+				"version": shareableConfig.Metadata.Version,
+				"created_at": shareableConfig.Metadata.CreatedAt,
+				"public": !private,
+				"featured": featured,
+				"taps": shareableConfig.Taps,
+				"brews": shareableConfig.Brews,
+				"casks": shareableConfig.Casks,
+				"stow": shareableConfig.Stow,
 			}
 
-			tempData, err := json.MarshalIndent(templateData, "", "  ")
+			tempData, err := json.MarshalIndent(templateData, "", "")
 			if err != nil {
-				return fmt.Errorf("⚠️  warning: could not format template for api: %w", err)
+				return fmt.Errorf("warning: could not format template for api: %w", err)
 			} else {
 				if err := os.WriteFile(tempTemplateFile, tempData, 0644); err != nil {
-					return fmt.Errorf("⚠️  warning: could not create temporary template file: %w", err)
+					return fmt.Errorf("warning: could not create temporary template file: %w", err)
 				} else {
 					defer os.Remove(tempTemplateFile)
 
 					// Import the function from templates.go by calling it directly
 					if err := pushTemplateToAPI(tempTemplateFile, !private, featured); err != nil {
-						return fmt.Errorf("⚠️  warning: could not push to template api: %w", err)
+						return fmt.Errorf("warning: could not push to template api: %w", err)
 					}
 				}
 			}
 		}
 
 		// Copy URL to clipboard
-		var finalURL string
-		if webAppURL != "" {
-			finalURL = webAppURL
-		} else {
-			// finalURL = gistURL
-		}
-		if err := copyToClipboard(finalURL); err == nil {
-			fmt.Println("📋 URL copied to clipboard!")
+		if finalURL != "" {
+			if err := copyToClipboard(finalURL); err == nil {
+				fmt.Println("URL copied to clipboard!")
+			}
 		}
 		return nil
 	},
 }
 
 var shareFileCmd = &cobra.Command{
-	Use:   "file <output-file>",
+	Use: "file <output-file>",
 	Short: "Export configuration to a shareable file",
 	Long:  `Export your configuration to a JSON file that others can import`,
 	Args:  cobra.ExactArgs(1),
@@ -189,18 +188,18 @@ var shareFileCmd = &cobra.Command{
 		tags, _ := cmd.Flags().GetStringSlice("tags")
 
 		if name == "" {
-			fmt.Println("❌ Config name is required. Use --name flag.")
+			return fmt.Errorf("config name is required. Use --name flag")
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf("error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			return fmt.Errorf("error loading configuration: %w", err)
 		}
 
 		// Create shareable config with metadata
@@ -212,30 +211,30 @@ var shareFileCmd = &cobra.Command{
 				Author:      author,
 				Tags:        tags,
 				CreatedAt:   time.Now(),
-				Version:     "1.0.0",
+				Version: "1.0.0",
 			},
 		}
 
 		// Write to file
-		data, err := json.MarshalIndent(shareableConfig, "", "  ")
+		data, err := json.MarshalIndent(shareableConfig, "", "")
 		if err != nil {
-			return fmt.Errorf("❌ error marshaling config: %w", err)
+			return fmt.Errorf("error marshaling config: %w", err)
 		}
 
 		if err := os.WriteFile(outputPath, data, 0644); err != nil {
-			return fmt.Errorf("❌ error writing file: %w", err)
+			return fmt.Errorf("error writing file: %w", err)
 		}
 
-		fmt.Printf("✅ Configuration exported to: %s\n", outputPath)
-		fmt.Printf("📋 Others can import with: dotfiles clone %s\n", outputPath)
+		fmt.Printf("Configuration exported to: %s\n", outputPath)
+		fmt.Printf("Others can import with: dotfiles clone %s\n", outputPath)
 		return nil
 	},
 }
 
 var cloneCmd = &cobra.Command{
-	Use:   "clone <source>",
-	Short: "📥 Clone a shared configuration or template",
-	Long: `📥 Clone Configuration - Import Shared Setups
+	Use: "clone <source>",
+	Short: " Clone a shared configuration or template",
+	Long: ` Clone Configuration - Import Shared Setups
 
 Import shared configurations or templates from various sources:
 • Community API templates (recommended)
@@ -271,7 +270,7 @@ Popular templates:
 		if strings.HasPrefix(source, "template:") {
 			templateName := strings.TrimPrefix(source, "template:")
 			if err := handleTemplateClone(templateName, merge); err != nil {
-				fmt.Printf("❌ %v\n", err)
+				fmt.Printf(" %v\n", err)
 			}
 			return nil
 		}
@@ -299,36 +298,36 @@ Popular templates:
 		}
 
 		if err != nil {
-			return fmt.Errorf("❌ error loading shared config: %w", err)
+			return fmt.Errorf(" error loading shared config: %w", err)
 		}
 
 		// Show preview
-		fmt.Printf("📋 Config: %s\n", shareableConfig.Metadata.Name)
-		fmt.Printf("👤 Author: %s\n", shareableConfig.Metadata.Author)
-		fmt.Printf("📝 Description: %s\n", shareableConfig.Metadata.Description)
+		fmt.Printf(" Config: %s\n", shareableConfig.Metadata.Name)
+		fmt.Printf(" Author: %s\n", shareableConfig.Metadata.Author)
+		fmt.Printf(" Description: %s\n", shareableConfig.Metadata.Description)
 		if len(shareableConfig.Metadata.Tags) > 0 {
-			fmt.Printf("🏷️  Tags: %s\n", strings.Join(shareableConfig.Metadata.Tags, ", "))
+			fmt.Printf("Tags: %s\n", strings.Join(shareableConfig.Metadata.Tags, ", "))
 		}
-		fmt.Printf("📅 Created: %s\n", shareableConfig.Metadata.CreatedAt.Format("2006-01-02"))
+		fmt.Printf(" Created: %s\n", shareableConfig.Metadata.CreatedAt.Format("2006-01-02"))
 		fmt.Println()
 
-		fmt.Printf("📦 Packages included:\n")
+		fmt.Printf(" Packages included:\n")
 		if len(shareableConfig.Taps) > 0 {
-			fmt.Printf("  📋 Taps: %d\n", len(shareableConfig.Taps))
+			fmt.Printf("Taps: %d\n", len(shareableConfig.Taps))
 		}
 		if len(shareableConfig.Brews) > 0 {
-			fmt.Printf("  🍺 Brews: %d\n", len(shareableConfig.Brews))
+			fmt.Printf("Brews: %d\n", len(shareableConfig.Brews))
 		}
 		if len(shareableConfig.Casks) > 0 {
-			fmt.Printf("  📦 Casks: %d\n", len(shareableConfig.Casks))
+			fmt.Printf("Casks: %d\n", len(shareableConfig.Casks))
 		}
 		if len(shareableConfig.Stow) > 0 {
-			fmt.Printf("  🔗 Stow: %d\n", len(shareableConfig.Stow))
+			fmt.Printf("Stow: %d\n", len(shareableConfig.Stow))
 		}
 		fmt.Println()
 
 		if preview {
-			fmt.Println("📋 Full package list:")
+			fmt.Println(" Full package list:")
 			if len(shareableConfig.Taps) > 0 {
 				fmt.Println("Taps:", strings.Join(shareableConfig.Taps, ", "))
 			}
@@ -345,13 +344,13 @@ Popular templates:
 		}
 
 		if !askConfirmation("Import this configuration? (y/N): ", false) {
-			fmt.Println("❌ Import cancelled.")
+			fmt.Println(" Import cancelled.")
 			return nil
 		}
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
@@ -360,7 +359,6 @@ Popular templates:
 			// Load existing config and merge
 			existingConfig, err := config.Load(configPath)
 			if err != nil {
-				return fmt.Errorf("⚠️  could not load existing config, creating new: %w", err)
 				existingConfig = &config.Config{}
 			}
 
@@ -371,9 +369,9 @@ Popular templates:
 			existingConfig.Stow = mergeSlices(existingConfig.Stow, shareableConfig.Stow)
 
 			if err := existingConfig.Save(configPath); err != nil {
-				return fmt.Errorf("❌ error saving merged config: %w", err)
+				return fmt.Errorf(" error saving merged config: %w", err)
 			}
-			fmt.Println("✅ Configuration merged successfully!")
+			fmt.Println(" Configuration merged successfully!")
 		} else {
 			// Replace existing config
 			newConfig := &config.Config{
@@ -384,21 +382,21 @@ Popular templates:
 			}
 
 			if err := newConfig.Save(configPath); err != nil {
-				return fmt.Errorf("❌ error saving config: %w", err)
+				return fmt.Errorf(" error saving config: %w", err)
 			}
-			fmt.Println("✅ Configuration imported successfully!")
+			fmt.Println(" Configuration imported successfully!")
 		}
 
-		fmt.Println("💡 Next steps:")
-		fmt.Println("  dotfiles status    # Check what needs to be installed")
-		fmt.Println("  dotfiles install   # Install all packages")
+		fmt.Println(" Next steps:")
+		fmt.Println("dotfiles status # Check what needs to be installed")
+		fmt.Println("dotfiles install # Install all packages")
 		return nil
 	},
 }
 
 func uploadToGist(config ShareableConfig, public bool) (string, error) {
 	// Convert config to JSON
-	configJSON, err := json.MarshalIndent(config, "", "  ")
+	configJSON, err := json.MarshalIndent(config, "", "")
 	if err != nil {
 		return "", err
 	}
@@ -518,19 +516,19 @@ func uploadToWebApp(config ShareableConfig, public bool) (string, error) {
 	}
 
 	// Convert config to JSON
-	configJSON, err := json.MarshalIndent(config, "", "  ")
+	configJSON, err := json.MarshalIndent(config, "", "")
 	if err != nil {
 		return "", err
 	}
 
 	// Create upload request
 	uploadReq := map[string]interface{}{
-		"name":        config.Metadata.Name,
+		"name": config.Metadata.Name,
 		"description": config.Metadata.Description,
-		"author":      config.Metadata.Author,
-		"tags":        config.Metadata.Tags,
-		"config":      string(configJSON),
-		"public":      public,
+		"author": config.Metadata.Author,
+		"tags": config.Metadata.Tags,
+		"config": string(configJSON),
+		"public": public,
 	}
 
 	reqBody, err := json.Marshal(uploadReq)
@@ -561,7 +559,7 @@ func uploadToWebApp(config ShareableConfig, public bool) (string, error) {
 	}
 
 	var uploadResp struct {
-		ID  string `json:"id"`
+		ID string `json:"id"`
 		URL string `json:"url"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&uploadResp); err != nil {

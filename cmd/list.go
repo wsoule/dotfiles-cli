@@ -11,9 +11,9 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:     "list",
+	Use: "list",
 	GroupID: "package",
-	Short:   "List all packages in your configuration",
+	Short: "List all packages in your configuration",
 	Long:    `Shows all brews, casks, and taps in your config.json`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
@@ -29,7 +29,7 @@ var listCmd = &cobra.Command{
 
 		// Handle JSON output
 		if jsonOutput, _ := cmd.Flags().GetBool("json"); jsonOutput {
-			data, err := json.MarshalIndent(cfg, "", "  ")
+			data, err := json.MarshalIndent(cfg, "", "")
 			if err != nil {
 				return fmt.Errorf("error marshaling json: %w", err)
 			}
@@ -74,33 +74,33 @@ var listCmd = &cobra.Command{
 
 		// Default formatted output
 		if len(cfg.Taps) > 0 {
-			fmt.Println("📋 Taps:")
+			fmt.Println(" Taps:")
 			for _, tap := range cfg.Taps {
-				fmt.Printf("  - %s\n", tap)
+				fmt.Printf("- %s\n", tap)
 			}
 			fmt.Println()
 		}
 
 		if len(cfg.Brews) > 0 {
-			fmt.Println("🍺 Brews:")
+			fmt.Println(" Brews:")
 			for _, brew := range cfg.Brews {
-				fmt.Printf("  - %s\n", brew)
+				fmt.Printf("- %s\n", brew)
 			}
 			fmt.Println()
 		}
 
 		if len(cfg.Casks) > 0 {
-			fmt.Println("📦 Casks:")
+			fmt.Println(" Casks:")
 			for _, cask := range cfg.Casks {
-				fmt.Printf("  - %s\n", cask)
+				fmt.Printf("- %s\n", cask)
 			}
 			fmt.Println()
 		}
 
 		if len(cfg.Stow) > 0 {
-			fmt.Println("🔗 Stow Packages:")
+			fmt.Println(" Stow Packages:")
 			for _, stow := range cfg.Stow {
-				fmt.Printf("  - %s\n", stow)
+				fmt.Printf("- %s\n", stow)
 			}
 		}
 

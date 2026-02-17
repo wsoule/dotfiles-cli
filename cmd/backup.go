@@ -11,10 +11,10 @@ import (
 )
 
 var backupCmd = &cobra.Command{
-	Use:     "backup [file]",
+	Use: "backup [file]",
 	GroupID: "advanced",
-	Short:   "💾 Backup your configuration to a file",
-	Long: `💾 Create Configuration Backup
+	Short: " Backup your configuration to a file",
+	Long: ` Create Configuration Backup
 
 Creates a timestamped backup of your config.json.
 If no file path is provided, uses automatic timestamped naming.
@@ -29,7 +29,7 @@ Examples:
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		configPath := GetConfigPath(cmd)
@@ -37,7 +37,7 @@ Examples:
 		// Load current config
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			return fmt.Errorf(" error loading configuration: %w", err)
 		}
 
 		// Determine backup path
@@ -59,42 +59,42 @@ Examples:
 		// Ensure directory exists
 		backupDirPath := filepath.Dir(backupPath)
 		if err := os.MkdirAll(backupDirPath, 0755); err != nil {
-			return fmt.Errorf("❌ error creating backup directory: %w", err)
+			return fmt.Errorf(" error creating backup directory: %w", err)
 		}
 
 		// Save to backup file
 		if err := cfg.Save(backupPath); err != nil {
-			return fmt.Errorf("❌ error creating backup: %w", err)
+			return fmt.Errorf(" error creating backup: %w", err)
 		}
 
-		fmt.Println("✅ Configuration backed up successfully!")
+		fmt.Println(" Configuration backed up successfully!")
 		fmt.Println()
-		fmt.Printf("   Location: %s\n", backupPath)
+		fmt.Printf("Location: %s\n", backupPath)
 		fmt.Println()
 
 		total := len(cfg.Taps) + len(cfg.Brews) + len(cfg.Casks) + len(cfg.Stow)
-		fmt.Printf("   📊 Backed up %d items:\n", total)
+		fmt.Printf("Backed up %d items:\n", total)
 		if len(cfg.Taps) > 0 {
-			fmt.Printf("      • %d taps\n", len(cfg.Taps))
+			fmt.Printf("• %d taps\n", len(cfg.Taps))
 		}
 		if len(cfg.Brews) > 0 {
-			fmt.Printf("      • %d brews\n", len(cfg.Brews))
+			fmt.Printf("• %d brews\n", len(cfg.Brews))
 		}
 		if len(cfg.Casks) > 0 {
-			fmt.Printf("      • %d casks\n", len(cfg.Casks))
+			fmt.Printf("• %d casks\n", len(cfg.Casks))
 		}
 		if len(cfg.Stow) > 0 {
-			fmt.Printf("      • %d stow packages\n", len(cfg.Stow))
+			fmt.Printf("• %d stow packages\n", len(cfg.Stow))
 		}
 		fmt.Println()
-		fmt.Println("💡 To restore this backup:")
-		fmt.Printf("   dotfiles restore %s\n", backupPath)
+		fmt.Println(" To restore this backup:")
+		fmt.Printf("dotfiles restore %s\n", backupPath)
 		return nil
 	},
 }
 
 var restoreCmd = &cobra.Command{
-	Use:   "restore <file>",
+	Use: "restore <file>",
 	Short: "Restore configuration from a backup file",
 	Long:  `Restores your config.json from a backup file`,
 	Args:  cobra.ExactArgs(1),
@@ -103,7 +103,7 @@ var restoreCmd = &cobra.Command{
 
 		// Check if backup file exists
 		if _, err := os.Stat(backupPath); os.IsNotExist(err) {
-			fmt.Printf("Backup file not found: %s\n", backupPath)
+			return fmt.Errorf("backup file not found: %s", backupPath)
 		}
 
 		home, err := os.UserHomeDir()
@@ -122,9 +122,9 @@ var restoreCmd = &cobra.Command{
 				backupCurrent := filepath.Join(backupsDir, fmt.Sprintf("config-pre-restore-%s.json", timestamp))
 
 				if err := copyFile(configPath, backupCurrent); err != nil {
-					return fmt.Errorf("⚠️  warning: could not backup current config: %w", err)
+					return fmt.Errorf("warning: could not backup current config: %w", err)
 				} else {
-					fmt.Printf("💾 Current config backed up to:\n   %s\n", backupCurrent)
+					fmt.Printf(" Current config backed up to:\n %s\n", backupCurrent)
 					fmt.Println()
 				}
 			}
@@ -141,18 +141,18 @@ var restoreCmd = &cobra.Command{
 			return fmt.Errorf("error restoring configuration: %w", err)
 		}
 
-		fmt.Printf("✅ Configuration restored from: %s\n", backupPath)
+		fmt.Printf(" Configuration restored from: %s\n", backupPath)
 
 		total := len(backupCfg.Taps) + len(backupCfg.Brews) + len(backupCfg.Casks)
-		fmt.Printf("  📊 Restored %d packages\n", total)
+		fmt.Printf("Restored %d packages\n", total)
 		if len(backupCfg.Taps) > 0 {
-			fmt.Printf("    📋 %d taps\n", len(backupCfg.Taps))
+			fmt.Printf("%d taps\n", len(backupCfg.Taps))
 		}
 		if len(backupCfg.Brews) > 0 {
-			fmt.Printf("    🍺 %d brews\n", len(backupCfg.Brews))
+			fmt.Printf("%d brews\n", len(backupCfg.Brews))
 		}
 		if len(backupCfg.Casks) > 0 {
-			fmt.Printf("    📦 %d casks\n", len(backupCfg.Casks))
+			fmt.Printf("%d casks\n", len(backupCfg.Casks))
 		}
 		return nil
 	},

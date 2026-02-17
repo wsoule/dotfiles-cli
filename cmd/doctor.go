@@ -14,10 +14,10 @@ import (
 )
 
 var doctorCmd = &cobra.Command{
-	Use:     "doctor",
+	Use: "doctor",
 	GroupID: "getting-started",
-	Short:   "🏥 Run health checks on your dotfiles setup",
-	Long: `🏥 Dotfiles Health Check
+	Short: " Run health checks on your dotfiles setup",
+	Long: ` Dotfiles Health Check
 
 Runs comprehensive diagnostics on your dotfiles setup to identify issues:
 • Verifies dotfiles directory structure
@@ -35,7 +35,7 @@ Examples:
 		fix, _ := cmd.Flags().GetBool("fix")
 		verbose, _ := cmd.Flags().GetBool("verbose")
 
-		fmt.Println("🏥 Running Dotfiles Health Check...")
+		fmt.Println(" Running Dotfiles Health Check...")
 		fmt.Println("=" + strings.Repeat("=", 35))
 		fmt.Println()
 
@@ -50,24 +50,24 @@ Examples:
 
 		dotfilesDir := filepath.Join(home, ".dotfiles")
 		if _, err := os.Stat(dotfilesDir); os.IsNotExist(err) {
-			fmt.Println("❌ Dotfiles directory not found")
-			fmt.Println("   Expected: ~/.dotfiles")
+			fmt.Println(" Dotfiles directory not found")
+			fmt.Println("Expected: ~/.dotfiles")
 			if fix {
-				fmt.Println("   🔧 Creating dotfiles directory...")
+				fmt.Println("Creating dotfiles directory...")
 				if err := os.MkdirAll(dotfilesDir, 0755); err != nil {
-					fmt.Printf("   ❌ Failed to create directory: %v\n", err)
+					fmt.Printf("Failed to create directory: %v\n", err)
 				} else {
-					fmt.Println("   ✅ Created ~/.dotfiles")
+					fmt.Println("Created ~/.dotfiles")
 					os.MkdirAll(filepath.Join(dotfilesDir, "stow"), 0755)
 				}
 			} else {
-				fmt.Println("   💡 Run: dotfiles setup <repo-url> or dotfiles init")
+				fmt.Println("Run: dotfiles setup <repo-url> or dotfiles init")
 			}
 			issues++
 		} else {
-			fmt.Println("✅ Dotfiles directory exists")
+			fmt.Println(" Dotfiles directory exists")
 			if verbose {
-				fmt.Printf("   Location: %s\n", dotfilesDir)
+				fmt.Printf("Location: %s\n", dotfilesDir)
 			}
 		}
 		fmt.Println()
@@ -76,10 +76,10 @@ Examples:
 		configPath := filepath.Join(dotfilesDir, "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Println("❌ Configuration file invalid or missing")
-			fmt.Printf("   Error: %v\n", err)
+			fmt.Println(" Configuration file invalid or missing")
+			fmt.Printf("Error: %v\n", err)
 			if fix {
-				fmt.Println("   🔧 Creating default config.json...")
+				fmt.Println("Creating default config.json...")
 				newCfg := &config.Config{
 					Brews: []string{},
 					Casks: []string{},
@@ -87,20 +87,20 @@ Examples:
 					Stow:  []string{},
 				}
 				if err := newCfg.Save(configPath); err != nil {
-					fmt.Printf("   ❌ Failed to create config: %v\n", err)
+					fmt.Printf("Failed to create config: %v\n", err)
 				} else {
-					fmt.Println("   ✅ Created config.json")
+					fmt.Println("Created config.json")
 					cfg = newCfg
 				}
 			} else {
-				fmt.Println("   💡 Run: dotfiles init")
+				fmt.Println("Run: dotfiles init")
 			}
 			issues++
 		} else {
-			fmt.Println("✅ Configuration file is valid")
+			fmt.Println(" Configuration file is valid")
 			if verbose {
 				totalPkgs := len(cfg.Brews) + len(cfg.Casks) + len(cfg.Taps) + len(cfg.Stow)
-				fmt.Printf("   Packages: %d total (%d brews, %d casks, %d taps, %d stow)\n",
+				fmt.Printf("Packages: %d total (%d brews, %d casks, %d taps, %d stow)\n",
 					totalPkgs, len(cfg.Brews), len(cfg.Casks), len(cfg.Taps), len(cfg.Stow))
 			}
 		}
@@ -109,77 +109,77 @@ Examples:
 		// Check 3: Git repository
 		gitDir := filepath.Join(dotfilesDir, ".git")
 		if _, err := os.Stat(gitDir); os.IsNotExist(err) {
-			fmt.Println("⚠️  Not a git repository")
+			fmt.Println("Not a git repository")
 			if fix {
-				fmt.Println("   🔧 Initializing git repository...")
+				fmt.Println("Initializing git repository...")
 				initCmd := exec.Command("git", "-C", dotfilesDir, "init")
 				if err := initCmd.Run(); err != nil {
-					fmt.Printf("   ❌ Failed to initialize git: %v\n", err)
+					fmt.Printf("Failed to initialize git: %v\n", err)
 				} else {
-					fmt.Println("   ✅ Git repository initialized")
+					fmt.Println("Git repository initialized")
 				}
 			} else {
-				fmt.Println("   💡 Run: git init in ~/.dotfiles to enable version control")
+				fmt.Println("Run: git init in ~/.dotfiles to enable version control")
 			}
 			warnings++
 		} else {
-			fmt.Println("✅ Git repository initialized")
+			fmt.Println(" Git repository initialized")
 
 			// Check for remote
 			os.Chdir(dotfilesDir)
 			remoteCmd := exec.Command("git", "remote", "-v")
 			remoteOutput, _ := remoteCmd.Output()
 			if len(remoteOutput) == 0 {
-				fmt.Println("   ⚠️  No remote repository configured")
-				fmt.Println("   💡 Add remote: git remote add origin <url>")
+				fmt.Println("No remote repository configured")
+				fmt.Println("Add remote: git remote add origin <url>")
 				warnings++
 			} else if verbose {
-				fmt.Println("   Remote configured")
+				fmt.Println("Remote configured")
 			}
 		}
 		fmt.Println()
 
 		// Check 4: Required dependencies
-		fmt.Println("📋 Checking Dependencies...")
+		fmt.Println(" Checking Dependencies...")
 
 		// Get package manager
 		pm, err := pkgmanager.GetPackageManager()
 		pmAvailable := false
 		if err == nil && pm.IsAvailable() {
-			fmt.Printf("✅ %s installed\n", pm.GetName())
+			fmt.Printf(" %s installed\n", pm.GetName())
 			pmAvailable = true
 		} else {
-			fmt.Printf("❌ Package manager not found\n")
+			fmt.Printf(" Package manager not found\n")
 			issues++
 			if runtime.GOOS == "darwin" {
-				fmt.Println("   💡 Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+				fmt.Println("Install Homebrew: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
 			}
 		}
 
 		// Check git
 		if _, err := exec.LookPath("git"); err == nil {
-			fmt.Printf("✅ git installed\n")
+			fmt.Printf(" git installed\n")
 		} else {
-			fmt.Printf("❌ git not found\n")
+			fmt.Printf(" git not found\n")
 			if fix && pmAvailable {
-				fmt.Println("   🔧 Installing git...")
+				fmt.Println("Installing git...")
 				if pm.GetName() == "homebrew" {
 					installCmd := exec.Command("brew", "install", "git")
 					installCmd.Stdout = os.Stdout
 					installCmd.Stderr = os.Stderr
 					if err := installCmd.Run(); err != nil {
-						fmt.Printf("   ❌ Failed to install git: %v\n", err)
+						fmt.Printf("Failed to install git: %v\n", err)
 					} else {
-						fmt.Println("   ✅ Git installed successfully")
+						fmt.Println("Git installed successfully")
 					}
 				}
 			} else if pmAvailable {
 				if pm.GetName() == "homebrew" {
-					fmt.Println("   💡 Install git: brew install git")
+					fmt.Println("Install git: brew install git")
 				} else if pm.GetName() == "pacman" {
-					fmt.Println("   💡 Install git: sudo pacman -S git")
+					fmt.Println("Install git: sudo pacman -S git")
 				} else {
-					fmt.Println("   💡 Install git with your package manager")
+					fmt.Println("Install git with your package manager")
 				}
 			}
 			issues++
@@ -187,28 +187,28 @@ Examples:
 
 		// Check stow
 		if _, err := exec.LookPath("stow"); err == nil {
-			fmt.Printf("✅ stow installed\n")
+			fmt.Printf(" stow installed\n")
 		} else {
-			fmt.Printf("❌ stow not found\n")
+			fmt.Printf(" stow not found\n")
 			if fix && pmAvailable {
-				fmt.Println("   🔧 Installing stow...")
+				fmt.Println("Installing stow...")
 				if pm.GetName() == "homebrew" {
 					installCmd := exec.Command("brew", "install", "stow")
 					installCmd.Stdout = os.Stdout
 					installCmd.Stderr = os.Stderr
 					if err := installCmd.Run(); err != nil {
-						fmt.Printf("   ❌ Failed to install stow: %v\n", err)
+						fmt.Printf("Failed to install stow: %v\n", err)
 					} else {
-						fmt.Println("   ✅ Stow installed successfully")
+						fmt.Println("Stow installed successfully")
 					}
 				}
 			} else if pmAvailable {
 				if pm.GetName() == "homebrew" {
-					fmt.Println("   💡 Install GNU Stow: brew install stow")
+					fmt.Println("Install GNU Stow: brew install stow")
 				} else if pm.GetName() == "pacman" {
-					fmt.Println("   💡 Install GNU Stow: sudo pacman -S stow")
+					fmt.Println("Install GNU Stow: sudo pacman -S stow")
 				} else {
-					fmt.Println("   💡 Install GNU Stow with your package manager")
+					fmt.Println("Install GNU Stow with your package manager")
 				}
 			}
 			issues++
@@ -217,56 +217,56 @@ Examples:
 
 		// Check 5: Broken symlinks
 		if cfg != nil && len(cfg.Stow) > 0 {
-			fmt.Println("🔗 Checking Symlinks...")
+			fmt.Println(" Checking Symlinks...")
 			brokenLinks := checkBrokenSymlinks(home, verbose)
 			if len(brokenLinks) > 0 {
-				fmt.Printf("❌ Found %d broken symlinks:\n", len(brokenLinks))
+				fmt.Printf(" Found %d broken symlinks:\n", len(brokenLinks))
 				for _, link := range brokenLinks {
-					fmt.Printf("   • %s\n", link)
+					fmt.Printf("• %s\n", link)
 				}
 				if fix {
-					fmt.Println("   🔧 Auto-fix not implemented for broken symlinks")
-					fmt.Println("   💡 Run: dotfiles restow <package>")
+					fmt.Println("Auto-fix not implemented for broken symlinks")
+					fmt.Println("Run: dotfiles restow <package>")
 				}
 				issues += len(brokenLinks)
 			} else {
-				fmt.Println("✅ No broken symlinks found")
+				fmt.Println(" No broken symlinks found")
 			}
 			fmt.Println()
 		}
 
 		// Check 6: Configuration drift
 		if pmAvailable && cfg != nil {
-			fmt.Println("📊 Checking Configuration Drift...")
+			fmt.Println(" Checking Configuration Drift...")
 			drift := checkConfigDrift(cfg)
 			if drift.MissingBrews > 0 || drift.MissingCasks > 0 {
-				fmt.Printf("⚠️  Configuration drift detected:\n")
+				fmt.Printf("Configuration drift detected:\n")
 				if drift.MissingBrews > 0 {
-					fmt.Printf("   • %d packages configured but not installed\n", drift.MissingBrews)
+					fmt.Printf("• %d packages configured but not installed\n", drift.MissingBrews)
 				}
 				if drift.MissingCasks > 0 && runtime.GOOS == "darwin" {
-					fmt.Printf("   • %d casks configured but not installed\n", drift.MissingCasks)
+					fmt.Printf("• %d casks configured but not installed\n", drift.MissingCasks)
 				}
 				if drift.ExtraBrews > 0 {
-					fmt.Printf("   • %d packages installed but not in config\n", drift.ExtraBrews)
+					fmt.Printf("• %d packages installed but not in config\n", drift.ExtraBrews)
 				}
 				if drift.ExtraCasks > 0 && runtime.GOOS == "darwin" {
-					fmt.Printf("   • %d casks installed but not in config\n", drift.ExtraCasks)
+					fmt.Printf("• %d casks installed but not in config\n", drift.ExtraCasks)
 				}
-				fmt.Println("   💡 Run: dotfiles diff")
+				fmt.Println("Run: dotfiles diff")
 				if drift.ExtraBrews > 0 || drift.ExtraCasks > 0 {
-					fmt.Println("   💡 Run: dotfiles scan to add missing packages")
+					fmt.Println("Run: dotfiles scan to add missing packages")
 				}
 				warnings++
 			} else {
-				fmt.Println("✅ Configuration in sync with installed packages")
+				fmt.Println(" Configuration in sync with installed packages")
 			}
 			fmt.Println()
 		}
 
 		// Check 7: Stow directory structure
 		if cfg != nil && len(cfg.Stow) > 0 {
-			fmt.Println("📁 Checking Stow Packages...")
+			fmt.Println(" Checking Stow Packages...")
 			stowDir := filepath.Join(dotfilesDir, "stow")
 			missingPkgs := []string{}
 			for _, pkg := range cfg.Stow {
@@ -276,13 +276,13 @@ Examples:
 				}
 			}
 			if len(missingPkgs) > 0 {
-				fmt.Printf("❌ %d stow packages missing:\n", len(missingPkgs))
+				fmt.Printf(" %d stow packages missing:\n", len(missingPkgs))
 				for _, pkg := range missingPkgs {
-					fmt.Printf("   • %s (expected at: stow/%s)\n", pkg, pkg)
+					fmt.Printf("• %s (expected at: stow/%s)\n", pkg, pkg)
 				}
 				issues += len(missingPkgs)
 			} else {
-				fmt.Println("✅ All stow packages exist")
+				fmt.Println(" All stow packages exist")
 			}
 			fmt.Println()
 		}
@@ -290,16 +290,16 @@ Examples:
 		// Summary
 		fmt.Println("=" + strings.Repeat("=", 35))
 		if issues == 0 && warnings == 0 {
-			fmt.Println("🎉 All checks passed! Your dotfiles are healthy.")
+			fmt.Println(" All checks passed! Your dotfiles are healthy.")
 		} else {
 			if issues > 0 {
-				fmt.Printf("❌ Found %d issue(s)\n", issues)
+				fmt.Printf(" Found %d issue(s)\n", issues)
 			}
 			if warnings > 0 {
-				fmt.Printf("⚠️  Found %d warning(s)\n", warnings)
+				fmt.Printf("Found %d warning(s)\n", warnings)
 			}
 			fmt.Println()
-			fmt.Println("💡 Review the suggestions above to fix issues")
+			fmt.Println(" Review the suggestions above to fix issues")
 		}
 		return nil
 	},

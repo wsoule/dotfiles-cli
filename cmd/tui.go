@@ -47,7 +47,7 @@ type model struct {
 	selected map[int]bool
 	packages []packageItem
 	config   *config.Config
-	mode     string // "browse", "add", "remove"
+	mode string // "browse", "add", "remove"
 	message  string
 	quitting bool
 }
@@ -79,7 +79,7 @@ func initialModel() model {
 		installed := contains(installedBrews, brew)
 		packages = append(packages, packageItem{
 			name:      brew,
-			pkgType:   "brew",
+			pkgType: "brew",
 			installed: installed,
 		})
 	}
@@ -89,7 +89,7 @@ func initialModel() model {
 		if !brewsMap[brew] {
 			packages = append(packages, packageItem{
 				name:      brew,
-				pkgType:   "brew",
+				pkgType: "brew",
 				installed: true,
 			})
 		}
@@ -102,7 +102,7 @@ func initialModel() model {
 		installed := contains(installedCasks, cask)
 		packages = append(packages, packageItem{
 			name:      cask,
-			pkgType:   "cask",
+			pkgType: "cask",
 			installed: installed,
 		})
 	}
@@ -112,7 +112,7 @@ func initialModel() model {
 		if !casksMap[cask] {
 			packages = append(packages, packageItem{
 				name:      cask,
-				pkgType:   "cask",
+				pkgType: "cask",
 				installed: true,
 			})
 		}
@@ -123,8 +123,8 @@ func initialModel() model {
 		selected: make(map[int]bool),
 		packages: packages,
 		config:   cfg,
-		mode:     "browse",
-		message:  "",
+		mode: "browse",
+		message: "",
 	}
 }
 
@@ -208,7 +208,7 @@ func (m model) View() string {
 		return ""
 	}
 
-	s := titleStyle.Render("🎨 Dotfiles Package Manager (TUI)") + "\n\n"
+	s := titleStyle.Render(" Dotfiles Package Manager (TUI)") + "\n\n"
 
 	// Show packages
 	for i, pkg := range m.packages {
@@ -219,19 +219,19 @@ func (m model) View() string {
 
 		checked := " "
 		if m.selected[i] {
-			checked = "✓"
+			checked = ""
 		}
 
-		status := "  "
+		status := ""
 		if isInConfig(pkg.name, pkg.pkgType, m.config) {
 			if pkg.installed {
-				status = "✅"
+				status = ""
 			} else {
-				status = "📋"
+				status = ""
 			}
 		} else {
 			if pkg.installed {
-				status = "⚠️ "
+				status = " "
 			}
 		}
 
@@ -266,7 +266,7 @@ func (m model) View() string {
 	help := `
 Navigation:  ↑/k up • ↓/j down • space select • q quit
 Actions:     a add to config • r remove from config • s save & quit
-Legend:      ✅ in config & installed • 📋 in config only • ⚠️  installed only
+Legend:       in config & installed •  in config only •   installed only
 `
 	s += helpStyle.Render(help)
 
@@ -323,19 +323,19 @@ func isInConfig(name, pkgType string, cfg *config.Config) bool {
 
 var tuiCmd = &cobra.Command{
 	GroupID: "getting-started",
-	Use:     "tui",
-	Short:   "🎨 Interactive TUI for package management",
-	Long: `🎨 Interactive Terminal UI - Complete Dotfiles Hub
+	Use: "tui",
+	Short: " Interactive TUI for package management",
+	Long: ` Interactive Terminal UI - Complete Dotfiles Hub
 
 Launch a lazygit-inspired interface to manage your entire dotfiles setup.
 
 Views:
-  1. 📦 Packages   - Browse, search, add/remove packages
-  2. 📚 Templates  - Apply configuration templates
-  3. 📊 Status     - System statistics and health
-  4. 🔗 Stow       - Manage dotfile symlinks
-  5. 📸 Snapshots  - View and restore snapshots
-  6. ⚡ Install    - Install packages directly
+  1.  Packages   - Browse, search, add/remove packages
+  2.  Templates  - Apply configuration templates
+  3.  Status     - System statistics and health
+  4.  Stow       - Manage dotfile symlinks
+  5.  Snapshots  - View and restore snapshots
+  6.  Install    - Install packages directly
 
 Features:
   • Windowed layout with main, detail, and legend panels

@@ -10,10 +10,10 @@ import (
 )
 
 var cleanupCmd = &cobra.Command{
-	Use:     "cleanup",
+	Use: "cleanup",
 	GroupID: "package",
-	Short:   "🧹 Clean up old Homebrew package versions and cache",
-	Long: `🧹 Cleanup Homebrew
+	Short: " Clean up old Homebrew package versions and cache",
+	Long: ` Cleanup Homebrew
 
 Remove old versions of installed packages and clear Homebrew cache to free up disk space.
 
@@ -33,21 +33,21 @@ Examples:
 
 		// Check if brew is available
 		if _, err := exec.LookPath("brew"); err != nil {
-			fmt.Println("❌ Homebrew not found")
+			return fmt.Errorf("Homebrew not found")
 		}
 
-		fmt.Println("🧹 Cleaning up Homebrew...")
+		fmt.Println(" Cleaning up Homebrew...")
 		fmt.Println("=" + strings.Repeat("=", 25))
 		fmt.Println()
 
 		// Step 1: Show disk space before cleanup
-		fmt.Println("📊 Checking disk usage...")
+		fmt.Println(" Checking disk usage...")
 		getBrewCacheSize()
 		fmt.Println()
 
 		if !cacheOnly {
 			// Step 2: Clean up old versions
-			fmt.Println("🗑️  Removing old package versions...")
+			fmt.Println("Removing old package versions...")
 			if dryRun {
 				fmt.Println("[DRY RUN] Would run: brew cleanup")
 				showOldVersions()
@@ -56,16 +56,16 @@ Examples:
 				cleanupCmd.Stdout = os.Stdout
 				cleanupCmd.Stderr = os.Stderr
 				if err := cleanupCmd.Run(); err != nil {
-					return fmt.Errorf("⚠️  cleanup had some errors: %w", err)
+					return fmt.Errorf("cleanup had some errors: %w", err)
 				} else {
-					fmt.Println("✅ Old versions removed")
+					fmt.Println(" Old versions removed")
 				}
 			}
 			fmt.Println()
 		}
 
 		// Step 3: Clean up cache
-		fmt.Println("🗑️  Clearing download cache...")
+		fmt.Println("Clearing download cache...")
 		if dryRun {
 			fmt.Println("[DRY RUN] Would run: brew cleanup -s")
 		} else {
@@ -73,16 +73,16 @@ Examples:
 			cacheCmd.Stdout = os.Stdout
 			cacheCmd.Stderr = os.Stderr
 			if err := cacheCmd.Run(); err != nil {
-				return fmt.Errorf("⚠️  cache cleanup had some errors: %w", err)
+				return fmt.Errorf("cache cleanup had some errors: %w", err)
 			} else {
-				fmt.Println("✅ Cache cleared")
+				fmt.Println(" Cache cleared")
 			}
 		}
 		fmt.Println()
 
 		// Step 4: Clean up broken symlinks
 		if !cacheOnly {
-			fmt.Println("🔗 Cleaning up broken symlinks...")
+			fmt.Println(" Cleaning up broken symlinks...")
 			if dryRun {
 				fmt.Println("[DRY RUN] Would run: brew cleanup --prune=all")
 			} else {
@@ -90,9 +90,9 @@ Examples:
 				pruneCmd.Stdout = os.Stdout
 				pruneCmd.Stderr = os.Stderr
 				if err := pruneCmd.Run(); err != nil {
-					return fmt.Errorf("⚠️  prune had some errors: %w", err)
+					return fmt.Errorf("prune had some errors: %w", err)
 				} else {
-					fmt.Println("✅ Symlinks cleaned")
+					fmt.Println(" Symlinks cleaned")
 				}
 			}
 			fmt.Println()
@@ -100,16 +100,16 @@ Examples:
 
 		// Step 5: Show disk space after cleanup
 		if !dryRun {
-			fmt.Println("📊 Final disk usage...")
+			fmt.Println(" Final disk usage...")
 			getBrewCacheSize()
 			fmt.Println()
 		}
 
-		fmt.Println("🎉 Cleanup complete!")
+		fmt.Println(" Cleanup complete!")
 		fmt.Println()
-		fmt.Println("💡 Pro tip:")
-		fmt.Println("   • Run this periodically to save disk space")
-		fmt.Println("   • Run 'brew cleanup -n' to preview what would be removed")
+		fmt.Println(" Pro tip:")
+		fmt.Println("• Run this periodically to save disk space")
+		fmt.Println("• Run 'brew cleanup -n' to preview what would be removed")
 		return nil
 	},
 }
@@ -121,14 +121,14 @@ func getBrewCacheSize() {
 	cmd := exec.Command("du", "-sh", cachePath)
 	output, err := cmd.Output()
 	if err == nil {
-		fmt.Printf("   Cache size: %s\n", strings.TrimSpace(string(output)))
+		fmt.Printf("Cache size: %s\n", strings.TrimSpace(string(output)))
 	}
 
 	// Get Cellar size
 	cellarCmd := exec.Command("du", "-sh", "/opt/homebrew/Cellar")
 	cellarOutput, err := cellarCmd.Output()
 	if err == nil {
-		fmt.Printf("   Cellar size: %s\n", strings.TrimSpace(string(cellarOutput)))
+		fmt.Printf("Cellar size: %s\n", strings.TrimSpace(string(cellarOutput)))
 	}
 }
 

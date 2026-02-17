@@ -8,10 +8,10 @@ import (
 )
 
 var rolesCmd = &cobra.Command{
-	Use:     "roles",
+	Use: "roles",
 	GroupID: "advanced",
-	Short:   "🎭 Manage package roles (web-dev, data-science, etc.)",
-	Long: `🎭 Package Roles - Install Package Sets
+	Short: " Manage package roles (web-dev, data-science, etc.)",
+	Long: ` Package Roles - Install Package Sets
 
 Roles are predefined sets of packages for specific purposes:
 • web-dev: Node.js, Docker, nginx, postgres
@@ -30,13 +30,13 @@ Examples:
 }
 
 var rolesListCmd = &cobra.Command{
-	Use:   "list",
+	Use: "list",
 	Short: "List all available roles",
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -45,18 +45,18 @@ var rolesListCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("📋 Available Roles:")
+		fmt.Println(" Available Roles:")
 		fmt.Println()
 		for name, role := range cfg.Roles {
 			fmt.Printf("• %s - %s\n", name, role.Description)
-			fmt.Printf("  Packages: %d brews, %d casks\n",
+			fmt.Printf("Packages: %d brews, %d casks\n",
 				len(role.Brews), len(role.Casks))
 		}
 	},
 }
 
 var rolesCreateCmd = &cobra.Command{
-	Use:   "create <name>",
+	Use: "create <name>",
 	Short: "Create a new role",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -66,7 +66,7 @@ var rolesCreateCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -84,17 +84,17 @@ var rolesCreateCmd = &cobra.Command{
 		}
 
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("❌ Failed to save config: %v\n", err)
+			fmt.Printf(" Failed to save config: %v\n", err)
 			return
 		}
 
-		fmt.Printf("✅ Created role '%s'\n", roleName)
+		fmt.Printf(" Created role '%s'\n", roleName)
 		fmt.Println("Add packages with: dotfiles roles add-package <role> <package>")
 	},
 }
 
 var rolesInstallCmd = &cobra.Command{
-	Use:   "install <role>",
+	Use: "install <role>",
 	Short: "Install all packages from a role",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -103,18 +103,18 @@ var rolesInstallCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
 		role, exists := cfg.Roles[roleName]
 		if !exists {
-			fmt.Printf("❌ Role '%s' not found\n", roleName)
+			fmt.Printf(" Role '%s' not found\n", roleName)
 			return
 		}
 
-		fmt.Printf("📦 Installing role '%s'...\n", roleName)
-		fmt.Printf("   %s\n", role.Description)
+		fmt.Printf(" Installing role '%s'...\n", roleName)
+		fmt.Printf("%s\n", role.Description)
 		fmt.Println()
 
 		// Add role packages to main config
@@ -124,12 +124,12 @@ var rolesInstallCmd = &cobra.Command{
 		cfg.Stow = append(cfg.Stow, role.Stow...)
 
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("❌ Failed to save config: %v\n", err)
+			fmt.Printf(" Failed to save config: %v\n", err)
 			return
 		}
 
-		fmt.Println("✅ Role packages added to configuration")
-		fmt.Println("💡 Run 'dotfiles install' to install the packages")
+		fmt.Println(" Role packages added to configuration")
+		fmt.Println(" Run 'dotfiles install' to install the packages")
 	},
 }
 

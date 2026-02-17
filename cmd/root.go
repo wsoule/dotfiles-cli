@@ -14,15 +14,15 @@ var (
 		Date    string
 	}{
 		Version: "dev",
-		Commit:  "none",
-		Date:    "unknown",
+		Commit: "none",
+		Date: "unknown",
 	}
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "dotfiles",
-	Short: "🚀 Complete developer environment management toolkit",
-	Long: `🚀 Dotfiles Manager - Developer Onboarding Toolkit
+	Use: "dotfiles",
+	Short: " Complete developer environment management toolkit",
+	Long: ` Dotfiles Manager - Developer Onboarding Toolkit
 
 A comprehensive command-line tool that manages your entire development environment:
 • Homebrew packages with smart curation
@@ -48,19 +48,19 @@ Get started: https://github.com/wsoule/dotfiles-cli`,
 func init() {
 	// Add command groups for better organization
 	rootCmd.AddGroup(&cobra.Group{
-		ID:    "getting-started",
+		ID: "getting-started",
 		Title: "Getting Started Commands:",
 	})
 	rootCmd.AddGroup(&cobra.Group{
-		ID:    "package",
+		ID: "package",
 		Title: "Package Management:",
 	})
 	rootCmd.AddGroup(&cobra.Group{
-		ID:    "dotfiles",
+		ID: "dotfiles",
 		Title: "Dotfile Management:",
 	})
 	rootCmd.AddGroup(&cobra.Group{
-		ID:    "advanced",
+		ID: "advanced",
 		Title: "Advanced Commands:",
 	})
 

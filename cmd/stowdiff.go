@@ -11,10 +11,10 @@ import (
 )
 
 var stowDiffCmd = &cobra.Command{
-	Use:     "stow-diff [packages...]",
+	Use: "stow-diff [packages...]",
 	GroupID: "dotfiles",
-	Short:   "🔍 Preview stow changes before applying",
-	Long: `🔍 Preview Stow Changes
+	Short: " Preview stow changes before applying",
+	Long: ` Preview Stow Changes
 
 Show what will change when stowing packages:
 • Files that will be symlinked
@@ -35,7 +35,7 @@ Examples:
 			// Get all packages from stow directory
 			entries, err := os.ReadDir(stowDir)
 			if err != nil {
-				fmt.Printf("❌ Failed to read stow directory: %v\n", err)
+				fmt.Printf(" Failed to read stow directory: %v\n", err)
 				return
 			}
 
@@ -57,11 +57,11 @@ Examples:
 		for _, pkg := range packages {
 			pkgPath := filepath.Join(stowDir, pkg)
 			if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
-				fmt.Printf("⚠️  Package '%s' not found\n", pkg)
+				fmt.Printf("Package '%s' not found\n", pkg)
 				continue
 			}
 
-			fmt.Printf("\n📦 Package: %s\n", pkg)
+			fmt.Printf("\n Package: %s\n", pkg)
 			fmt.Println(strings.Repeat("─", 50))
 
 			pkgHasChanges := false
@@ -81,10 +81,10 @@ Examples:
 
 				if os.IsNotExist(targetErr) {
 					// New file
-					fmt.Printf("  ✨ NEW: %s\n", relPath)
+					fmt.Printf("NEW: %s\n", relPath)
 					if verbose {
 						content, _ := os.ReadFile(path)
-						fmt.Printf("     Content:\n%s\n", indentLines(string(content), 6))
+						fmt.Printf("Content:\n%s\n", indentLines(string(content), 6))
 					}
 					pkgHasChanges = true
 					hasChanges = true
@@ -94,17 +94,17 @@ Examples:
 						// It's a symlink - check if it points to our file
 						linkTarget, _ := os.Readlink(targetPath)
 						if linkTarget == path {
-							fmt.Printf("  ✅ OK: %s (already linked)\n", relPath)
+							fmt.Printf("OK: %s (already linked)\n", relPath)
 						} else {
-							fmt.Printf("  ⚠️  CONFLICT: %s (links to different file)\n", relPath)
-							fmt.Printf("     Current: %s\n", linkTarget)
-							fmt.Printf("     Would be: %s\n", path)
+							fmt.Printf("CONFLICT: %s (links to different file)\n", relPath)
+							fmt.Printf("Current: %s\n", linkTarget)
+							fmt.Printf("Would be: %s\n", path)
 							pkgHasChanges = true
 							hasChanges = true
 						}
 					} else {
 						// Regular file exists - show diff
-						fmt.Printf("  🔀 DIFF: %s\n", relPath)
+						fmt.Printf("DIFF: %s\n", relPath)
 						pkgHasChanges = true
 						hasChanges = true
 
@@ -113,10 +113,10 @@ Examples:
 							diffCmd := exec.Command("diff", "-u", targetPath, path)
 							diffOutput, _ := diffCmd.CombinedOutput()
 							if len(diffOutput) > 0 {
-								fmt.Printf("     %s\n", indentLines(string(diffOutput), 6))
+								fmt.Printf("%s\n", indentLines(string(diffOutput), 6))
 							}
 						} else {
-							fmt.Printf("     Use --verbose to see diff\n")
+							fmt.Printf("Use --verbose to see diff\n")
 						}
 					}
 				}
@@ -125,15 +125,15 @@ Examples:
 			})
 
 			if !pkgHasChanges {
-				fmt.Println("  ✅ No changes")
+				fmt.Println("No changes")
 			}
 		}
 
 		fmt.Println()
 		if hasChanges {
-			fmt.Println("💡 Run 'dotfiles stow' to apply these changes")
+			fmt.Println(" Run 'dotfiles stow' to apply these changes")
 		} else {
-			fmt.Println("✅ All packages are up to date")
+			fmt.Println(" All packages are up to date")
 		}
 	},
 }

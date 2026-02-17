@@ -11,10 +11,10 @@ import (
 )
 
 var syncCmd = &cobra.Command{
-	Use:     "sync",
+	Use: "sync",
 	GroupID: "dotfiles",
-	Short:   "🔄 Sync your dotfiles with remote repository",
-	Long: `🔄 Sync Dotfiles Repository
+	Short: " Sync your dotfiles with remote repository",
+	Long: ` Sync Dotfiles Repository
 
 Synchronize your local dotfiles with the remote repository.
 Supports pulling changes from remote, pushing local changes, or both.
@@ -32,81 +32,76 @@ Examples:
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		dotfilesDir := filepath.Join(home, ".dotfiles")
 
 		// Check if .dotfiles directory exists
 		if _, err := os.Stat(dotfilesDir); os.IsNotExist(err) {
-			fmt.Println("❌ Dotfiles directory not found at ~/.dotfiles")
-			fmt.Println("💡 Run 'dotfiles setup <repo-url>' first")
+			return fmt.Errorf("dotfiles directory not found at ~/.dotfiles\nRun 'dotfiles setup <repo-url>' first")
 		}
 
 		// Check if it's a git repository
 		gitDir := filepath.Join(dotfilesDir, ".git")
 		if _, err := os.Stat(gitDir); os.IsNotExist(err) {
-			fmt.Println("❌ Not a git repository")
-			fmt.Println("💡 Run 'dotfiles setup <repo-url>' to initialize")
+			return fmt.Errorf("not a git repository\nRun 'dotfiles setup <repo-url>' to initialize")
 		}
 
-		fmt.Println("🔄 Syncing dotfiles...")
+		fmt.Println(" Syncing dotfiles...")
 		fmt.Println()
 
 		// Change to dotfiles directory
 		if err := os.Chdir(dotfilesDir); err != nil {
-			return fmt.Errorf("❌ error changing to dotfiles directory: %w", err)
+			return fmt.Errorf(" error changing to dotfiles directory: %w", err)
 		}
 
 		// Check for uncommitted changes
 		hasChanges := checkGitStatus()
 
 		if hasChanges && autoCommit {
-			fmt.Println("📝 Auto-committing changes...")
+			fmt.Println(" Auto-committing changes...")
 			commitMsg := message
 			if commitMsg == "" {
 				commitMsg = "Auto-sync: Update dotfiles configuration"
 			}
 			if err := gitCommit(commitMsg); err != nil {
-				return fmt.Errorf("❌ failed to commit changes: %w", err)
+				return fmt.Errorf(" failed to commit changes: %w", err)
 			}
-			fmt.Println("✅ Changes committed")
+			fmt.Println(" Changes committed")
 			fmt.Println()
 		} else if hasChanges && !pushOnly {
-			fmt.Println("⚠️  You have uncommitted changes:")
+			fmt.Println("You have uncommitted changes:")
 			runGitCommand("git", "status", "--short")
 			fmt.Println()
-			fmt.Println("💡 Commit your changes first or use --auto to commit automatically")
-			if !pullOnly {
-			}
+			fmt.Println("Commit your changes first or use --auto to commit automatically")
 		}
 
 		// Pull changes from remote
 		if !pushOnly {
-			fmt.Println("⬇️  Pulling changes from remote...")
+			fmt.Println("Pulling changes from remote...")
 			if err := gitPull(); err != nil {
-				return fmt.Errorf("❌ failed to pull changes: %w", err)
-				fmt.Println("💡 You may need to resolve conflicts manually")
+				return fmt.Errorf("failed to pull changes (you may need to resolve conflicts manually): %w", err)
 			}
-			fmt.Println("✅ Pulled latest changes")
+			fmt.Println(" Pulled latest changes")
 			fmt.Println()
 		}
 
 		// Push changes to remote
 		if !pullOnly {
-			fmt.Println("⬆️  Pushing changes to remote...")
+			fmt.Println("Pushing changes to remote...")
 			if err := gitPush(); err != nil {
-				return fmt.Errorf("❌ failed to push changes: %w", err)
+				return fmt.Errorf(" failed to push changes: %w", err)
 			}
-			fmt.Println("✅ Pushed changes to remote")
+			fmt.Println(" Pushed changes to remote")
 			fmt.Println()
 		}
 
-		fmt.Println("🎉 Sync complete!")
+		fmt.Println(" Sync complete!")
 		fmt.Println()
-		fmt.Println("💡 Next steps:")
-		fmt.Println("   • Check status: dotfiles status")
-		fmt.Println("   • Install new packages: dotfiles install")
+		fmt.Println(" Next steps:")
+		fmt.Println("• Check status: dotfiles status")
+		fmt.Println("• Install new packages: dotfiles install")
 		return nil
 	},
 }

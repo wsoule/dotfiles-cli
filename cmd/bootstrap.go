@@ -9,10 +9,10 @@ import (
 )
 
 var bootstrapCmd = &cobra.Command{
-	Use:     "bootstrap",
+	Use: "bootstrap",
 	GroupID: "getting-started",
-	Short:   "🚀 Generate bootstrap script for new machines",
-	Long: `🚀 Bootstrap Script Generator
+	Short: " Generate bootstrap script for new machines",
+	Long: ` Bootstrap Script Generator
 
 Generate a one-liner installation script that sets up your dotfiles on a new machine.
 
@@ -32,7 +32,7 @@ Examples:
 }
 
 var bootstrapGenerateCmd = &cobra.Command{
-	Use:   "generate",
+	Use: "generate",
 	Short: "Generate bootstrap script",
 	Long:  `Generate a bootstrap.sh script that can be used to set up dotfiles on a new machine`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -40,8 +40,8 @@ var bootstrapGenerateCmd = &cobra.Command{
 		outputFile, _ := cmd.Flags().GetString("output")
 
 		if repoURL == "" {
-			fmt.Println("❌ Repository URL is required. Use --url flag.")
-			fmt.Println("   Example: dotfiles bootstrap generate --url https://github.com/user/dotfiles")
+			fmt.Println(" Repository URL is required. Use --url flag.")
+			fmt.Println("Example: dotfiles bootstrap generate --url https://github.com/user/dotfiles")
 			return
 		}
 
@@ -53,28 +53,28 @@ var bootstrapGenerateCmd = &cobra.Command{
 		}
 
 		if err := os.WriteFile(outputFile, []byte(script), 0755); err != nil {
-			fmt.Printf("❌ Failed to write bootstrap script: %v\n", err)
+			fmt.Printf(" Failed to write bootstrap script: %v\n", err)
 			return
 		}
 
-		fmt.Printf("✅ Bootstrap script generated: %s\n", outputFile)
+		fmt.Printf(" Bootstrap script generated: %s\n", outputFile)
 		fmt.Println()
-		fmt.Println("📋 To use on a new machine, run:")
-		fmt.Printf("   curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/bootstrap.sh | bash\n")
+		fmt.Println(" To use on a new machine, run:")
+		fmt.Printf("curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/bootstrap.sh | bash\n")
 		fmt.Println()
-		fmt.Println("   Or download and run:")
-		fmt.Printf("   bash <(curl -fsSL <your-url>/bootstrap.sh)\n")
+		fmt.Println("Or download and run:")
+		fmt.Printf("bash <(curl -fsSL <your-url>/bootstrap.sh)\n")
 	},
 }
 
 var bootstrapTestCmd = &cobra.Command{
-	Use:   "test",
+	Use: "test",
 	Short: "Test bootstrap script in isolated environment",
 	Long:  `Test the bootstrap script in a Docker container to verify it works`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("🧪 Testing bootstrap script...")
-		fmt.Println("⚠️  Docker testing not yet implemented")
-		fmt.Println("   You can manually test by running the bootstrap script in a VM")
+		fmt.Println(" Testing bootstrap script...")
+		fmt.Println("Docker testing not yet implemented")
+		fmt.Println("You can manually test by running the bootstrap script in a VM")
 	},
 }
 
@@ -102,36 +102,36 @@ DOTFILES_DIR="$HOME/.dotfiles"
 
 # Print functions
 print_info() { echo -e "${BLUE}ℹ${NC} $1"; }
-print_success() { echo -e "${GREEN}✓${NC} $1"; }
-print_error() { echo -e "${RED}✗${NC} $1"; }
-print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
+print_success() { echo -e "${GREEN}${NC} $1"; }
+print_error() { echo -e "${RED}${NC} $1"; }
+print_warning() { echo -e "${YELLOW}${NC} $1"; }
 
 # Detect OS
 detect_os() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        OS="macos"
+ if [[ "$OSTYPE" == "darwin"* ]]; then
+ OS="macos"
     elif [[ -f /etc/arch-release ]]; then
-        OS="arch"
+ OS="arch"
     elif [[ -f /etc/debian_version ]]; then
-        OS="debian"
+ OS="debian"
     elif [[ -f /etc/redhat-release ]]; then
-        OS="redhat"
+ OS="redhat"
     else
-        OS="unknown"
+ OS="unknown"
     fi
-    print_info "Detected OS: $OS"
+ print_info "Detected OS: $OS"
 }
 
 # Install dependencies
 install_dependencies() {
-    print_info "Installing dependencies..."
+ print_info "Installing dependencies..."
 
     case $OS in
         macos)
             # Install Homebrew if not present
             if ! command -v brew &> /dev/null; then
-                print_info "Installing Homebrew..."
-                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+ print_info "Installing Homebrew..."
+ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             fi
             brew install git stow
             ;;
@@ -146,66 +146,66 @@ install_dependencies() {
             sudo yum install -y git stow
             ;;
         *)
-            print_error "Unknown OS. Please install git and stow manually."
+ print_error "Unknown OS. Please install git and stow manually."
             exit 1
             ;;
     esac
 
-    print_success "Dependencies installed"
+ print_success "Dependencies installed"
 }
 
 # Clone dotfiles repository
 clone_dotfiles() {
-    if [[ -d "$DOTFILES_DIR" ]]; then
-        print_warning "Dotfiles directory already exists at $DOTFILES_DIR"
-        read -p "Do you want to backup and replace it? (y/N): " -n 1 -r
+ if [[ -d "$DOTFILES_DIR" ]]; then
+ print_warning "Dotfiles directory already exists at $DOTFILES_DIR"
+ read -p "Do you want to backup and replace it? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            mv "$DOTFILES_DIR" "$DOTFILES_DIR.backup.$(date +%%Y%%m%%d-%%H%%M%%S)"
-            print_info "Backed up existing dotfiles"
+ mv "$DOTFILES_DIR" "$DOTFILES_DIR.backup.$(date +%%Y%%m%%d-%%H%%M%%S)"
+ print_info "Backed up existing dotfiles"
         else
-            print_error "Aborted"
+ print_error "Aborted"
             exit 1
         fi
     fi
 
-    print_info "Cloning dotfiles repository..."
-    git clone "$REPO_URL" "$DOTFILES_DIR"
-    cd "$DOTFILES_DIR"
-    print_success "Dotfiles cloned to $DOTFILES_DIR"
+ print_info "Cloning dotfiles repository..."
+ git clone "$REPO_URL" "$DOTFILES_DIR"
+ cd "$DOTFILES_DIR"
+ print_success "Dotfiles cloned to $DOTFILES_DIR"
 }
 
 # Install dotfiles CLI if it exists
 install_dotfiles_cli() {
-    if [[ -f "$DOTFILES_DIR/install.sh" ]]; then
-        print_info "Running dotfiles CLI installer..."
-        bash "$DOTFILES_DIR/install.sh"
+ if [[ -f "$DOTFILES_DIR/install.sh" ]]; then
+ print_info "Running dotfiles CLI installer..."
+ bash "$DOTFILES_DIR/install.sh"
     elif command -v dotfiles &> /dev/null; then
-        print_success "Dotfiles CLI already installed"
+ print_success "Dotfiles CLI already installed"
     else
-        print_warning "Dotfiles CLI not found. You may need to install it manually."
+ print_warning "Dotfiles CLI not found. You may need to install it manually."
     fi
 }
 
 # Run onboard process
 run_onboard() {
     if command -v dotfiles &> /dev/null; then
-        print_info "Running onboard process..."
+ print_info "Running onboard process..."
         dotfiles onboard
     else
-        print_warning "Dotfiles command not available. Skipping onboard."
-        print_info "You may need to manually stow your packages:"
-        print_info "  cd $DOTFILES_DIR/stow && stow -t $HOME *"
+ print_warning "Dotfiles command not available. Skipping onboard."
+ print_info "You may need to manually stow your packages:"
+ print_info "cd $DOTFILES_DIR/stow && stow -t $HOME *"
     fi
 }
 
 # Main installation process
 main() {
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║  🚀 Dotfiles Bootstrap                                     ║"
-    echo "╚════════════════════════════════════════════════════════════╝"
-    echo ""
+ echo ""
+ echo "╔════════════════════════════════════════════════════════════╗"
+ echo "║ Dotfiles Bootstrap ║"
+ echo "╚════════════════════════════════════════════════════════════╝"
+ echo ""
 
     detect_os
     install_dependencies
@@ -213,14 +213,14 @@ main() {
     install_dotfiles_cli
     run_onboard
 
-    echo ""
-    echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║  ✅ Bootstrap Complete!                                    ║"
-    echo "╚════════════════════════════════════════════════════════════╝"
-    echo ""
-    print_success "Your dotfiles have been installed!"
-    print_info "You may need to restart your shell or run: source ~/.zshrc"
-    echo ""
+ echo ""
+ echo "╔════════════════════════════════════════════════════════════╗"
+ echo "║ Bootstrap Complete! ║"
+ echo "╚════════════════════════════════════════════════════════════╝"
+ echo ""
+ print_success "Your dotfiles have been installed!"
+ print_info "You may need to restart your shell or run: source ~/.zshrc"
+ echo ""
 }
 
 main "$@"

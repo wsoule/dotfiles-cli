@@ -13,27 +13,27 @@ import (
 )
 
 type MachineProfile struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Machine     string            `json:"machine"`
-	Platform    string            `json:"platform"`
-	CreatedAt   string            `json:"created_at"`
-	Config      *config.Config    `json:"config"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
+	Name string `json:"name"`
+	Description string `json:"description"`
+	Machine string `json:"machine"`
+	Platform string `json:"platform"`
+	CreatedAt string `json:"created_at"`
+	Config *config.Config `json:"config"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 var exportCmd = &cobra.Command{
-	Use:     "export <profile-name>",
+	Use: "export <profile-name>",
 	GroupID: "advanced",
-	Short:   "📤 Export current configuration as a machine-specific profile",
-	Long: `📤 Export Configuration Profile
+	Short: " Export current configuration as a machine-specific profile",
+	Long: ` Export Configuration Profile
 
 Create machine-specific configuration profiles for different setups (work, personal, etc.).
 Profiles can be imported later to quickly configure new machines.
 
 Examples:
-  dotfiles export work-mac                            # Export current config as "work-mac"
-  dotfiles export personal --description="Home setup" # With description
+ dotfiles export work-mac # Export current config as "work-mac"
+ dotfiles export personal --description="Home setup" # With description
   dotfiles export minimal --brews-only                # Only export brews
   dotfiles export full --output=~/my-profile.json     # Custom output location`,
 	Args: cobra.ExactArgs(1),
@@ -47,13 +47,13 @@ Examples:
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("❌ error loading configuration: %w", err)
+			return fmt.Errorf(" error loading configuration: %w", err)
 		}
 
 		// Filter config based on flags
@@ -79,12 +79,12 @@ Examples:
 			Name:        profileName,
 			Description: description,
 			Machine:     machine,
-			Platform:    "darwin", // TODO: detect platform
+			Platform: "darwin", // TODO: detect platform
 			CreatedAt:   time.Now().Format(time.RFC3339),
 			Config:      exportCfg,
 			Metadata: map[string]string{
 				"exported_from": "dotfiles CLI",
-				"version":       "1.0",
+				"version": "1.0",
 			},
 		}
 
@@ -96,39 +96,39 @@ Examples:
 		}
 
 		// Export profile
-		data, err := json.MarshalIndent(profile, "", "  ")
+		data, err := json.MarshalIndent(profile, "", "")
 		if err != nil {
-			return fmt.Errorf("❌ error marshaling profile: %w", err)
+			return fmt.Errorf(" error marshaling profile: %w", err)
 		}
 
 		if err := os.WriteFile(output, data, 0644); err != nil {
-			return fmt.Errorf("❌ error writing profile: %w", err)
+			return fmt.Errorf(" error writing profile: %w", err)
 		}
 
-		fmt.Println("📤 Profile exported successfully!")
+		fmt.Println(" Profile exported successfully!")
 		fmt.Println()
-		fmt.Printf("   Name: %s\n", profileName)
+		fmt.Printf("Name: %s\n", profileName)
 		if description != "" {
-			fmt.Printf("   Description: %s\n", description)
+			fmt.Printf("Description: %s\n", description)
 		}
-		fmt.Printf("   Location: %s\n", output)
+		fmt.Printf("Location: %s\n", output)
 		fmt.Println()
-		fmt.Println("📊 Profile contents:")
-		fmt.Printf("   • %d brews\n", len(exportCfg.Brews))
-		fmt.Printf("   • %d casks\n", len(exportCfg.Casks))
-		fmt.Printf("   • %d taps\n", len(exportCfg.Taps))
-		fmt.Printf("   • %d stow packages\n", len(exportCfg.Stow))
+		fmt.Println(" Profile contents:")
+		fmt.Printf("• %d brews\n", len(exportCfg.Brews))
+		fmt.Printf("• %d casks\n", len(exportCfg.Casks))
+		fmt.Printf("• %d taps\n", len(exportCfg.Taps))
+		fmt.Printf("• %d stow packages\n", len(exportCfg.Stow))
 		fmt.Println()
-		fmt.Println("💡 To import this profile:")
-		fmt.Printf("   dotfiles import-profile %s\n", output)
+		fmt.Println(" To import this profile:")
+		fmt.Printf("dotfiles import-profile %s\n", output)
 		return nil
 	},
 }
 
 var importProfileCmd = &cobra.Command{
-	Use:   "import-profile <profile-file>",
-	Short: "📥 Import a machine-specific profile",
-	Long: `📥 Import Configuration Profile
+	Use: "import-profile <profile-file>",
+	Short: " Import a machine-specific profile",
+	Long: ` Import Configuration Profile
 
 Import a previously exported machine profile.
 You can merge it with your current config or replace it entirely.
@@ -146,26 +146,26 @@ Examples:
 		// Read profile
 		data, err := os.ReadFile(profilePath)
 		if err != nil {
-			return fmt.Errorf("❌ error reading profile: %w", err)
+			return fmt.Errorf(" error reading profile: %w", err)
 		}
 
 		var profile MachineProfile
 		if err := json.Unmarshal(data, &profile); err != nil {
-			return fmt.Errorf("❌ error parsing profile: %w", err)
+			return fmt.Errorf(" error parsing profile: %w", err)
 		}
 
-		fmt.Println("📥 Importing profile...")
+		fmt.Println(" Importing profile...")
 		fmt.Println()
-		fmt.Printf("   Name: %s\n", profile.Name)
+		fmt.Printf("Name: %s\n", profile.Name)
 		if profile.Description != "" {
-			fmt.Printf("   Description: %s\n", profile.Description)
+			fmt.Printf("Description: %s\n", profile.Description)
 		}
-		fmt.Printf("   Created: %s\n", profile.CreatedAt)
+		fmt.Printf("Created: %s\n", profile.CreatedAt)
 		fmt.Println()
 
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
@@ -173,9 +173,9 @@ Examples:
 		if replace {
 			// Replace entire config
 			if err := profile.Config.Save(configPath); err != nil {
-				return fmt.Errorf("❌ error saving configuration: %w", err)
+				return fmt.Errorf(" error saving configuration: %w", err)
 			}
-			fmt.Println("✅ Configuration replaced")
+			fmt.Println(" Configuration replaced")
 		} else {
 			// Merge with existing config
 			cfg, err := config.Load(configPath)
@@ -191,46 +191,46 @@ Examples:
 			}
 
 			if err := cfg.Save(configPath); err != nil {
-				return fmt.Errorf("❌ error saving configuration: %w", err)
+				return fmt.Errorf(" error saving configuration: %w", err)
 			}
-			fmt.Println("✅ Profile merged with existing configuration")
+			fmt.Println(" Profile merged with existing configuration")
 		}
 
 		fmt.Println()
-		fmt.Println("💡 Next steps:")
+		fmt.Println(" Next steps:")
 		if install {
-			fmt.Println("   Installing packages...")
+			fmt.Println("Installing packages...")
 			// TODO: Call install command
 		} else {
-			fmt.Println("   • View config: dotfiles list")
-			fmt.Println("   • Install packages: dotfiles install")
+			fmt.Println("• View config: dotfiles list")
+			fmt.Println("• Install packages: dotfiles install")
 		}
 		return nil
 	},
 }
 
 var listProfilesCmd = &cobra.Command{
-	Use:   "list-profiles",
-	Short: "📋 List all exported profiles",
-	Long:  `📋 List all machine-specific profiles stored in ~/.dotfiles/profiles/`,
+	Use: "list-profiles",
+	Short: " List all exported profiles",
+	Long:  ` List all machine-specific profiles stored in ~/.dotfiles/profiles/`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		profilesDir := filepath.Join(home, ".dotfiles", "profiles")
 		if _, err := os.Stat(profilesDir); os.IsNotExist(err) {
-			fmt.Println("📋 No profiles found")
+			fmt.Println(" No profiles found")
 			fmt.Println()
-			fmt.Println("💡 Create a profile:")
-			fmt.Println("   dotfiles export <profile-name>")
+			fmt.Println(" Create a profile:")
+			fmt.Println("dotfiles export <profile-name>")
 			return nil
 		}
 
 		entries, err := os.ReadDir(profilesDir)
 		if err != nil {
-			return fmt.Errorf("❌ error reading profiles directory: %w", err)
+			return fmt.Errorf(" error reading profiles directory: %w", err)
 		}
 
 		profiles := []MachineProfile{}
@@ -252,24 +252,24 @@ var listProfilesCmd = &cobra.Command{
 		}
 
 		if len(profiles) == 0 {
-			fmt.Println("📋 No profiles found")
+			fmt.Println(" No profiles found")
 			return nil
 		}
 
-		fmt.Printf("📋 Found %d profile(s):\n", len(profiles))
+		fmt.Printf(" Found %d profile(s):\n", len(profiles))
 		fmt.Println()
 
 		for i, profile := range profiles {
 			fmt.Printf("%d. %s\n", i+1, profile.Name)
 			if profile.Description != "" {
-				fmt.Printf("   Description: %s\n", profile.Description)
+				fmt.Printf("Description: %s\n", profile.Description)
 			}
-			fmt.Printf("   Created: %s\n", profile.CreatedAt)
-			fmt.Printf("   Packages: %d brews, %d casks, %d taps\n",
+			fmt.Printf("Created: %s\n", profile.CreatedAt)
+			fmt.Printf("Packages: %d brews, %d casks, %d taps\n",
 				len(profile.Config.Brews),
 				len(profile.Config.Casks),
 				len(profile.Config.Taps))
-			fmt.Printf("   File: profiles/%s.json\n", profile.Name)
+			fmt.Printf("File: profiles/%s.json\n", profile.Name)
 			fmt.Println()
 		}
 		return nil

@@ -10,9 +10,9 @@ import (
 )
 
 var initCmd = &cobra.Command{
-	Use:     "init",
+	Use: "init",
 	GroupID: "dotfiles",
-	Short:   "Initialize a new dotfiles configuration",
+	Short: "Initialize a new dotfiles configuration",
 	Long:    `Creates a new config.json file in ~/.dotfiles/`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
@@ -40,7 +40,7 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("error creating configuration: %w", err)
 		}
 
-		fmt.Println("✓ Created configuration at:", configPath)
+		fmt.Println(" Created configuration at:", configPath)
 		return nil
 	},
 }

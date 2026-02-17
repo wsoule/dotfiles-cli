@@ -13,10 +13,10 @@ import (
 )
 
 var scanCmd = &cobra.Command{
-	Use:     "scan",
+	Use: "scan",
 	GroupID: "package",
-	Short:   "🔍 Scan system for installed packages and add them to config",
-	Long: `🔍 System Package Scanner
+	Short: " Scan system for installed packages and add them to config",
+	Long: ` System Package Scanner
 
 Scans your system for packages already installed via Homebrew and helps you
 add them to your dotfiles configuration. Perfect for when you're setting up
@@ -32,19 +32,19 @@ Examples:
 		brewsOnly, _ := cmd.Flags().GetBool("brews-only")
 		casksOnly, _ := cmd.Flags().GetBool("casks-only")
 
-		fmt.Println("🔍 Scanning system for installed packages...")
+		fmt.Println(" Scanning system for installed packages...")
 		fmt.Println()
 
 		// Load current config
 		home, err := os.UserHomeDir()
 		if err != nil {
-			return fmt.Errorf("❌ error getting home directory: %w", err)
+			return fmt.Errorf(" error getting home directory: %w", err)
 		}
 
 		configPath := filepath.Join(home, ".dotfiles", "config.json")
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			return fmt.Errorf("⚠️  could not load config (will create new): %w", err)
+			return fmt.Errorf("could not load config (will create new): %w", err)
 			cfg = &config.Config{
 				Brews: []string{},
 				Casks: []string{},
@@ -59,11 +59,11 @@ Examples:
 		if !casksOnly {
 			installedBrews, err := getInstalledBrews()
 			if err != nil {
-				return fmt.Errorf("⚠️  could not scan homebrew formulas: %w", err)
+				return fmt.Errorf("could not scan homebrew formulas: %w", err)
 			} else {
 				newBrews = filterNewPackages(installedBrews, cfg.Brews)
 				if len(newBrews) > 0 {
-					fmt.Printf("📋 Found %d Homebrew formulas not in config\n", len(newBrews))
+					fmt.Printf(" Found %d Homebrew formulas not in config\n", len(newBrews))
 				}
 			}
 		}
@@ -72,17 +72,17 @@ Examples:
 		if !brewsOnly {
 			installedCasks, err := getInstalledCasks()
 			if err != nil {
-				return fmt.Errorf("⚠️  could not scan homebrew casks: %w", err)
+				return fmt.Errorf("could not scan homebrew casks: %w", err)
 			} else {
 				newCasks = filterNewPackages(installedCasks, cfg.Casks)
 				if len(newCasks) > 0 {
-					fmt.Printf("📦 Found %d Homebrew casks not in config\n", len(newCasks))
+					fmt.Printf(" Found %d Homebrew casks not in config\n", len(newCasks))
 				}
 			}
 		}
 
 		if len(newBrews) == 0 && len(newCasks) == 0 {
-			fmt.Println("✅ All installed packages are already in your config!")
+			fmt.Println(" All installed packages are already in your config!")
 			return nil
 		}
 
@@ -98,10 +98,10 @@ Examples:
 			sort.Strings(cfg.Casks)
 
 			if err := cfg.Save(configPath); err != nil {
-				return fmt.Errorf("❌ failed to save config: %w", err)
+				return fmt.Errorf(" failed to save config: %w", err)
 			}
 
-			fmt.Printf("✅ Added %d brews and %d casks to config\n", len(newBrews), len(newCasks))
+			fmt.Printf(" Added %d brews and %d casks to config\n", len(newBrews), len(newCasks))
 			return nil
 		}
 
@@ -113,12 +113,12 @@ Examples:
 		selectedCasks := []string{}
 
 		if len(newBrews) > 0 {
-			fmt.Println("🍺 Homebrew Formulas:")
+			fmt.Println(" Homebrew Formulas:")
 			selectedBrews = selectPackages(newBrews)
 		}
 
 		if len(newCasks) > 0 {
-			fmt.Println("📦 Homebrew Casks:")
+			fmt.Println(" Homebrew Casks:")
 			selectedCasks = selectPackages(newCasks)
 		}
 
@@ -136,24 +136,24 @@ Examples:
 		sort.Strings(cfg.Casks)
 
 		if err := cfg.Save(configPath); err != nil {
-			return fmt.Errorf("❌ failed to save config: %w", err)
+			return fmt.Errorf(" failed to save config: %w", err)
 		}
 
 		fmt.Println()
-		fmt.Printf("✅ Added %d brews and %d casks to config\n", len(selectedBrews), len(selectedCasks))
+		fmt.Printf(" Added %d brews and %d casks to config\n", len(selectedBrews), len(selectedCasks))
 		fmt.Println()
-		fmt.Println("💡 Next steps:")
-		fmt.Println("   • View your config: dotfiles list")
-		fmt.Println("   • Generate Brewfile: dotfiles brewfile")
+		fmt.Println(" Next steps:")
+		fmt.Println("• View your config: dotfiles list")
+		fmt.Println("• Generate Brewfile: dotfiles brewfile")
 		return nil
 	},
 }
 
 func selectPackages(packages []string) []string {
 	fmt.Println("Options:")
-	fmt.Println("  a - Add all")
-	fmt.Println("  n - Add none")
-	fmt.Println("  s - Select individually")
+	fmt.Println("a - Add all")
+	fmt.Println("n - Add none")
+	fmt.Println("s - Select individually")
 	fmt.Print("Choice (a/n/s): ")
 
 	reader := bufio.NewReader(os.Stdin)
@@ -162,17 +162,17 @@ func selectPackages(packages []string) []string {
 
 	switch choice {
 	case "a":
-		fmt.Printf("  ✅ Adding all %d packages\n", len(packages))
+		fmt.Printf("Adding all %d packages\n", len(packages))
 		fmt.Println()
 		return packages
 	case "n":
-		fmt.Println("  ⏭️  Skipping all packages")
+		fmt.Println("Skipping all packages")
 		fmt.Println()
 		return []string{}
 	case "s":
 		return selectIndividually(packages)
 	default:
-		fmt.Println("  Invalid choice, skipping all packages")
+		fmt.Println("Invalid choice, skipping all packages")
 		fmt.Println()
 		return []string{}
 	}
@@ -187,20 +187,20 @@ func selectIndividually(packages []string) []string {
 	var selected []string
 
 	for _, pkg := range packages {
-		fmt.Printf("  Add '%s'? (y/n/q): ", pkg)
+		fmt.Printf("Add '%s'? (y/n/q): ", pkg)
 		response, _ := reader.ReadString('\n')
 		response = strings.TrimSpace(strings.ToLower(response))
 
 		switch response {
 		case "y", "yes":
 			selected = append(selected, pkg)
-			fmt.Println("    ✅ Added")
+			fmt.Println("Added")
 		case "q", "quit":
-			fmt.Println("    ⏹️  Quitting selection")
+			fmt.Println("Quitting selection")
 			fmt.Println()
 			return selected
 		default:
-			fmt.Println("    ⏭️  Skipped")
+			fmt.Println("Skipped")
 		}
 	}
 

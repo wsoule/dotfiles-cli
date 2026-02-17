@@ -11,10 +11,10 @@ import (
 )
 
 var conditionalsCmd = &cobra.Command{
-	Use:     "conditionals",
+	Use: "conditionals",
 	GroupID: "advanced",
-	Short:   "🔀 Manage OS/hostname-specific configurations",
-	Long: `🔀 Conditional Configuration Loading
+	Short: " Manage OS/hostname-specific configurations",
+	Long: ` Conditional Configuration Loading
 
 Load different packages based on:
 • Hostname (exact match or glob pattern)
@@ -31,7 +31,7 @@ Examples:
 }
 
 var conditionalsApplyCmd = &cobra.Command{
-	Use:   "apply",
+	Use: "apply",
 	Short: "Apply conditional configurations",
 	Run: func(cmd *cobra.Command, args []string) {
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
@@ -39,7 +39,7 @@ var conditionalsApplyCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -51,9 +51,9 @@ var conditionalsApplyCmd = &cobra.Command{
 		hostname, _ := os.Hostname()
 		osType := runtime.GOOS
 
-		fmt.Println("🔍 Checking conditionals...")
-		fmt.Printf("   Hostname: %s\n", hostname)
-		fmt.Printf("   OS: %s\n", osType)
+		fmt.Println(" Checking conditionals...")
+		fmt.Printf("Hostname: %s\n", hostname)
+		fmt.Printf("OS: %s\n", osType)
 		fmt.Println()
 
 		applied := false
@@ -84,9 +84,9 @@ var conditionalsApplyCmd = &cobra.Command{
 			}
 
 			if matches {
-				fmt.Printf("✅ Conditional #%d matches (%s)\n", i+1, reason)
-				fmt.Printf("   Brews: %v\n", cond.Brews)
-				fmt.Printf("   Casks: %v\n", cond.Casks)
+				fmt.Printf(" Conditional #%d matches (%s)\n", i+1, reason)
+				fmt.Printf("Brews: %v\n", cond.Brews)
+				fmt.Printf("Casks: %v\n", cond.Casks)
 
 				if !dryRun {
 					// Apply conditional packages
@@ -109,50 +109,50 @@ var conditionalsApplyCmd = &cobra.Command{
 		}
 
 		if !applied && !dryRun {
-			fmt.Println("⚠️  No conditionals matched this machine")
+			fmt.Println("No conditionals matched this machine")
 			return
 		}
 
 		if dryRun {
-			fmt.Println("🔍 Dry run - no changes made")
-			fmt.Println("💡 Run without --dry-run to apply changes")
+			fmt.Println(" Dry run - no changes made")
+			fmt.Println(" Run without --dry-run to apply changes")
 			return
 		}
 
 		// Save updated config
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("❌ Failed to save config: %v\n", err)
+			fmt.Printf(" Failed to save config: %v\n", err)
 			return
 		}
 
-		fmt.Println("✅ Conditional configurations applied")
-		fmt.Println("💡 Run 'dotfiles install' to install the packages")
+		fmt.Println(" Conditional configurations applied")
+		fmt.Println(" Run 'dotfiles install' to install the packages")
 	},
 }
 
 var conditionalsTestCmd = &cobra.Command{
-	Use:   "test",
+	Use: "test",
 	Short: "Test which conditionals would apply",
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
 		hostname, _ := os.Hostname()
 		osType := runtime.GOOS
 
-		fmt.Println("🔍 Testing conditionals...")
-		fmt.Printf("   Current hostname: %s\n", hostname)
-		fmt.Printf("   Current OS: %s\n", osType)
+		fmt.Println(" Testing conditionals...")
+		fmt.Printf("Current hostname: %s\n", hostname)
+		fmt.Printf("Current OS: %s\n", osType)
 		fmt.Println()
 
 		if len(cfg.Conditionals) == 0 {
 			fmt.Println("No conditional configurations defined")
 			fmt.Println()
-			fmt.Println("💡 Add one with: dotfiles conditionals add")
+			fmt.Println(" Add one with: dotfiles conditionals add")
 			return
 		}
 
@@ -180,35 +180,35 @@ var conditionalsTestCmd = &cobra.Command{
 
 			if willMatch {
 				matches++
-				fmt.Printf("✅ Conditional #%d WOULD APPLY\n", i+1)
-				fmt.Printf("   Reason: %s\n", reason)
-				fmt.Printf("   Brews: %v\n", cond.Brews)
-				fmt.Printf("   Casks: %v\n", cond.Casks)
+				fmt.Printf(" Conditional #%d WOULD APPLY\n", i+1)
+				fmt.Printf("Reason: %s\n", reason)
+				fmt.Printf("Brews: %v\n", cond.Brews)
+				fmt.Printf("Casks: %v\n", cond.Casks)
 				if cond.Variables != nil {
-					fmt.Printf("   Variables: %v\n", cond.Variables)
+					fmt.Printf("Variables: %v\n", cond.Variables)
 				}
 			} else {
-				fmt.Printf("⚪ Conditional #%d would NOT apply\n", i+1)
+				fmt.Printf(" Conditional #%d would NOT apply\n", i+1)
 				if cond.Hostname != "" {
-					fmt.Printf("   Hostname pattern: %s\n", cond.Hostname)
+					fmt.Printf("Hostname pattern: %s\n", cond.Hostname)
 				}
 				if cond.OS != "" {
-					fmt.Printf("   OS: %s\n", cond.OS)
+					fmt.Printf("OS: %s\n", cond.OS)
 				}
 			}
 			fmt.Println()
 		}
 
 		if matches == 0 {
-			fmt.Println("⚠️  No conditionals would apply to this machine")
+			fmt.Println("No conditionals would apply to this machine")
 		} else {
-			fmt.Printf("📊 %d conditional(s) would apply\n", matches)
+			fmt.Printf(" %d conditional(s) would apply\n", matches)
 		}
 	},
 }
 
 var conditionalsAddCmd = &cobra.Command{
-	Use:   "add",
+	Use: "add",
 	Short: "Add a new conditional configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 		hostname, _ := cmd.Flags().GetString("hostname")
@@ -217,14 +217,14 @@ var conditionalsAddCmd = &cobra.Command{
 		casks, _ := cmd.Flags().GetStringSlice("casks")
 
 		if hostname == "" && osType == "" {
-			fmt.Println("❌ Must specify at least --hostname or --os")
+			fmt.Println(" Must specify at least --hostname or --os")
 			return
 		}
 
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -238,18 +238,18 @@ var conditionalsAddCmd = &cobra.Command{
 		cfg.Conditionals = append(cfg.Conditionals, newCond)
 
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("❌ Failed to save config: %v\n", err)
+			fmt.Printf(" Failed to save config: %v\n", err)
 			return
 		}
 
-		fmt.Println("✅ Conditional configuration added")
+		fmt.Println(" Conditional configuration added")
 		if hostname != "" {
-			fmt.Printf("   Hostname: %s\n", hostname)
+			fmt.Printf("Hostname: %s\n", hostname)
 		}
 		if osType != "" {
-			fmt.Printf("   OS: %s\n", osType)
+			fmt.Printf("OS: %s\n", osType)
 		}
-		fmt.Printf("   Packages: %d brews, %d casks\n", len(brews), len(casks))
+		fmt.Printf("Packages: %d brews, %d casks\n", len(brews), len(casks))
 	},
 }
 

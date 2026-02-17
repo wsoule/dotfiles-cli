@@ -12,9 +12,9 @@ import (
 )
 
 var installCmd = &cobra.Command{
-	Use:     "install",
+	Use: "install",
 	GroupID: "package",
-	Short:   "Generate package file and install packages",
+	Short: "Generate package file and install packages",
 	Long:    `Generates a package list file from your configuration and installs packages using the system package manager`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
@@ -36,9 +36,9 @@ var installCmd = &cobra.Command{
 
 		// Check if package manager is available
 		if !pm.IsAvailable() {
-			fmt.Printf("⚠️  %s not found. Please install it first.\n", pm.GetName())
+			fmt.Printf("%s not found. Please install it first.\n", pm.GetName())
 			if pm.GetName() == "homebrew" {
-				fmt.Println("   /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+				fmt.Println("/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
 			}
 			return nil
 		}
@@ -46,12 +46,12 @@ var installCmd = &cobra.Command{
 		// Create auto-snapshot before installation (unless --no-snapshot flag)
 		noSnapshot, _ := cmd.Flags().GetBool("no-snapshot")
 		if !noSnapshot {
-			fmt.Println("📸 Creating snapshot before installation...")
+			fmt.Println(" Creating snapshot before installation...")
 			timestamp, err := snapshot.CreateAutoSnapshot("Before package installation")
 			if err != nil {
-				fmt.Printf("⚠️  Warning: Could not create snapshot: %v\n", err)
+				fmt.Printf("Warning: Could not create snapshot: %v\n", err)
 			} else {
-				fmt.Printf("   ✅ Snapshot created: %s\n", timestamp)
+				fmt.Printf("Snapshot created: %s\n", timestamp)
 			}
 		}
 
@@ -92,21 +92,21 @@ var installCmd = &cobra.Command{
 			return fmt.Errorf("error writing package file: %w", err)
 		}
 
-		fmt.Printf("✓ Generated package list at: %s\n", filePath)
+		fmt.Printf(" Generated package list at: %s\n", filePath)
 
 		// Run install unless --dry-run is specified
 		if dryRun, _ := cmd.Flags().GetBool("dry-run"); dryRun {
-			fmt.Println("🔍 Dry run - would install packages using " + pm.GetName())
+			fmt.Println(" Dry run - would install packages using " + pm.GetName())
 			return nil
 		}
 
-		fmt.Printf("📦 Installing packages with %s...\n", pm.GetName())
+		fmt.Printf(" Installing packages with %s...\n", pm.GetName())
 
 		// Install packages by type
 		if len(cfg.Taps) > 0 {
 			fmt.Println("Installing taps...")
 			if err := pm.Install(cfg.Taps, "tap"); err != nil {
-				fmt.Printf("⚠️  Error installing taps: %v\n", err)
+				fmt.Printf("Error installing taps: %v\n", err)
 			}
 		}
 
@@ -120,16 +120,16 @@ var installCmd = &cobra.Command{
 		if len(cfg.Casks) > 0 {
 			fmt.Println("Installing casks/applications...")
 			if err := pm.Install(cfg.Casks, "cask"); err != nil {
-				fmt.Printf("⚠️  Error installing casks: %v\n", err)
+				fmt.Printf("Error installing casks: %v\n", err)
 			}
 		}
 
-		fmt.Println("✅ Installation complete!")
+		fmt.Println(" Installation complete!")
 
 		// Run post-install hooks
 		if cfg.Hooks != nil && len(cfg.Hooks.PostInstall) > 0 {
 			if err := RunHooks(cfg.Hooks.PostInstall, "post-install"); err != nil {
-				fmt.Printf("⚠️  Post-install hook failed: %v\n", err)
+				fmt.Printf("Post-install hook failed: %v\n", err)
 			}
 		}
 
@@ -140,17 +140,17 @@ var installCmd = &cobra.Command{
 				if pkgConfig, exists := cfg.PackageConfigs[pkg]; exists {
 					// Run pre-install hooks for this package
 					if len(pkgConfig.PreInstall) > 0 {
-						fmt.Printf("🔧 Running pre-install hooks for package: %s\n", pkg)
+						fmt.Printf(" Running pre-install hooks for package: %s\n", pkg)
 						if err := RunHooks(pkgConfig.PreInstall, fmt.Sprintf("%s pre-install", pkg)); err != nil {
-							fmt.Printf("⚠️  Package pre-install hook failed for %s: %v\n", pkg, err)
+							fmt.Printf("Package pre-install hook failed for %s: %v\n", pkg, err)
 						}
 					}
 
 					// Run post-install hooks for this package
 					if len(pkgConfig.PostInstall) > 0 {
-						fmt.Printf("🔧 Running post-install hooks for package: %s\n", pkg)
+						fmt.Printf(" Running post-install hooks for package: %s\n", pkg)
 						if err := RunHooks(pkgConfig.PostInstall, fmt.Sprintf("%s post-install", pkg)); err != nil {
-							fmt.Printf("⚠️  Package post-install hook failed for %s: %v\n", pkg, err)
+							fmt.Printf("Package post-install hook failed for %s: %v\n", pkg, err)
 						}
 					}
 				}

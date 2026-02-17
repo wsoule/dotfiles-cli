@@ -12,7 +12,7 @@ import (
 )
 
 var importCmd = &cobra.Command{
-	Use:   "import <brewfile>",
+	Use: "import <brewfile>",
 	Short: "Import packages from a Brewfile",
 	Long:  `Parse a Brewfile and add packages to your JSON configuration`,
 	Args:  cobra.ExactArgs(1),
@@ -68,15 +68,15 @@ var importCmd = &cobra.Command{
 			action = "Imported"
 		}
 
-		fmt.Printf("✓ %s packages from %s:\n", action, brewfilePath)
+		fmt.Printf(" %s packages from %s:\n", action, brewfilePath)
 		if len(taps) > 0 {
-			fmt.Printf("  📋 %d taps\n", len(taps))
+			fmt.Printf("%d taps\n", len(taps))
 		}
 		if len(brews) > 0 {
-			fmt.Printf("  🍺 %d brews\n", len(brews))
+			fmt.Printf("%d brews\n", len(brews))
 		}
 		if len(casks) > 0 {
-			fmt.Printf("  📦 %d casks\n", len(casks))
+			fmt.Printf("%d casks\n", len(casks))
 		}
 		return nil
 	},

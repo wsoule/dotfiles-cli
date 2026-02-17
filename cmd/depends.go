@@ -8,10 +8,10 @@ import (
 )
 
 var dependsCmd = &cobra.Command{
-	Use:     "depends",
+	Use: "depends",
 	GroupID: "advanced",
-	Short:   "🔗 Manage package dependencies",
-	Long: `🔗 Package Dependency Management
+	Short: " Manage package dependencies",
+	Long: ` Package Dependency Management
 
 Define dependencies between packages. When installing a package,
 its dependencies will be installed first.
@@ -27,7 +27,7 @@ Examples:
 }
 
 var dependsAddCmd = &cobra.Command{
-	Use:   "add <package> <dependencies...>",
+	Use: "add <package> <dependencies...>",
 	Short: "Add dependencies for a package",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -37,7 +37,7 @@ var dependsAddCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -48,22 +48,22 @@ var dependsAddCmd = &cobra.Command{
 		cfg.PackageDependencies[pkg] = deps
 
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("❌ Failed to save config: %v\n", err)
+			fmt.Printf(" Failed to save config: %v\n", err)
 			return
 		}
 
-		fmt.Printf("✅ Added dependencies for %s: %v\n", pkg, deps)
+		fmt.Printf(" Added dependencies for %s: %v\n", pkg, deps)
 	},
 }
 
 var dependsListCmd = &cobra.Command{
-	Use:   "list [package]",
+	Use: "list [package]",
 	Short: "List dependencies",
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -78,23 +78,23 @@ var dependsListCmd = &cobra.Command{
 			if deps, ok := cfg.PackageDependencies[pkg]; ok {
 				fmt.Printf("%s depends on:\n", pkg)
 				for _, dep := range deps {
-					fmt.Printf("  • %s\n", dep)
+					fmt.Printf("• %s\n", dep)
 				}
 			} else {
 				fmt.Printf("No dependencies defined for %s\n", pkg)
 			}
 		} else {
 			// Show all
-			fmt.Println("📦 Package Dependencies:")
+			fmt.Println(" Package Dependencies:")
 			for pkg, deps := range cfg.PackageDependencies {
-				fmt.Printf("  %s -> %v\n", pkg, deps)
+				fmt.Printf("%s -> %v\n", pkg, deps)
 			}
 		}
 	},
 }
 
 var dependsResolveCmd = &cobra.Command{
-	Use:   "resolve <package>",
+	Use: "resolve <package>",
 	Short: "Show installation order for a package",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -103,31 +103,31 @@ var dependsResolveCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
 		order, err := resolveDependencies(cfg, pkg)
 		if err != nil {
-			fmt.Printf("❌ %v\n", err)
+			fmt.Printf(" %v\n", err)
 			return
 		}
 
-		fmt.Printf("📋 Installation order for %s:\n", pkg)
+		fmt.Printf(" Installation order for %s:\n", pkg)
 		for i, p := range order {
-			fmt.Printf("  %d. %s\n", i+1, p)
+			fmt.Printf("%d. %s\n", i+1, p)
 		}
 	},
 }
 
 var dependsCheckCmd = &cobra.Command{
-	Use:   "check",
+	Use: "check",
 	Short: "Check for circular dependencies",
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -136,20 +136,20 @@ var dependsCheckCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("🔍 Checking for circular dependencies...")
+		fmt.Println(" Checking for circular dependencies...")
 
 		issues := 0
 		for pkg := range cfg.PackageDependencies {
 			if _, err := resolveDependencies(cfg, pkg); err != nil {
-				fmt.Printf("❌ %s: %v\n", pkg, err)
+				fmt.Printf(" %s: %v\n", pkg, err)
 				issues++
 			}
 		}
 
 		if issues == 0 {
-			fmt.Println("✅ No circular dependencies found")
+			fmt.Println(" No circular dependencies found")
 		} else {
-			fmt.Printf("⚠️  Found %d issue(s)\n", issues)
+			fmt.Printf("Found %d issue(s)\n", issues)
 		}
 	},
 }

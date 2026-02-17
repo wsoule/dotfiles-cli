@@ -12,10 +12,10 @@ import (
 )
 
 var migrateCmd = &cobra.Command{
-	Use:     "migrate",
+	Use: "migrate",
 	GroupID: "advanced",
-	Short:   "🔄 Migrate from other dotfiles managers",
-	Long: `🔄 Migration Tools
+	Short: " Migrate from other dotfiles managers",
+	Long: ` Migration Tools
 
 Import configurations from other dotfiles managers:
 • chezmoi
@@ -35,7 +35,7 @@ Examples:
 }
 
 var migrateFromCmd = &cobra.Command{
-	Use:   "from <tool>",
+	Use: "from <tool>",
 	Short: "Migrate from a specific tool",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -53,25 +53,25 @@ var migrateFromCmd = &cobra.Command{
 		case "dotbot":
 			migrateFromDotbot()
 		default:
-			fmt.Printf("❌ Unknown tool: %s\n", tool)
+			fmt.Printf(" Unknown tool: %s\n", tool)
 			fmt.Println()
 			fmt.Println("Supported tools:")
-			fmt.Println("  • chezmoi")
-			fmt.Println("  • yadm")
-			fmt.Println("  • stow (bare-repo)")
-			fmt.Println("  • homesick")
-			fmt.Println("  • dotbot")
+			fmt.Println("• chezmoi")
+			fmt.Println("• yadm")
+			fmt.Println("• stow (bare-repo)")
+			fmt.Println("• homesick")
+			fmt.Println("• dotbot")
 		}
 	},
 }
 
 var migrateDetectCmd = &cobra.Command{
-	Use:   "detect",
+	Use: "detect",
 	Short: "Auto-detect installed dotfiles managers",
 	Run: func(cmd *cobra.Command, args []string) {
 		home, _ := os.UserHomeDir()
 
-		fmt.Println("🔍 Scanning for dotfiles managers...")
+		fmt.Println(" Scanning for dotfiles managers...")
 		fmt.Println()
 
 		found := false
@@ -79,9 +79,9 @@ var migrateDetectCmd = &cobra.Command{
 		// Check for chezmoi
 		chezmoiDir := filepath.Join(home, ".local/share/chezmoi")
 		if _, err := os.Stat(chezmoiDir); err == nil {
-			fmt.Println("✅ Found: chezmoi")
-			fmt.Printf("   Location: %s\n", chezmoiDir)
-			fmt.Println("   Migrate with: dotfiles migrate from chezmoi")
+			fmt.Println(" Found: chezmoi")
+			fmt.Printf("Location: %s\n", chezmoiDir)
+			fmt.Println("Migrate with: dotfiles migrate from chezmoi")
 			fmt.Println()
 			found = true
 		}
@@ -89,9 +89,9 @@ var migrateDetectCmd = &cobra.Command{
 		// Check for yadm
 		yadmDir := filepath.Join(home, ".config/yadm")
 		if _, err := os.Stat(yadmDir); err == nil {
-			fmt.Println("✅ Found: yadm")
-			fmt.Printf("   Location: %s\n", yadmDir)
-			fmt.Println("   Migrate with: dotfiles migrate from yadm")
+			fmt.Println(" Found: yadm")
+			fmt.Printf("Location: %s\n", yadmDir)
+			fmt.Println("Migrate with: dotfiles migrate from yadm")
 			fmt.Println()
 			found = true
 		}
@@ -99,9 +99,9 @@ var migrateDetectCmd = &cobra.Command{
 		// Check for bare repo
 		bareRepo := filepath.Join(home, ".cfg")
 		if _, err := os.Stat(bareRepo); err == nil {
-			fmt.Println("✅ Found: Bare Git Repository")
-			fmt.Printf("   Location: %s\n", bareRepo)
-			fmt.Println("   Migrate with: dotfiles migrate from bare-repo")
+			fmt.Println(" Found: Bare Git Repository")
+			fmt.Printf("Location: %s\n", bareRepo)
+			fmt.Println("Migrate with: dotfiles migrate from bare-repo")
 			fmt.Println()
 			found = true
 		}
@@ -109,9 +109,9 @@ var migrateDetectCmd = &cobra.Command{
 		// Check for homesick
 		homesickDir := filepath.Join(home, ".homesick/repos")
 		if _, err := os.Stat(homesickDir); err == nil {
-			fmt.Println("✅ Found: Homesick")
-			fmt.Printf("   Location: %s\n", homesickDir)
-			fmt.Println("   Migrate with: dotfiles migrate from homesick")
+			fmt.Println(" Found: Homesick")
+			fmt.Printf("Location: %s\n", homesickDir)
+			fmt.Println("Migrate with: dotfiles migrate from homesick")
 			fmt.Println()
 			found = true
 		}
@@ -119,15 +119,15 @@ var migrateDetectCmd = &cobra.Command{
 		// Check for dotbot
 		dotbotConfig := filepath.Join(home, ".dotfiles/install.conf.yaml")
 		if _, err := os.Stat(dotbotConfig); err == nil {
-			fmt.Println("✅ Found: dotbot")
-			fmt.Printf("   Config: %s\n", dotbotConfig)
-			fmt.Println("   Migrate with: dotfiles migrate from dotbot")
+			fmt.Println(" Found: dotbot")
+			fmt.Printf("Config: %s\n", dotbotConfig)
+			fmt.Println("Migrate with: dotfiles migrate from dotbot")
 			fmt.Println()
 			found = true
 		}
 
 		if !found {
-			fmt.Println("⚪ No dotfiles managers detected")
+			fmt.Println(" No dotfiles managers detected")
 		}
 	},
 }
@@ -137,12 +137,12 @@ func migrateFromChezmoi() {
 	chezmoiDir := filepath.Join(home, ".local/share/chezmoi")
 
 	if _, err := os.Stat(chezmoiDir); os.IsNotExist(err) {
-		fmt.Println("❌ chezmoi directory not found")
-		fmt.Printf("   Expected: %s\n", chezmoiDir)
+		fmt.Println(" chezmoi directory not found")
+		fmt.Printf("Expected: %s\n", chezmoiDir)
 		return
 	}
 
-	fmt.Println("🔄 Migrating from chezmoi...")
+	fmt.Println(" Migrating from chezmoi...")
 	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
@@ -158,7 +158,7 @@ func migrateFromChezmoi() {
 
 	// Create dotfiles directory
 	if err := os.MkdirAll(stowDir, 0755); err != nil {
-		fmt.Printf("❌ Failed to create dotfiles directory: %v\n", err)
+		fmt.Printf(" Failed to create dotfiles directory: %v\n", err)
 		return
 	}
 
@@ -166,7 +166,7 @@ func migrateFromChezmoi() {
 	cmd := exec.Command("chezmoi", "managed")
 	output, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("❌ Failed to get chezmoi managed files: %v\n", err)
+		fmt.Printf(" Failed to get chezmoi managed files: %v\n", err)
 		return
 	}
 
@@ -216,16 +216,16 @@ func migrateFromChezmoi() {
 			}
 		}
 
-		fmt.Printf("✅ Created package: %s (%d files)\n", pkg, len(pkgFiles))
+		fmt.Printf(" Created package: %s (%d files)\n", pkg, len(pkgFiles))
 	}
 
 	fmt.Println()
-	fmt.Printf("✅ Migrated %d files from chezmoi\n", copied)
+	fmt.Printf(" Migrated %d files from chezmoi\n", copied)
 	fmt.Println()
-	fmt.Println("💡 Next steps:")
-	fmt.Println("   • Review files in ~/.dotfiles/stow/")
-	fmt.Println("   • Run 'dotfiles scan' to update config")
-	fmt.Println("   • Run 'dotfiles stow' to create symlinks")
+	fmt.Println(" Next steps:")
+	fmt.Println("• Review files in ~/.dotfiles/stow/")
+	fmt.Println("• Run 'dotfiles scan' to update config")
+	fmt.Println("• Run 'dotfiles stow' to create symlinks")
 }
 
 func migrateFromYadm() {
@@ -233,11 +233,11 @@ func migrateFromYadm() {
 	yadmRepo := filepath.Join(home, ".config/yadm/repo.git")
 
 	if _, err := os.Stat(yadmRepo); os.IsNotExist(err) {
-		fmt.Println("❌ yadm repository not found")
+		fmt.Println(" yadm repository not found")
 		return
 	}
 
-	fmt.Println("🔄 Migrating from yadm...")
+	fmt.Println(" Migrating from yadm...")
 	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
@@ -256,7 +256,7 @@ func migrateFromYadm() {
 	cmd := exec.Command("yadm", "list", "-a")
 	output, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("❌ Failed to list yadm files: %v\n", err)
+		fmt.Printf(" Failed to list yadm files: %v\n", err)
 		return
 	}
 
@@ -289,11 +289,11 @@ func migrateFromYadm() {
 		}
 	}
 
-	fmt.Printf("✅ Migrated %d files to misc package\n", copied)
+	fmt.Printf(" Migrated %d files to misc package\n", copied)
 	fmt.Println()
-	fmt.Println("💡 Next steps:")
-	fmt.Println("   • Organize files into logical packages")
-	fmt.Println("   • Run 'dotfiles stow' to create symlinks")
+	fmt.Println(" Next steps:")
+	fmt.Println("• Organize files into logical packages")
+	fmt.Println("• Run 'dotfiles stow' to create symlinks")
 }
 
 func migrateFromBareRepo() {
@@ -301,17 +301,17 @@ func migrateFromBareRepo() {
 	bareRepo := filepath.Join(home, ".cfg")
 
 	if _, err := os.Stat(bareRepo); os.IsNotExist(err) {
-		fmt.Println("❌ Bare repository not found at ~/.cfg")
+		fmt.Println(" Bare repository not found at ~/.cfg")
 		return
 	}
 
-	fmt.Println("🔄 Migrating from bare git repository...")
+	fmt.Println(" Migrating from bare git repository...")
 	fmt.Println()
 
 	dotfilesDir := filepath.Join(home, ".dotfiles")
 	if _, err := os.Stat(dotfilesDir); err == nil {
-		fmt.Println("❌ ~/.dotfiles already exists")
-		fmt.Println("   Please backup or remove it first")
+		fmt.Println(" ~/.dotfiles already exists")
+		fmt.Println("Please backup or remove it first")
 		return
 	}
 
@@ -325,15 +325,15 @@ func migrateFromBareRepo() {
 
 	// Move bare repo
 	if err := os.Rename(bareRepo, dotfilesDir); err != nil {
-		fmt.Printf("❌ Failed to move repository: %v\n", err)
+		fmt.Printf(" Failed to move repository: %v\n", err)
 		return
 	}
 
-	fmt.Println("✅ Repository moved to ~/.dotfiles")
+	fmt.Println(" Repository moved to ~/.dotfiles")
 	fmt.Println()
-	fmt.Println("💡 Next steps:")
-	fmt.Println("   • Organize files into stow packages")
-	fmt.Println("   • Run 'dotfiles init' to set up config.json")
+	fmt.Println(" Next steps:")
+	fmt.Println("• Organize files into stow packages")
+	fmt.Println("• Run 'dotfiles init' to set up config.json")
 }
 
 func migrateFromHomesick() {
@@ -341,11 +341,11 @@ func migrateFromHomesick() {
 	homesickDir := filepath.Join(home, ".homesick/repos")
 
 	if _, err := os.Stat(homesickDir); os.IsNotExist(err) {
-		fmt.Println("❌ Homesick directory not found")
+		fmt.Println(" Homesick directory not found")
 		return
 	}
 
-	fmt.Println("🔄 Migrating from Homesick...")
+	fmt.Println(" Migrating from Homesick...")
 	fmt.Println()
 
 	repos, _ := os.ReadDir(homesickDir)
@@ -357,7 +357,7 @@ func migrateFromHomesick() {
 	fmt.Println("Found castles:")
 	for _, repo := range repos {
 		if repo.IsDir() {
-			fmt.Printf("  • %s\n", repo.Name())
+			fmt.Printf("• %s\n", repo.Name())
 		}
 	}
 	fmt.Println()
@@ -383,12 +383,12 @@ func migrateFromHomesick() {
 
 		if _, err := os.Stat(srcDir); err == nil {
 			exec.Command("cp", "-r", srcDir, dstDir).Run()
-			fmt.Printf("✅ Copied: %s\n", repo.Name())
+			fmt.Printf(" Copied: %s\n", repo.Name())
 		}
 	}
 
 	fmt.Println()
-	fmt.Println("💡 Migration complete. Run 'dotfiles stow' to create symlinks")
+	fmt.Println(" Migration complete. Run 'dotfiles stow' to create symlinks")
 }
 
 func migrateFromDotbot() {
@@ -396,17 +396,17 @@ func migrateFromDotbot() {
 	dotbotConfig := filepath.Join(home, ".dotfiles/install.conf.yaml")
 
 	if _, err := os.Stat(dotbotConfig); os.IsNotExist(err) {
-		fmt.Println("❌ dotbot config not found")
+		fmt.Println(" dotbot config not found")
 		return
 	}
 
-	fmt.Println("🔄 Migrating from dotbot...")
+	fmt.Println(" Migrating from dotbot...")
 	fmt.Println()
-	fmt.Println("⚠️  Automatic migration from dotbot is limited")
-	fmt.Println("   Please manually review your install.conf.yaml")
+	fmt.Println("Automatic migration from dotbot is limited")
+	fmt.Println("Please manually review your install.conf.yaml")
 	fmt.Println()
-	fmt.Println("💡 dotbot link directives can usually be converted to stow packages")
-	fmt.Println("   Organize your dotfiles into ~/.dotfiles/stow/<package>/")
+	fmt.Println(" dotbot link directives can usually be converted to stow packages")
+	fmt.Println("Organize your dotfiles into ~/.dotfiles/stow/<package>/")
 }
 
 func init() {

@@ -12,10 +12,10 @@ import (
 )
 
 var shellCmd = &cobra.Command{
-	Use:     "shell",
+	Use: "shell",
 	GroupID: "advanced",
-	Short:   "🐚 Interactive shell configuration",
-	Long: `🐚 Interactive Shell Setup
+	Short: " Interactive shell configuration",
+	Long: ` Interactive Shell Setup
 
 Configure your shell with popular tools:
 • oh-my-zsh / oh-my-fish
@@ -34,12 +34,12 @@ Examples:
 }
 
 var shellSetupCmd = &cobra.Command{
-	Use:   "setup",
+	Use: "setup",
 	Short: "Interactive shell setup wizard",
 	Run: func(cmd *cobra.Command, args []string) {
 		reader := bufio.NewReader(os.Stdin)
 
-		fmt.Println("🐚 Shell Configuration Wizard")
+		fmt.Println(" Shell Configuration Wizard")
 		fmt.Println(strings.Repeat("=", 30))
 		fmt.Println()
 
@@ -66,7 +66,7 @@ var shellSetupCmd = &cobra.Command{
 					installOhMyZsh()
 				}
 			} else {
-				fmt.Println("✅ oh-my-zsh is already installed")
+				fmt.Println(" oh-my-zsh is already installed")
 			}
 		} else if shellName == "fish" {
 			if !isInstalled("$HOME/.local/share/omf") {
@@ -76,7 +76,7 @@ var shellSetupCmd = &cobra.Command{
 					installOhMyFish()
 				}
 			} else {
-				fmt.Println("✅ oh-my-fish is already installed")
+				fmt.Println(" oh-my-fish is already installed")
 			}
 		}
 
@@ -90,7 +90,7 @@ var shellSetupCmd = &cobra.Command{
 				installStarship()
 			}
 		} else {
-			fmt.Println("✅ Starship is already installed")
+			fmt.Println(" Starship is already installed")
 		}
 
 		fmt.Println()
@@ -103,7 +103,7 @@ var shellSetupCmd = &cobra.Command{
 				installFzf()
 			}
 		} else {
-			fmt.Println("✅ fzf is already installed")
+			fmt.Println(" fzf is already installed")
 		}
 
 		fmt.Println()
@@ -121,7 +121,7 @@ var shellSetupCmd = &cobra.Command{
 					installZshPlugin("zsh-autosuggestions", "https://github.com/zsh-users/zsh-autosuggestions")
 				}
 			} else {
-				fmt.Println("✅ zsh-autosuggestions is already installed")
+				fmt.Println(" zsh-autosuggestions is already installed")
 			}
 
 			if !isInstalled(zshsyntax) {
@@ -131,83 +131,83 @@ var shellSetupCmd = &cobra.Command{
 					installZshPlugin("zsh-syntax-highlighting", "https://github.com/zsh-users/zsh-syntax-highlighting")
 				}
 			} else {
-				fmt.Println("✅ zsh-syntax-highlighting is already installed")
+				fmt.Println(" zsh-syntax-highlighting is already installed")
 			}
 		}
 
 		fmt.Println()
-		fmt.Println("✅ Shell setup complete!")
+		fmt.Println(" Shell setup complete!")
 		fmt.Println()
-		fmt.Println("💡 Don't forget to:")
-		fmt.Println("   • Restart your shell or run: source ~/.zshrc")
-		fmt.Println("   • Configure your shell theme and plugins")
+		fmt.Println(" Don't forget to:")
+		fmt.Println("• Restart your shell or run: source ~/.zshrc")
+		fmt.Println("• Configure your shell theme and plugins")
 	},
 }
 
 var shellListCmd = &cobra.Command{
-	Use:   "list",
+	Use: "list",
 	Short: "List installed shell tools",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("🐚 Installed Shell Tools:")
+		fmt.Println(" Installed Shell Tools:")
 		fmt.Println()
 
 		// Check oh-my-zsh
 		if isInstalled("$HOME/.oh-my-zsh") {
-			fmt.Println("✅ oh-my-zsh")
+			fmt.Println(" oh-my-zsh")
 		}
 
 		// Check oh-my-fish
 		if isInstalled("$HOME/.local/share/omf") {
-			fmt.Println("✅ oh-my-fish")
+			fmt.Println(" oh-my-fish")
 		}
 
 		// Check Starship
 		if shellCommandExists("starship") {
-			fmt.Println("✅ Starship")
+			fmt.Println(" Starship")
 		}
 
 		// Check fzf
 		if shellCommandExists("fzf") {
-			fmt.Println("✅ fzf")
+			fmt.Println(" fzf")
 		}
 
 		// Check zsh plugins
 		home, _ := os.UserHomeDir()
 		if isInstalled(filepath.Join(home, ".oh-my-zsh/custom/plugins/zsh-autosuggestions")) {
-			fmt.Println("✅ zsh-autosuggestions")
+			fmt.Println(" zsh-autosuggestions")
 		}
 		if isInstalled(filepath.Join(home, ".oh-my-zsh/custom/plugins/zsh-syntax-highlighting")) {
-			fmt.Println("✅ zsh-syntax-highlighting")
+			fmt.Println(" zsh-syntax-highlighting")
 		}
 	},
 }
 
 func installOhMyZsh() {
-	fmt.Println("📦 Installing oh-my-zsh...")
+	fmt.Println(" Installing oh-my-zsh...")
 	cmd := exec.Command("sh", "-c", `RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"`)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("❌ Failed to install oh-my-zsh: %v\n", err)
+		fmt.Printf(" Failed to install oh-my-zsh: %v\n", err)
 	} else {
-		fmt.Println("✅ oh-my-zsh installed")
+		fmt.Println(" oh-my-zsh installed")
 	}
 }
 
 func installOhMyFish() {
-	fmt.Println("📦 Installing oh-my-fish...")
+	fmt.Println(" Installing oh-my-fish...")
 	cmd := exec.Command("fish", "-c", "curl -L https://get.oh-my.fish | fish")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("❌ Failed to install oh-my-fish: %v\n", err)
+		fmt.Printf(" Failed to install oh-my-fish: %v\n", err)
 	} else {
-		fmt.Println("✅ oh-my-fish installed")
+		fmt.Println(" oh-my-fish installed")
 	}
 }
 
 func installStarship() {
-	fmt.Println("📦 Installing Starship...")
+	fmt.Println(" Installing Starship...")
 
 	// Try homebrew first
 	if shellCommandExists("brew") {
@@ -215,38 +215,38 @@ func installStarship() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("❌ Failed to install Starship: %v\n", err)
+			fmt.Printf(" Failed to install Starship: %v\n", err)
 		} else {
-			fmt.Println("✅ Starship installed")
+			fmt.Println(" Starship installed")
 			fmt.Println()
-			fmt.Println("💡 Add to your shell config:")
-			fmt.Println("   # ~/.zshrc or ~/.config/fish/config.fish")
-			fmt.Println("   eval \"$(starship init zsh)\"  # for zsh")
-			fmt.Println("   starship init fish | source   # for fish")
+			fmt.Println(" Add to your shell config:")
+			fmt.Println("# ~/.zshrc or ~/.config/fish/config.fish")
+			fmt.Println("eval \"$(starship init zsh)\"# for zsh")
+			fmt.Println("starship init fish | source # for fish")
 		}
 	} else {
-		fmt.Println("❌ Homebrew not found. Please install manually:")
-		fmt.Println("   curl -sS https://starship.rs/install.sh | sh")
+		fmt.Println(" Homebrew not found. Please install manually:")
+		fmt.Println("curl -sS https://starship.rs/install.sh | sh")
 	}
 }
 
 func installFzf() {
-	fmt.Println("📦 Installing fzf...")
+	fmt.Println(" Installing fzf...")
 
 	if shellCommandExists("brew") {
 		cmd := exec.Command("brew", "install", "fzf")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("❌ Failed to install fzf: %v\n", err)
+			fmt.Printf(" Failed to install fzf: %v\n", err)
 		} else {
-			fmt.Println("✅ fzf installed")
+			fmt.Println(" fzf installed")
 
 			// Run fzf install script
 			home, _ := os.UserHomeDir()
 			installScript := filepath.Join(home, "/usr/local/opt/fzf/install")
 			if _, err := os.Stat(installScript); err == nil {
-				fmt.Println("📦 Running fzf install script...")
+				fmt.Println(" Running fzf install script...")
 				installCmd := exec.Command(installScript, "--all")
 				installCmd.Stdout = os.Stdout
 				installCmd.Stderr = os.Stderr
@@ -254,12 +254,12 @@ func installFzf() {
 			}
 		}
 	} else {
-		fmt.Println("❌ Homebrew not found. Installing via git...")
+		fmt.Println(" Homebrew not found. Installing via git...")
 		home, _ := os.UserHomeDir()
 		fzfDir := filepath.Join(home, ".fzf")
 		cmd := exec.Command("git", "clone", "--depth", "1", "https://github.com/junegunn/fzf.git", fzfDir)
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("❌ Failed to clone fzf: %v\n", err)
+			fmt.Printf(" Failed to clone fzf: %v\n", err)
 			return
 		}
 
@@ -268,26 +268,26 @@ func installFzf() {
 		installCmd.Stdout = os.Stdout
 		installCmd.Stderr = os.Stderr
 		if err := installCmd.Run(); err != nil {
-			fmt.Printf("❌ Failed to install fzf: %v\n", err)
+			fmt.Printf(" Failed to install fzf: %v\n", err)
 		} else {
-			fmt.Println("✅ fzf installed")
+			fmt.Println(" fzf installed")
 		}
 	}
 }
 
 func installZshPlugin(name, repo string) {
-	fmt.Printf("📦 Installing %s...\n", name)
+	fmt.Printf(" Installing %s...\n", name)
 	home, _ := os.UserHomeDir()
 	pluginDir := filepath.Join(home, ".oh-my-zsh/custom/plugins", name)
 
 	cmd := exec.Command("git", "clone", repo, pluginDir)
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("❌ Failed to install %s: %v\n", name, err)
+		fmt.Printf(" Failed to install %s: %v\n", name, err)
 	} else {
-		fmt.Printf("✅ %s installed\n", name)
+		fmt.Printf(" %s installed\n", name)
 		fmt.Println()
-		fmt.Println("💡 Add to your ~/.zshrc plugins:")
-		fmt.Printf("   plugins=(... %s)\n", name)
+		fmt.Println(" Add to your ~/.zshrc plugins:")
+		fmt.Printf("plugins=(... %s)\n", name)
 	}
 }
 

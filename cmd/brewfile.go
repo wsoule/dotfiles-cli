@@ -10,9 +10,9 @@ import (
 )
 
 var brewfileCmd = &cobra.Command{
-	Use:     "brewfile",
+	Use: "brewfile",
 	GroupID: "advanced",
-	Short:   "Generate a Brewfile from your configuration",
+	Short: "Generate a Brewfile from your configuration",
 	Long:    `Creates a Brewfile based on your config.json packages`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
@@ -37,7 +37,7 @@ var brewfileCmd = &cobra.Command{
 			return fmt.Errorf("error writing brewfile: %w", err)
 		}
 
-		fmt.Printf("✓ Generated Brewfile at: %s\n", output)
+		fmt.Printf(" Generated Brewfile at: %s\n", output)
 		return nil
 	},
 }

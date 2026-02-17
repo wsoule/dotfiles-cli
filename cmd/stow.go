@@ -12,10 +12,117 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// stowContext holds common state for stow/unstow/restow operations.
+type stowContext struct {
+	home       string
+	configPath string
+	cfg        *config.Config
+	stowDir    string
+	target     string
+	packages   []string
+	dryRun     bool
+	verbose    bool
+}
+
+// newStowContext resolves common stow setup: home dir, config, stow binary, dirs, and packages.
+func newStowContext(cmd *cobra.Command, args []string) (*stowContext, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("error getting home directory: %w", err)
+	}
+
+	configPath := filepath.Join(home, ".dotfiles", "config.json")
+	cfg, err := config.Load(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("error loading configuration: %w", err)
+	}
+
+	if _, err := exec.LookPath("stow"); err != nil {
+		return nil, fmt.Errorf("GNU Stow not found. Install with: brew install stow")
+	}
+
+	stowDir, _ := cmd.Flags().GetString("dir")
+	if stowDir == "" {
+		stowDir = filepath.Join(home, ".dotfiles", "stow")
+	}
+
+	target, _ := cmd.Flags().GetString("target")
+	if target == "" {
+		target = home
+	}
+
+	var packages []string
+	if file, _ := cmd.Flags().GetString("file"); file != "" {
+		filePackages, err := readPackagesFromFile(file)
+		if err != nil {
+			return nil, fmt.Errorf("error reading packages from file: %w", err)
+		}
+		packages = append(packages, filePackages...)
+	}
+	packages = append(packages, args...)
+
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	verbose, _ := cmd.Flags().GetBool("verbose")
+
+	return &stowContext{
+		home:       home,
+		configPath: configPath,
+		cfg:        cfg,
+		stowDir:    stowDir,
+		target:     target,
+		packages:   packages,
+		dryRun:     dryRun,
+		verbose:    verbose,
+	}, nil
+}
+
+// baseStowArgs returns the common stow arguments [-d dir -t target] with optional verbose/dry-run flags.
+func (sc *stowContext) baseStowArgs() []string {
+	args := []string{"-d", sc.stowDir, "-t", sc.target}
+	if sc.verbose {
+		args = append(args, "-v")
+	}
+	if sc.dryRun {
+		args = append(args, "-n")
+	}
+	return args
+}
+
+// runStow executes a stow command with the given extra args + package name, printing output.
+func (sc *stowContext) runStow(pkg string, extraArgs ...string) error {
+	stowArgs := sc.baseStowArgs()
+	stowArgs = append(stowArgs, extraArgs...)
+	stowArgs = append(stowArgs, pkg)
+
+	stowCmd := exec.Command("stow", stowArgs...)
+	if sc.verbose || sc.dryRun {
+		fmt.Printf("Running: %s\n", strings.Join(stowCmd.Args, " "))
+	}
+
+	output, err := stowCmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%v\n Output: %s", err, strings.TrimSpace(string(output)))
+	}
+
+	if sc.verbose && len(output) > 0 {
+		fmt.Printf("%s\n", strings.TrimSpace(string(output)))
+	}
+	return nil
+}
+
+// addCommonStowFlags registers the shared flags on a cobra command.
+func addCommonStowFlags(cmd *cobra.Command) {
+	cmd.Flags().String("dir", "", "Stow directory (default: ~/.dotfiles/stow)")
+	cmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
+	cmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
+	cmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
+	cmd.Flags().BoolP("verbose", "v", false, "Verbose output")
+}
+
 var stowCmd = &cobra.Command{
-	Use:     "stow <packages>",
+	Use: "stow <packages>",
 	GroupID: "dotfiles",
-	Short:   "Create dotfile symlinks using GNU Stow",
+	Short: "Create dotfile symlinks using GNU Stow",
 	Long: `Stow Dotfiles - Manage Configuration Symlinks
 
 Create symlinks for dotfile packages using GNU Stow. This allows you to
@@ -40,72 +147,31 @@ Common packages to stow:
 • config - Applications that use ~/.config/
 • shell - Shell environment and aliases`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		home, err := os.UserHomeDir()
+		sc, err := newStowContext(cmd, args)
 		if err != nil {
-			return fmt.Errorf("error getting home directory: %w", err)
+			return err
 		}
 
-		configPath := filepath.Join(home, ".dotfiles", "config.json")
-
-		// Load existing config
-		cfg, err := config.Load(configPath)
-		if err != nil {
-			return fmt.Errorf("error loading configuration: %w", err)
-		}
-
-		// Check if stow is available
-		if _, err := exec.LookPath("stow"); err != nil {
-			return fmt.Errorf("GNU Stow not found. Install with: brew install stow")
-		}
-
-		// Get stow directory from flag or default to ~/.dotfiles/stow
-		stowDir, _ := cmd.Flags().GetString("dir")
-		if stowDir == "" {
-			stowDir = filepath.Join(home, ".dotfiles", "stow")
-		}
-
-		// Get target directory from flag or default to home
-		target, _ := cmd.Flags().GetString("target")
-		if target == "" {
-			target = home
-		}
-
-		var packages []string
-
-		// Handle file input
-		if file, _ := cmd.Flags().GetString("file"); file != "" {
-			filePackages, err := readPackagesFromFile(file)
-			if err != nil {
-				return fmt.Errorf("error reading packages from file: %w", err)
-			}
-			packages = append(packages, filePackages...)
-		}
-
-		// Add command line arguments
-		packages = append(packages, args...)
-
-		if len(packages) == 0 {
+		if len(sc.packages) == 0 {
 			fmt.Println("No packages specified. Use command line arguments or --file flag.")
 			return nil
 		}
 
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		verbose, _ := cmd.Flags().GetBool("verbose")
 		backup, _ := cmd.Flags().GetBool("backup")
 		autoResolve, _ := cmd.Flags().GetBool("auto-resolve")
 		added := 0
 
-		for _, pkg := range packages {
+		for _, pkg := range sc.packages {
 			pkg = strings.TrimSpace(pkg)
 			if pkg == "" {
 				continue
 			}
 
 			// Check if package directory exists, if not try to import it
-			pkgPath := filepath.Join(stowDir, pkg)
+			pkgPath := filepath.Join(sc.stowDir, pkg)
 			if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
 				// Try to auto-import from home directory
-				homeDirPath := filepath.Join(target, "."+pkg)
+				homeDirPath := filepath.Join(sc.target, "."+pkg)
 				if _, err := os.Stat(homeDirPath); err == nil {
 					fmt.Printf("Found ~/.%s directory, importing...\n", pkg)
 					if err := importDotfileDirectory(pkg, homeDirPath, pkgPath); err != nil {
@@ -115,84 +181,53 @@ Common packages to stow:
 					fmt.Printf("Successfully imported ~/.%s to stow package\n", pkg)
 				} else {
 					fmt.Printf("Package directory not found: %s\n", pkgPath)
-					fmt.Printf("   Create it manually or place files in ~/.%s to auto-import\n", pkg)
+					fmt.Printf("Create it manually or place files in ~/.%s to auto-import\n", pkg)
 					continue
 				}
 			}
 
-			// Build stow command
-			stowArgs := []string{
-				"-d", stowDir,
-				"-t", target,
-			}
-
-			if verbose {
-				stowArgs = append(stowArgs, "-v")
-			}
-
-			if dryRun {
-				stowArgs = append(stowArgs, "-n")
-			}
-
-			stowArgs = append(stowArgs, pkg)
-
 			// Check for conflicts before stowing
-			if !dryRun {
-				conflicts := findStowConflicts(pkgPath, target)
+			if !sc.dryRun {
+				conflicts := findStowConflicts(pkgPath, sc.target)
 				if len(conflicts) > 0 {
 					fmt.Printf("Warning: Found %d conflicts for package '%s':\n", len(conflicts), pkg)
 					for _, conflict := range conflicts {
-						fmt.Printf("   %s\n", conflict)
+						fmt.Printf("%s\n", conflict)
 					}
 
 					if autoResolve {
 						fmt.Printf("Auto-resolving conflicts...\n")
-						if err := resolveStowConflicts(conflicts, backup, verbose); err != nil {
+						if err := resolveStowConflicts(conflicts, backup, sc.verbose); err != nil {
 							return fmt.Errorf("failed to resolve conflicts: %w", err)
 						}
 					} else {
 						fmt.Printf("Use --auto-resolve to automatically handle conflicts\n")
-						fmt.Printf("   Or use --backup to backup existing files\n")
+						fmt.Printf("Or use --backup to backup existing files\n")
 						continue
 					}
 				}
 			}
 
-			// Execute stow command
-			stowCmd := exec.Command("stow", stowArgs...)
-			if verbose || dryRun {
-				fmt.Printf("Running: %s\n", strings.Join(stowCmd.Args, " "))
-			}
-
-			output, err := stowCmd.CombinedOutput()
-			if err != nil {
+			if err := sc.runStow(pkg); err != nil {
 				fmt.Printf("Error stowing %s: %v\n", pkg, err)
-				if len(output) > 0 {
-					fmt.Printf("   Output: %s\n", strings.TrimSpace(string(output)))
-				}
 				continue
 			}
 
-			if verbose && len(output) > 0 {
-				fmt.Printf("   %s\n", strings.TrimSpace(string(output)))
-			}
-
-			if !dryRun {
-				// Add to config if not already present
-				if !contains(cfg.Stow, pkg) {
-					cfg.Stow = append(cfg.Stow, pkg)
+			if !sc.dryRun {
+				if !contains(sc.cfg.Stow, pkg) {
+					sc.cfg.Stow = append(sc.cfg.Stow, pkg)
 					added++
-					fmt.Printf("✓ Stowed and added to config: %s\n", pkg)
+					fmt.Printf("Stowed and added to config: %s\n", pkg)
 				} else {
-					fmt.Printf("✓ Stowed: %s (already in config)\n", pkg)
+					fmt.Printf("Stowed: %s (already in config)\n", pkg)
 				}
 			} else {
-				fmt.Printf("✓ Would stow: %s\n", pkg)
+				fmt.Printf("Would stow: %s\n", pkg)
 			}
 		}
 
-		if !dryRun && added > 0 {
-			if err := cfg.Save(configPath); err != nil {
+		if !sc.dryRun && added > 0 {
+			if err := sc.cfg.Save(sc.configPath); err != nil {
 				return fmt.Errorf("error saving configuration: %w", err)
 			}
 			fmt.Printf("\nAdded %d new stow packages to config\n", added)
@@ -202,129 +237,56 @@ Common packages to stow:
 }
 
 var unstowCmd = &cobra.Command{
-	Use:   "unstow <packages>",
+	Use: "unstow <packages>",
 	Short: "Unstow dotfile packages using GNU Stow",
 	Long:  `Remove symlinks for dotfile packages using GNU Stow`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		home, err := os.UserHomeDir()
+		sc, err := newStowContext(cmd, args)
 		if err != nil {
-			return fmt.Errorf("error getting home directory: %w", err)
+			return err
 		}
-
-		configPath := filepath.Join(home, ".dotfiles", "config.json")
-
-		// Load existing config
-		cfg, err := config.Load(configPath)
-		if err != nil {
-			return fmt.Errorf("error loading configuration: %w", err)
-		}
-
-		// Check if stow is available
-		if _, err := exec.LookPath("stow"); err != nil {
-			return fmt.Errorf("GNU Stow not found. Install with: brew install stow")
-		}
-
-		// Get stow directory from flag or default to ~/.dotfiles/stow
-		stowDir, _ := cmd.Flags().GetString("dir")
-		if stowDir == "" {
-			stowDir = filepath.Join(home, ".dotfiles", "stow")
-		}
-
-		// Get target directory from flag or default to home
-		target, _ := cmd.Flags().GetString("target")
-		if target == "" {
-			target = home
-		}
-
-		var packages []string
-
-		// Handle file input
-		if file, _ := cmd.Flags().GetString("file"); file != "" {
-			filePackages, err := readPackagesFromFile(file)
-			if err != nil {
-				return fmt.Errorf("error reading packages from file: %w", err)
-			}
-			packages = append(packages, filePackages...)
-		}
-
-		// Add command line arguments
-		packages = append(packages, args...)
 
 		// Handle all flag
 		if allStow, _ := cmd.Flags().GetBool("all"); allStow {
-			packages = append(packages, cfg.Stow...)
+			sc.packages = append(sc.packages, sc.cfg.Stow...)
 		}
 
-		if len(packages) == 0 {
+		if len(sc.packages) == 0 {
 			fmt.Println("No packages specified. Use command line arguments, --file flag, or --all flag.")
 			return nil
 		}
 
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		verbose, _ := cmd.Flags().GetBool("verbose")
 		keepConfig, _ := cmd.Flags().GetBool("keep-config")
 		removed := 0
 
-		for _, pkg := range packages {
+		for _, pkg := range sc.packages {
 			pkg = strings.TrimSpace(pkg)
 			if pkg == "" {
 				continue
 			}
 
-			// Build stow command
-			stowArgs := []string{
-				"-d", stowDir,
-				"-t", target,
-				"-D", // Delete (unstow)
-			}
-
-			if verbose {
-				stowArgs = append(stowArgs, "-v")
-			}
-
-			if dryRun {
-				stowArgs = append(stowArgs, "-n")
-			}
-
-			stowArgs = append(stowArgs, pkg)
-
-			// Execute stow command
-			stowCmd := exec.Command("stow", stowArgs...)
-			if verbose || dryRun {
-				fmt.Printf("Running: %s\n", strings.Join(stowCmd.Args, " "))
-			}
-
-			output, err := stowCmd.CombinedOutput()
-			if err != nil {
+			if err := sc.runStow(pkg, "-D"); err != nil {
 				fmt.Printf("Error unstowing %s: %v\n", pkg, err)
-				if len(output) > 0 {
-					fmt.Printf("   Output: %s\n", strings.TrimSpace(string(output)))
-				}
 				continue
 			}
 
-			if verbose && len(output) > 0 {
-				fmt.Printf("   %s\n", strings.TrimSpace(string(output)))
-			}
-
-			if !dryRun && !keepConfig {
-				// Remove from config if present
-				if contains(cfg.Stow, pkg) {
-					cfg.Stow = removeFromSlice(cfg.Stow, pkg)
+			if !sc.dryRun && !keepConfig {
+				if contains(sc.cfg.Stow, pkg) {
+					sc.cfg.Stow = removeFromSlice(sc.cfg.Stow, pkg)
 					removed++
-					fmt.Printf("✓ Unstowed and removed from config: %s\n", pkg)
+					fmt.Printf("Unstowed and removed from config: %s\n", pkg)
 				} else {
-					fmt.Printf("✓ Unstowed: %s (not in config)\n", pkg)
+					fmt.Printf("Unstowed: %s (not in config)\n", pkg)
 				}
-			} else if !dryRun {
-				fmt.Printf("✓ Unstowed: %s (kept in config)\n", pkg)
+			} else if !sc.dryRun {
+				fmt.Printf("Unstowed: %s (kept in config)\n", pkg)
 			} else {
-				fmt.Printf("✓ Would unstow: %s\n", pkg)
+				fmt.Printf("Would unstow: %s\n", pkg)
 			}
 		}
 
-		if !dryRun && removed > 0 {
-			if err := cfg.Save(configPath); err != nil {
+		if !sc.dryRun && removed > 0 {
+			if err := sc.cfg.Save(sc.configPath); err != nil {
 				return fmt.Errorf("error saving configuration: %w", err)
 			}
 			fmt.Printf("\nRemoved %d stow packages from config\n", removed)
@@ -334,124 +296,50 @@ var unstowCmd = &cobra.Command{
 }
 
 var restowCmd = &cobra.Command{
-	Use:   "restow <packages>",
+	Use: "restow <packages>",
 	Short: "Restow dotfile packages (unstow then stow)",
 	Long:  `Remove and recreate symlinks for dotfile packages using GNU Stow`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		home, err := os.UserHomeDir()
+		sc, err := newStowContext(cmd, args)
 		if err != nil {
-			return fmt.Errorf("error getting home directory: %w", err)
+			return err
 		}
-
-		configPath := filepath.Join(home, ".dotfiles", "config.json")
-
-		// Load existing config
-		cfg, err := config.Load(configPath)
-		if err != nil {
-			return fmt.Errorf("error loading configuration: %w", err)
-		}
-
-		// Check if stow is available
-		if _, err := exec.LookPath("stow"); err != nil {
-			return fmt.Errorf("GNU Stow not found. Install with: brew install stow")
-		}
-
-		// Get stow directory from flag or default to ~/.dotfiles/stow
-		stowDir, _ := cmd.Flags().GetString("dir")
-		if stowDir == "" {
-			stowDir = filepath.Join(home, ".dotfiles", "stow")
-		}
-
-		// Get target directory from flag or default to home
-		target, _ := cmd.Flags().GetString("target")
-		if target == "" {
-			target = home
-		}
-
-		var packages []string
-
-		// Handle file input
-		if file, _ := cmd.Flags().GetString("file"); file != "" {
-			filePackages, err := readPackagesFromFile(file)
-			if err != nil {
-				return fmt.Errorf("error reading packages from file: %w", err)
-			}
-			packages = append(packages, filePackages...)
-		}
-
-		// Add command line arguments
-		packages = append(packages, args...)
 
 		// Handle all flag
 		if allStow, _ := cmd.Flags().GetBool("all"); allStow {
-			packages = append(packages, cfg.Stow...)
+			sc.packages = append(sc.packages, sc.cfg.Stow...)
 		}
 
-		if len(packages) == 0 {
+		if len(sc.packages) == 0 {
 			fmt.Println("No packages specified. Use command line arguments, --file flag, or --all flag.")
 			return nil
 		}
 
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		verbose, _ := cmd.Flags().GetBool("verbose")
-
-		for _, pkg := range packages {
+		for _, pkg := range sc.packages {
 			pkg = strings.TrimSpace(pkg)
 			if pkg == "" {
 				continue
 			}
 
-			// Check if package directory exists
-			pkgPath := filepath.Join(stowDir, pkg)
+			pkgPath := filepath.Join(sc.stowDir, pkg)
 			if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
 				fmt.Printf("Package directory not found: %s\n", pkgPath)
 				continue
 			}
 
-			// Build restow command
-			stowArgs := []string{
-				"-d", stowDir,
-				"-t", target,
-				"-R", // Restow
-			}
-
-			if verbose {
-				stowArgs = append(stowArgs, "-v")
-			}
-
-			if dryRun {
-				stowArgs = append(stowArgs, "-n")
-			}
-
-			stowArgs = append(stowArgs, pkg)
-
-			// Execute stow command
-			stowCmd := exec.Command("stow", stowArgs...)
-			if verbose || dryRun {
-				fmt.Printf("Running: %s\n", strings.Join(stowCmd.Args, " "))
-			}
-
-			output, err := stowCmd.CombinedOutput()
-			if err != nil {
+			if err := sc.runStow(pkg, "-R"); err != nil {
 				fmt.Printf("Error restowing %s: %v\n", pkg, err)
-				if len(output) > 0 {
-					fmt.Printf("   Output: %s\n", strings.TrimSpace(string(output)))
-				}
 				continue
 			}
 
-			if verbose && len(output) > 0 {
-				fmt.Printf("   %s\n", strings.TrimSpace(string(output)))
-			}
-
-			fmt.Printf("✓ Restowed: %s\n", pkg)
+			fmt.Printf("Restowed: %s\n", pkg)
 		}
 		return nil
 	},
 }
 
 var privateCmd = &cobra.Command{
-	Use:   "private <package> <file>",
+	Use: "private <package> <file>",
 	Short: "Add a private file to a stow package",
 	Long:  `Create a symlink in a stow package that points to a file in the private directory`,
 	Args:  cobra.ExactArgs(2),
@@ -492,7 +380,7 @@ var privateCmd = &cobra.Command{
 		// Check if the private file exists
 		if _, err := os.Stat(privatePath); os.IsNotExist(err) {
 			fmt.Printf("Warning: Private file doesn't exist: %s\n", privatePath)
-			fmt.Printf("   Create the file first, then run this command again.\n")
+			fmt.Printf("Create the file first, then run this command again.\n")
 			return nil
 		}
 
@@ -515,39 +403,23 @@ var privateCmd = &cobra.Command{
 			fmt.Printf("Created symlink: %s -> %s\n", stowLinkPath, relativePrivatePath)
 		}
 		fmt.Printf("Private file linked: %s/%s -> private/%s\n", pkg, filename, filename)
-		fmt.Printf("   Now run: dotfiles stow %s\n", pkg)
+		fmt.Printf("Now run: dotfiles stow %s\n", pkg)
 		return nil
 	},
 }
 
 func init() {
-	// Stow command flags
-	stowCmd.Flags().String("dir", "", "Stow directory (default: ~/.dotfiles/stow)")
-	stowCmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
-	stowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
-	stowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
-	stowCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
+	addCommonStowFlags(stowCmd)
 	stowCmd.Flags().Bool("backup", false, "Backup existing files before stowing")
 	stowCmd.Flags().Bool("auto-resolve", false, "Automatically resolve conflicts")
 
-	// Unstow command flags
-	unstowCmd.Flags().String("dir", "", "Stow directory (default: ~/.dotfiles/stow)")
-	unstowCmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
-	unstowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
-	unstowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
-	unstowCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
+	addCommonStowFlags(unstowCmd)
 	unstowCmd.Flags().Bool("all", false, "Unstow all configured stow packages")
 	unstowCmd.Flags().Bool("keep-config", false, "Don't remove packages from config")
 
-	// Restow command flags
-	restowCmd.Flags().String("dir", "", "Stow directory (default: ~/.dotfiles/stow)")
-	restowCmd.Flags().StringP("target", "t", "", "Target directory (default: ~)")
-	restowCmd.Flags().StringP("file", "f", "", "Read packages from file (one per line)")
-	restowCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
-	restowCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
+	addCommonStowFlags(restowCmd)
 	restowCmd.Flags().Bool("all", false, "Restow all configured stow packages")
 
-	// Private command flags
 	privateCmd.Flags().BoolP("dry-run", "n", false, "Show what would be done without executing")
 	privateCmd.Flags().BoolP("verbose", "v", false, "Verbose output")
 
@@ -573,7 +445,7 @@ func importDotfileDirectory(pkgName, sourcePath, destPath string) error {
 		if err := os.Rename(targetPath, backupPath); err != nil {
 			return fmt.Errorf("failed to backup existing directory: %v", err)
 		}
-		fmt.Printf("   Backed up existing %s to %s\n", targetPath, backupPath)
+		fmt.Printf("Backed up existing %s to %s\n", targetPath, backupPath)
 	}
 
 	// Move the original directory to the stow package
@@ -669,7 +541,7 @@ func resolveStowConflicts(conflicts []string, backup, verbose bool) error {
 			}
 
 			if verbose {
-				fmt.Printf("   Backed up %s to %s\n", conflictPath, backupPath)
+				fmt.Printf("Backed up %s to %s\n", conflictPath, backupPath)
 			}
 		} else {
 			// Just remove the conflicting file
@@ -678,7 +550,7 @@ func resolveStowConflicts(conflicts []string, backup, verbose bool) error {
 			}
 
 			if verbose {
-				fmt.Printf("   Removed conflicting file %s\n", conflictPath)
+				fmt.Printf("Removed conflicting file %s\n", conflictPath)
 			}
 		}
 	}

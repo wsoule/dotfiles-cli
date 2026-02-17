@@ -15,19 +15,19 @@ import (
 )
 
 var onboardCmd = &cobra.Command{
-	Use:     "onboard",
+	Use: "onboard",
 	GroupID: "getting-started",
-	Short:   "🎯 Complete developer onboarding and environment setup",
-	Long: `🎯 Developer Onboarding - Complete Environment Setup
+	Short: " Complete developer onboarding and environment setup",
+	Long: ` Developer Onboarding - Complete Environment Setup
 
 Perfect for new developers or setting up fresh machines. This single command will:
 
-1. 🔧 Initialize your dotfiles configuration
-2. 🔒 Create private directory for sensitive files (SSH keys, env vars)
-3. 🐚 Set up shell configuration (zsh or fish) and aliases
-4. 🔐 Generate GitHub SSH keys and show setup instructions
-5. 📦 Install curated essential development packages
-6. 📋 Guide you through next steps
+1.  Initialize your dotfiles configuration
+2.  Create private directory for sensitive files (SSH keys, env vars)
+3.  Set up shell configuration (zsh or fish) and aliases
+4.  Generate GitHub SSH keys and show setup instructions
+5.  Install curated essential development packages
+6.  Guide you through next steps
 
 Essential packages included:
 • CLI Tools: git, curl, wget, tree, jq, stow, gh
@@ -45,38 +45,38 @@ Examples:
 		skipPackages, _ := cmd.Flags().GetBool("skip-packages")
 		email, _ := cmd.Flags().GetString("email")
 
-		fmt.Println("🎉 Welcome to Dotfiles Manager - Developer Onboarding!")
+		fmt.Println(" Welcome to Dotfiles Manager - Developer Onboarding!")
 		fmt.Println("=" + strings.Repeat("=", 55))
 		fmt.Println()
 		fmt.Println("This wizard will help you set up your development environment:")
-		fmt.Println("✅ Initialize dotfiles configuration")
-		fmt.Println("🔐 Set up GitHub SSH authentication")
-		fmt.Println("📦 Install essential development packages")
-		fmt.Println("🔗 Configure dotfiles with Stow")
+		fmt.Println(" Initialize dotfiles configuration")
+		fmt.Println(" Set up GitHub SSH authentication")
+		fmt.Println(" Install essential development packages")
+		fmt.Println(" Configure dotfiles with Stow")
 		fmt.Println()
 
 		if !skipInteractive && !askConfirmation("Ready to begin? (Y/n): ", true) {
-			fmt.Println("👋 Setup cancelled. Run 'dotfiles onboard' again when ready!")
+			fmt.Println(" Setup cancelled. Run 'dotfiles onboard' again when ready!")
 			return nil
 		}
 
 		fmt.Println()
-		fmt.Println("🚀 Starting onboarding process...")
+		fmt.Println(" Starting onboarding process...")
 		fmt.Println()
 
 		// Step 1: Check dependencies first
-		fmt.Println("🔧 Step 1: Checking dependencies...")
+		fmt.Println(" Step 1: Checking dependencies...")
 		if err := checkAndInstallDependencies(skipInteractive); err != nil {
-			return fmt.Errorf("⚠️  dependency check had issues: %w", err)
+			return fmt.Errorf("dependency check had issues: %w", err)
 		}
 		fmt.Println()
 
 		// Step 2: Initialize configuration
-		fmt.Println("📋 Step 2: Initializing dotfiles configuration...")
+		fmt.Println(" Step 2: Initializing dotfiles configuration...")
 		if err := initializeConfig(); err != nil {
-			return fmt.Errorf("❌ failed to initialize configuration: %w", err)
+			return fmt.Errorf(" failed to initialize configuration: %w", err)
 		}
-		fmt.Println("✅ Configuration initialized!")
+		fmt.Println(" Configuration initialized!")
 
 		// Step 3: Check if user already has dotfiles setup
 		home, _ := os.UserHomeDir()
@@ -95,65 +95,65 @@ Examples:
 			// Ask user which shell they want to use
 			shell := "zsh" // default
 			if !skipInteractive {
-				fmt.Println("🐚 Which shell would you like to use?")
-				fmt.Println("   1) zsh (default)")
-				fmt.Println("   2) fish")
+				fmt.Println(" Which shell would you like to use?")
+				fmt.Println("1) zsh (default)")
+				fmt.Println("2) fish")
 				reader := bufio.NewReader(os.Stdin)
 				fmt.Print("Enter choice (1/2) [1]: ")
 				choice, _ := reader.ReadString('\n')
 				choice = strings.TrimSpace(choice)
 				if choice == "2" {
 					shell = "fish"
-					fmt.Println("   Selected: fish 🐟")
+					fmt.Println("Selected: fish ")
 				} else {
-					fmt.Println("   Selected: zsh")
+					fmt.Println("Selected: zsh")
 				}
 				fmt.Println()
 			}
 
 			// Set up complete environment (private dir + shell packages + stow)
-			fmt.Println("🔒 Setting up dotfiles environment...")
+			fmt.Println(" Setting up dotfiles environment...")
 			if err := setupCompleteEnvironment(dotfilesDir, true, shell); err != nil {
-				return fmt.Errorf("⚠️  environment setup had issues: %w", err)
+				return fmt.Errorf("environment setup had issues: %w", err)
 			} else {
-				fmt.Println("✅ Environment setup complete!")
+				fmt.Println(" Environment setup complete!")
 			}
 			fmt.Println()
 		} else {
-			fmt.Println("✅ Found existing shell configuration, skipping shell setup")
+			fmt.Println(" Found existing shell configuration, skipping shell setup")
 			fmt.Println()
 		}
 
 		// Step 4: Detect existing dotfiles and offer to import
-		fmt.Println("🔍 Step 4: Scanning for existing dotfiles in home directory...")
+		fmt.Println(" Step 4: Scanning for existing dotfiles in home directory...")
 		existingDotfiles := detectExistingDotfiles()
 		if len(existingDotfiles) > 0 {
-			fmt.Printf("   Found %d existing dotfiles:\n", len(existingDotfiles))
+			fmt.Printf("Found %d existing dotfiles:\n", len(existingDotfiles))
 			for _, dotfile := range existingDotfiles {
-				fmt.Printf("   • %s\n", dotfile)
+				fmt.Printf("• %s\n", dotfile)
 			}
 			fmt.Println()
 
-			if !skipInteractive && askConfirmation("   Would you like to import these into your dotfiles setup? (Y/n): ", true) {
+			if !skipInteractive && askConfirmation("Would you like to import these into your dotfiles setup? (Y/n): ", true) {
 				if err := offerDotfilesImport(existingDotfiles, skipInteractive); err != nil {
-					return fmt.Errorf("⚠️  some imports failed: %w", err)
+					return fmt.Errorf("some imports failed: %w", err)
 				}
 			}
 		} else {
-			fmt.Println("   No existing dotfiles found")
+			fmt.Println("No existing dotfiles found")
 		}
 		fmt.Println()
 
 		// Step 5: Scan for installed packages
-		fmt.Println("📦 Step 5: Scanning for installed packages...")
+		fmt.Println(" Step 5: Scanning for installed packages...")
 		if err := scanAndOfferPackages(skipInteractive); err != nil {
-			return fmt.Errorf("⚠️  package scan had issues: %w", err)
+			return fmt.Errorf("package scan had issues: %w", err)
 		}
 		fmt.Println()
 
 		// Step 6: GitHub setup
 		if !skipGithub {
-			fmt.Println("🔐 Step 6: Setting up GitHub SSH authentication...")
+			fmt.Println(" Step 6: Setting up GitHub SSH authentication...")
 			if email == "" && !skipInteractive {
 				reader := bufio.NewReader(os.Stdin)
 				fmt.Print("Enter your GitHub email: ")
@@ -163,44 +163,43 @@ Examples:
 
 			if email != "" {
 				if err := setupGitHubSSH(email); err != nil {
-					return fmt.Errorf("⚠️  github setup had issues: %w", err)
-					fmt.Println("   You can run 'dotfiles github setup' later to complete this.")
+					return fmt.Errorf("github setup had issues (run 'dotfiles github setup' later): %w", err)
 				} else {
-					fmt.Println("✅ GitHub SSH setup completed!")
+					fmt.Println(" GitHub SSH setup completed!")
 				}
 			} else {
-				fmt.Println("⚠️  Skipping GitHub setup (no email provided)")
-				fmt.Println("   Run 'dotfiles github setup --email=your@email.com' later")
+				fmt.Println("Skipping GitHub setup (no email provided)")
+				fmt.Println("Run 'dotfiles github setup --email=your@email.com' later")
 			}
 			fmt.Println()
 		}
 
 		// Step 7: Install essential packages
 		if !skipPackages {
-			fmt.Println("📦 Step 7: Installing essential development packages...")
+			fmt.Println(" Step 7: Installing essential development packages...")
 			if err := installEssentialPackages(skipInteractive); err != nil {
-				return fmt.Errorf("⚠️  package installation had issues: %w", err)
+				return fmt.Errorf("package installation had issues: %w", err)
 			} else {
-				fmt.Println("✅ Essential packages installed!")
+				fmt.Println(" Essential packages installed!")
 			}
 			fmt.Println()
 		}
 
 		// Step 8: Final steps and guidance
-		fmt.Println("🎯 Step 8: Final setup and next steps...")
+		fmt.Println(" Step 8: Final setup and next steps...")
 		showNextSteps()
 		fmt.Println()
 
-		fmt.Println("🎉 Onboarding complete! Your development environment is ready.")
+		fmt.Println(" Onboarding complete! Your development environment is ready.")
 		fmt.Println()
-		fmt.Println("💡 Useful commands to remember:")
-		fmt.Println("   dotfiles --help                 # See all available commands")
-		fmt.Println("   dotfiles add <package>          # Add packages to your config")
-		fmt.Println("   dotfiles status                 # Check installation status")
-		fmt.Println("   dotfiles github test            # Test GitHub connection")
-		fmt.Println("   dotfiles stow <package>         # Stow dotfiles")
+		fmt.Println(" Useful commands to remember:")
+		fmt.Println("dotfiles --help # See all available commands")
+		fmt.Println("dotfiles add <package> # Add packages to your config")
+		fmt.Println("dotfiles status # Check installation status")
+		fmt.Println("dotfiles github test # Test GitHub connection")
+		fmt.Println("dotfiles stow <package> # Stow dotfiles")
 		fmt.Println()
-		fmt.Println("Happy coding! 🚀")
+		fmt.Println("Happy coding! ")
 		return nil
 	},
 }
@@ -215,7 +214,7 @@ func initializeConfig() error {
 
 	// Check if config already exists
 	if _, err := os.Stat(configPath); err == nil {
-		fmt.Printf("   Configuration already exists at %s\n", configPath)
+		fmt.Printf("Configuration already exists at %s\n", configPath)
 		return nil
 	}
 
@@ -237,7 +236,7 @@ func initializeConfig() error {
 		return fmt.Errorf("failed to save initial config: %v", err)
 	}
 
-	fmt.Printf("   Created configuration at %s\n", configPath)
+	fmt.Printf("Created configuration at %s\n", configPath)
 	return nil
 }
 
@@ -258,13 +257,13 @@ func setupGitHubSSH(email string) error {
 
 	// Check if key already exists
 	if _, err := os.Stat(keyPath); err == nil {
-		fmt.Println("   SSH key already exists, skipping generation")
+		fmt.Println("SSH key already exists, skipping generation")
 		showSSHInstructions(pubKeyPath)
 		return nil
 	}
 
 	// Generate SSH key
-	fmt.Println("   Generating SSH key...")
+	fmt.Println("Generating SSH key...")
 	sshKeygenCmd := exec.Command("ssh-keygen", "-t", "ed25519", "-C", email, "-f", keyPath, "-N", "")
 	if err := sshKeygenCmd.Run(); err != nil {
 		return fmt.Errorf("failed to generate SSH key: %v", err)
@@ -274,33 +273,33 @@ func setupGitHubSSH(email string) error {
 	os.Chmod(keyPath, 0600)
 	os.Chmod(pubKeyPath, 0644)
 
-	fmt.Println("   SSH key generated successfully!")
+	fmt.Println("SSH key generated successfully!")
 	showSSHInstructions(pubKeyPath)
 	return nil
 }
 
 func showSSHInstructions(pubKeyPath string) {
 	fmt.Println()
-	fmt.Println("   📌 IMPORTANT: Add your SSH key to GitHub:")
-	fmt.Println("   1. Copy your public key:")
+	fmt.Println("IMPORTANT: Add your SSH key to GitHub:")
+	fmt.Println("1. Copy your public key:")
 
 	pubKeyContent, err := os.ReadFile(pubKeyPath)
 	if err != nil {
-		fmt.Printf("   ❌ error reading public key: %v\n", err)
+		fmt.Printf("error reading public key: %v\n", err)
 		return
 	}
 
-	fmt.Println("   " + strings.Repeat("-", 40))
-	fmt.Printf("   %s", string(pubKeyContent))
-	fmt.Println("   " + strings.Repeat("-", 40))
+	fmt.Println("" + strings.Repeat("-", 40))
+	fmt.Printf("%s", string(pubKeyContent))
+	fmt.Println("" + strings.Repeat("-", 40))
 
-	fmt.Println("   2. Go to: https://github.com/settings/ssh/new")
-	fmt.Println("   3. Paste the key and give it a title")
-	fmt.Println("   4. Test with: dotfiles github test")
+	fmt.Println("2. Go to: https://github.com/settings/ssh/new")
+	fmt.Println("3. Paste the key and give it a title")
+	fmt.Println("4. Test with: dotfiles github test")
 
 	// Try to copy to clipboard
 	if err := copyToClipboard(string(pubKeyContent)); err == nil {
-		fmt.Println("   📋 Public key copied to clipboard!")
+		fmt.Println("Public key copied to clipboard!")
 	}
 }
 
@@ -321,18 +320,18 @@ func installEssentialPackages(skipInteractive bool) error {
 		return fmt.Errorf("failed to load config: %v", err)
 	}
 
-	fmt.Println("   The following essential packages will be added:")
+	fmt.Println("The following essential packages will be added:")
 	if len(essentialPackages["taps"]) > 0 {
-		fmt.Printf("   📋 Taps: %s\n", strings.Join(essentialPackages["taps"], ", "))
+		fmt.Printf("Taps: %s\n", strings.Join(essentialPackages["taps"], ", "))
 	}
-	fmt.Printf("   🍺 Packages: %s\n", strings.Join(essentialPackages["brews"], ", "))
+	fmt.Printf("Packages: %s\n", strings.Join(essentialPackages["brews"], ", "))
 	if len(essentialPackages["casks"]) > 0 {
-		fmt.Printf("   📦 Apps: %s\n", strings.Join(essentialPackages["casks"], ", "))
+		fmt.Printf("Apps: %s\n", strings.Join(essentialPackages["casks"], ", "))
 	}
 	fmt.Println()
 
-	if !skipInteractive && !askConfirmation("   Continue with package installation? (Y/n): ", true) {
-		fmt.Println("   Skipping package installation")
+	if !skipInteractive && !askConfirmation("Continue with package installation? (Y/n): ", true) {
+		fmt.Println("Skipping package installation")
 		return nil
 	}
 
@@ -358,10 +357,10 @@ func installEssentialPackages(skipInteractive bool) error {
 		return fmt.Errorf("failed to save config: %v", err)
 	}
 
-	fmt.Println("   Packages added to configuration")
+	fmt.Println("Packages added to configuration")
 
 	// Install packages
-	fmt.Println("   Installing packages with Homebrew...")
+	fmt.Println("Installing packages with Homebrew...")
 	if err := runInstallCommand(); err != nil {
 		return fmt.Errorf("package installation failed: %v", err)
 	}
@@ -377,7 +376,7 @@ func runInstallCommand() error {
 	}
 
 	// Install with Homebrew
-	fmt.Println("   Running: brew bundle --file=./Brewfile")
+	fmt.Println("Running: brew bundle --file=./Brewfile")
 	brewBundleCmd := exec.Command("brew", "bundle", "--file=./Brewfile")
 	brewBundleCmd.Stdout = os.Stdout
 	brewBundleCmd.Stderr = os.Stderr
@@ -390,12 +389,12 @@ func runInstallCommand() error {
 }
 
 func showNextSteps() {
-	fmt.Println("   🔧 Recommended next steps:")
-	fmt.Println("   • Create dotfile packages in ~/.dotfiles/ (vim, zsh, tmux, etc.)")
-	fmt.Println("   • Add them with: dotfiles add --type=stow <package>")
-	fmt.Println("   • Stow them with: dotfiles stow <package>")
-	fmt.Println("   • Customize your package list with: dotfiles add <package>")
-	fmt.Println("   • Check status anytime with: dotfiles status")
+	fmt.Println("Recommended next steps:")
+	fmt.Println("• Create dotfile packages in ~/.dotfiles/ (vim, zsh, tmux, etc.)")
+	fmt.Println("• Add them with: dotfiles add --type=stow <package>")
+	fmt.Println("• Stow them with: dotfiles stow <package>")
+	fmt.Println("• Customize your package list with: dotfiles add <package>")
+	fmt.Println("• Check status anytime with: dotfiles status")
 }
 
 func askConfirmation(prompt string, defaultYes bool) bool {
@@ -418,7 +417,7 @@ func askConfirmation(prompt string, defaultYes bool) bool {
 			return false
 		}
 
-		fmt.Println("   Please answer y/yes or n/no.")
+		fmt.Println("Please answer y/yes or n/no.")
 	}
 }
 
@@ -466,14 +465,14 @@ func offerDotfilesImport(dotfiles []string, skipInteractive bool) error {
 		pkgName := suggestPackageName(dotfile)
 
 		if !skipInteractive {
-			fmt.Printf("   Import %s into package '%s'? (Y/n/s=skip): ", dotfile, pkgName)
+			fmt.Printf("Import %s into package '%s'? (Y/n/s=skip): ", dotfile, pkgName)
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
 			response = strings.TrimSpace(strings.ToLower(response))
 
 			if response == "n" || response == "no" {
 				// Ask for custom package name
-				fmt.Print("   Enter custom package name (or 'skip'): ")
+				fmt.Print("Enter custom package name (or 'skip'): ")
 				customName, _ := reader.ReadString('\n')
 				customName = strings.TrimSpace(customName)
 				if customName == "skip" || customName == "" {
@@ -487,11 +486,11 @@ func offerDotfilesImport(dotfiles []string, skipInteractive bool) error {
 
 		// Import the dotfile
 		if err := importDotfileToPackage(dotfile, pkgName, home, stowDir); err != nil {
-			fmt.Printf("   ❌ Failed to import %s: %v\n", dotfile, err)
+			fmt.Printf("Failed to import %s: %v\n", dotfile, err)
 			continue
 		}
 
-		fmt.Printf("   ✅ Imported %s into package '%s'\n", dotfile, pkgName)
+		fmt.Printf("Imported %s into package '%s'\n", dotfile, pkgName)
 	}
 
 	return nil
@@ -500,23 +499,23 @@ func offerDotfilesImport(dotfiles []string, skipInteractive bool) error {
 func suggestPackageName(dotfile string) string {
 	// Suggest logical package names based on dotfile
 	packageMap := map[string]string{
-		".zshrc":            "zsh",
-		".bashrc":           "bash",
-		".bash_profile":     "bash",
-		".profile":          "shell",
-		".vimrc":            "vim",
-		".vim":              "vim",
-		".nvim":             "nvim",
-		".config/nvim":      "nvim",
-		".tmux.conf":        "tmux",
-		".gitconfig":        "git",
+		".zshrc": "zsh",
+		".bashrc": "bash",
+		".bash_profile": "bash",
+		".profile": "shell",
+		".vimrc": "vim",
+		".vim": "vim",
+		".nvim": "nvim",
+		".config/nvim": "nvim",
+		".tmux.conf": "tmux",
+		".gitconfig": "git",
 		".gitignore_global": "git",
-		".aliases":          "shell",
-		".functions":        "shell",
-		".exports":          "shell",
-		".ssh/config":       "ssh",
-		".aws":              "aws",
-		".docker":           "docker",
+		".aliases": "shell",
+		".functions": "shell",
+		".exports": "shell",
+		".ssh/config": "ssh",
+		".aws": "aws",
+		".docker": "docker",
 	}
 
 	if pkg, exists := packageMap[dotfile]; exists {
@@ -650,18 +649,18 @@ func checkAndInstallDependencies(skipInteractive bool) error {
 			description string
 		}{
 			"brew": {
-				cmd:         "brew",
-				installCmd:  `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+				cmd: "brew",
+				installCmd: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
 				description: "Homebrew package manager",
 			},
 			"git": {
-				cmd:         "git",
-				installCmd:  "brew install git",
+				cmd: "git",
+				installCmd: "brew install git",
 				description: "Git version control",
 			},
 			"stow": {
-				cmd:         "stow",
-				installCmd:  "brew install stow",
+				cmd: "stow",
+				installCmd: "brew install stow",
 				description: "GNU Stow for dotfiles management",
 			},
 		}
@@ -690,16 +689,16 @@ func checkAndInstallDependencies(skipInteractive bool) error {
 		}{
 			pmName: {
 				cmd:         pmName,
-				installCmd:  "N/A - should be pre-installed",
+				installCmd: "N/A - should be pre-installed",
 				description: "Package manager",
 			},
 			"git": {
-				cmd:         "git",
+				cmd: "git",
 				installCmd:  installGit,
 				description: "Git version control",
 			},
 			"stow": {
-				cmd:         "stow",
+				cmd: "stow",
 				installCmd:  installStow,
 				description: "GNU Stow for dotfiles management",
 			},
@@ -710,39 +709,39 @@ func checkAndInstallDependencies(skipInteractive bool) error {
 	for name, dep := range dependencies {
 		if _, err := exec.LookPath(dep.cmd); err != nil {
 			missing = append(missing, name)
-			fmt.Printf("   ❌ Missing: %s (%s)\n", name, dep.description)
+			fmt.Printf("Missing: %s (%s)\n", name, dep.description)
 		} else {
-			fmt.Printf("   ✅ Found: %s\n", name)
+			fmt.Printf("Found: %s\n", name)
 		}
 	}
 
 	if len(missing) == 0 {
-		fmt.Println("   All dependencies satisfied!")
+		fmt.Println("All dependencies satisfied!")
 		return nil
 	}
 
 	if skipInteractive {
-		fmt.Printf("   ⚠️  Missing %d dependencies. Install manually.\n", len(missing))
+		fmt.Printf("Missing %d dependencies. Install manually.\n", len(missing))
 		return nil
 	}
 
-	fmt.Printf("   Install missing dependencies? (Y/n): ")
+	fmt.Printf("Install missing dependencies? (Y/n): ")
 	if !askConfirmation("", true) {
 		return nil
 	}
 
 	for _, name := range missing {
 		dep := dependencies[name]
-		fmt.Printf("   Installing %s...\n", name)
+		fmt.Printf("Installing %s...\n", name)
 
 		cmd := exec.Command("bash", "-c", dep.installCmd)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("   ❌ Failed to install %s: %v\n", name, err)
+			fmt.Printf("Failed to install %s: %v\n", name, err)
 		} else {
-			fmt.Printf("   ✅ Installed %s\n", name)
+			fmt.Printf("Installed %s\n", name)
 		}
 	}
 
@@ -752,7 +751,7 @@ func checkAndInstallDependencies(skipInteractive bool) error {
 func scanAndOfferPackages(skipInteractive bool) error {
 	// Check if Homebrew is installed
 	if _, err := exec.LookPath("brew"); err != nil {
-		fmt.Println("   ⚠️  Homebrew not installed, skipping package scan")
+		fmt.Println("Homebrew not installed, skipping package scan")
 		return nil
 	}
 
@@ -783,25 +782,25 @@ func scanAndOfferPackages(skipInteractive bool) error {
 	newCasks := filterNewPackages(installedCasks, cfg.Casks)
 
 	if len(newBrews) == 0 && len(newCasks) == 0 {
-		fmt.Println("   ✅ No new packages found (all installed packages already in config)")
+		fmt.Println("No new packages found (all installed packages already in config)")
 		return nil
 	}
 
-	fmt.Printf("   Found %d brews and %d casks not in your config\n", len(newBrews), len(newCasks))
+	fmt.Printf("Found %d brews and %d casks not in your config\n", len(newBrews), len(newCasks))
 
 	if skipInteractive {
-		fmt.Println("   Skipping package import (use --skip-interactive=false or run 'dotfiles scan' later)")
+		fmt.Println("Skipping package import (use --skip-interactive=false or run 'dotfiles scan' later)")
 		return nil
 	}
 
-	if !askConfirmation("   Would you like to add these to your config? (Y/n): ", true) {
-		fmt.Println("   You can run 'dotfiles scan' later to add them")
+	if !askConfirmation("Would you like to add these to your config? (Y/n): ", true) {
+		fmt.Println("You can run 'dotfiles scan' later to add them")
 		return nil
 	}
 
 	// Show brief preview
 	if len(newBrews) > 0 {
-		fmt.Printf("   📋 Brews: %s", strings.Join(newBrews[:min(3, len(newBrews))], ", "))
+		fmt.Printf("Brews: %s", strings.Join(newBrews[:min(3, len(newBrews))], ", "))
 		if len(newBrews) > 3 {
 			fmt.Printf(" ... and %d more", len(newBrews)-3)
 		}
@@ -809,14 +808,14 @@ func scanAndOfferPackages(skipInteractive bool) error {
 	}
 
 	if len(newCasks) > 0 {
-		fmt.Printf("   📦 Casks: %s", strings.Join(newCasks[:min(3, len(newCasks))], ", "))
+		fmt.Printf("Casks: %s", strings.Join(newCasks[:min(3, len(newCasks))], ", "))
 		if len(newCasks) > 3 {
 			fmt.Printf(" ... and %d more", len(newCasks)-3)
 		}
 		fmt.Println()
 	}
 
-	if askConfirmation("   Add all packages? (Y/n): ", true) {
+	if askConfirmation("Add all packages? (Y/n): ", true) {
 		cfg.Brews = append(cfg.Brews, newBrews...)
 		cfg.Casks = append(cfg.Casks, newCasks...)
 
@@ -824,9 +823,9 @@ func scanAndOfferPackages(skipInteractive bool) error {
 			return fmt.Errorf("failed to save config: %v", err)
 		}
 
-		fmt.Printf("   ✅ Added %d brews and %d casks to config\n", len(newBrews), len(newCasks))
+		fmt.Printf("Added %d brews and %d casks to config\n", len(newBrews), len(newCasks))
 	} else {
-		fmt.Println("   Run 'dotfiles scan' later to selectively add packages")
+		fmt.Println("Run 'dotfiles scan' later to selectively add packages")
 	}
 
 	return nil

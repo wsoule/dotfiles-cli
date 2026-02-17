@@ -11,10 +11,10 @@ import (
 )
 
 var lintCmd = &cobra.Command{
-	Use:     "lint",
+	Use: "lint",
 	GroupID: "advanced",
-	Short:   "🔍 Validate configuration file",
-	Long: `🔍 Configuration Linting
+	Short: " Validate configuration file",
+	Long: ` Configuration Linting
 
 Validate your config.json for:
 • Valid JSON syntax
@@ -36,12 +36,12 @@ Examples:
 
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
-			fmt.Println("\n💡 Make sure config.json has valid JSON syntax")
+			fmt.Printf(" Failed to load config: %v\n", err)
+			fmt.Println("\n Make sure config.json has valid JSON syntax")
 			return
 		}
 
-		fmt.Println("🔍 Linting configuration...")
+		fmt.Println(" Linting configuration...")
 		fmt.Println()
 
 		issues := 0
@@ -49,38 +49,38 @@ Examples:
 
 		// Check for duplicate packages
 		if dupes := findDuplicates(cfg.Brews); len(dupes) > 0 {
-			fmt.Println("❌ Duplicate brews found:")
+			fmt.Println(" Duplicate brews found:")
 			for pkg, count := range dupes {
-				fmt.Printf("   • %s (appears %d times)\n", pkg, count)
+				fmt.Printf("• %s (appears %d times)\n", pkg, count)
 			}
 			issues++
 			if autoFix {
 				cfg.Brews = removeDuplicates(cfg.Brews)
-				fmt.Println("   ✅ Duplicates removed")
+				fmt.Println("Duplicates removed")
 			}
 		}
 
 		if dupes := findDuplicates(cfg.Casks); len(dupes) > 0 {
-			fmt.Println("❌ Duplicate casks found:")
+			fmt.Println(" Duplicate casks found:")
 			for pkg, count := range dupes {
-				fmt.Printf("   • %s (appears %d times)\n", pkg, count)
+				fmt.Printf("• %s (appears %d times)\n", pkg, count)
 			}
 			issues++
 			if autoFix {
 				cfg.Casks = removeDuplicates(cfg.Casks)
-				fmt.Println("   ✅ Duplicates removed")
+				fmt.Println("Duplicates removed")
 			}
 		}
 
 		if dupes := findDuplicates(cfg.Stow); len(dupes) > 0 {
-			fmt.Println("❌ Duplicate stow packages found:")
+			fmt.Println(" Duplicate stow packages found:")
 			for pkg, count := range dupes {
-				fmt.Printf("   • %s (appears %d times)\n", pkg, count)
+				fmt.Printf("• %s (appears %d times)\n", pkg, count)
 			}
 			issues++
 			if autoFix {
 				cfg.Stow = removeDuplicates(cfg.Stow)
-				fmt.Println("   ✅ Duplicates removed")
+				fmt.Println("Duplicates removed")
 			}
 		}
 
@@ -89,8 +89,8 @@ Examples:
 		for _, pkg := range cfg.Stow {
 			pkgPath := filepath.Join(stowDir, pkg)
 			if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
-				fmt.Printf("⚠️  Stow package directory missing: %s\n", pkg)
-				fmt.Printf("   Expected: %s\n", pkgPath)
+				fmt.Printf("Stow package directory missing: %s\n", pkg)
+				fmt.Printf("Expected: %s\n", pkgPath)
 				warnings++
 			}
 		}
@@ -99,7 +99,7 @@ Examples:
 		if cfg.PackageDependencies != nil {
 			for pkg := range cfg.PackageDependencies {
 				if _, err := resolveDependencies(cfg, pkg); err != nil {
-					fmt.Printf("❌ Dependency error in '%s': %v\n", pkg, err)
+					fmt.Printf(" Dependency error in '%s': %v\n", pkg, err)
 					issues++
 				}
 			}
@@ -113,11 +113,11 @@ Examples:
 			}
 		}
 		if len(emptyBrews) > 0 {
-			fmt.Printf("❌ Found %d empty brew entries\n", len(emptyBrews))
+			fmt.Printf(" Found %d empty brew entries\n", len(emptyBrews))
 			issues++
 			if autoFix {
 				cfg.Brews = removeEmpty(cfg.Brews)
-				fmt.Println("   ✅ Empty entries removed")
+				fmt.Println("Empty entries removed")
 			}
 		}
 
@@ -128,11 +128,11 @@ Examples:
 			}
 		}
 		if len(emptyCasks) > 0 {
-			fmt.Printf("❌ Found %d empty cask entries\n", len(emptyCasks))
+			fmt.Printf(" Found %d empty cask entries\n", len(emptyCasks))
 			issues++
 			if autoFix {
 				cfg.Casks = removeEmpty(cfg.Casks)
-				fmt.Println("   ✅ Empty entries removed")
+				fmt.Println("Empty entries removed")
 			}
 		}
 
@@ -145,7 +145,7 @@ Examples:
 			}
 			for _, c := range cfg.Casks {
 				if brewSet[c] {
-					fmt.Printf("⚠️  Package in both brews and casks: %s\n", c)
+					fmt.Printf("Package in both brews and casks: %s\n", c)
 					warnings++
 				}
 			}
@@ -155,7 +155,7 @@ Examples:
 				for _, cond := range cfg.Conditionals {
 					for key := range cond.Variables {
 						if _, ok := cfg.Variables[key]; !ok {
-							fmt.Printf("⚠️  Conditional defines variable not in main config: %s\n", key)
+							fmt.Printf("Conditional defines variable not in main config: %s\n", key)
 							warnings++
 						}
 					}
@@ -167,11 +167,11 @@ Examples:
 		if cfg.Roles != nil {
 			for name, role := range cfg.Roles {
 				if role.Name == "" {
-					fmt.Printf("⚠️  Role '%s' has no name field\n", name)
+					fmt.Printf("Role '%s' has no name field\n", name)
 					warnings++
 				}
 				if role.Description == "" {
-					fmt.Printf("⚠️  Role '%s' has no description\n", name)
+					fmt.Printf("Role '%s' has no description\n", name)
 					warnings++
 				}
 			}
@@ -180,9 +180,9 @@ Examples:
 		// Save fixes if applied
 		if autoFix && issues > 0 {
 			if err := cfg.Save(configPath); err != nil {
-				fmt.Printf("\n❌ Failed to save fixes: %v\n", err)
+				fmt.Printf("\n Failed to save fixes: %v\n", err)
 			} else {
-				fmt.Println("\n✅ Auto-fixed issues saved to config.json")
+				fmt.Println("\n Auto-fixed issues saved to config.json")
 			}
 		}
 
@@ -190,16 +190,16 @@ Examples:
 		fmt.Println()
 		fmt.Println(strings.Repeat("─", 50))
 		if issues == 0 && warnings == 0 {
-			fmt.Println("✅ Configuration is valid!")
+			fmt.Println(" Configuration is valid!")
 		} else {
 			if issues > 0 {
-				fmt.Printf("❌ Found %d issue(s)\n", issues)
+				fmt.Printf(" Found %d issue(s)\n", issues)
 			}
 			if warnings > 0 {
-				fmt.Printf("⚠️  Found %d warning(s)\n", warnings)
+				fmt.Printf("Found %d warning(s)\n", warnings)
 			}
 			if !autoFix && issues > 0 {
-				fmt.Println("\n💡 Run with --fix to auto-fix issues")
+				fmt.Println("\n Run with --fix to auto-fix issues")
 			}
 		}
 	},

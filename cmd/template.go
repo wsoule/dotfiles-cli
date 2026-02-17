@@ -12,10 +12,10 @@ import (
 )
 
 var templateCmd = &cobra.Command{
-	Use:     "template",
+	Use: "template",
 	GroupID: "advanced",
-	Short:   "📄 Render templates with variable substitution",
-	Long: `📄 Template Variable Rendering
+	Short: " Render templates with variable substitution",
+	Long: ` Template Variable Rendering
 
 Replace {{VARIABLE}} placeholders in files with actual values.
 Variables are stored in config.json.
@@ -36,7 +36,7 @@ Examples:
 }
 
 var templateRenderCmd = &cobra.Command{
-	Use:   "render <file>",
+	Use: "render <file>",
 	Short: "Render a template file",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -47,13 +47,13 @@ var templateRenderCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
 		if cfg.Variables == nil || len(cfg.Variables) == 0 {
-			fmt.Println("⚠️  No variables defined")
-			fmt.Println("💡 Set variables with: dotfiles template set <key> <value>")
+			fmt.Println("No variables defined")
+			fmt.Println(" Set variables with: dotfiles template set <key> <value>")
 			return
 		}
 
@@ -64,7 +64,7 @@ var templateRenderCmd = &cobra.Command{
 
 		content, err := os.ReadFile(filePath)
 		if err != nil {
-			fmt.Printf("❌ Failed to read file: %v\n", err)
+			fmt.Printf(" Failed to read file: %v\n", err)
 			return
 		}
 
@@ -73,16 +73,16 @@ var templateRenderCmd = &cobra.Command{
 		// Determine output
 		if inPlace {
 			if err := os.WriteFile(filePath, []byte(rendered), 0644); err != nil {
-				fmt.Printf("❌ Failed to write file: %v\n", err)
+				fmt.Printf(" Failed to write file: %v\n", err)
 				return
 			}
-			fmt.Printf("✅ Rendered in-place: %s\n", filePath)
+			fmt.Printf(" Rendered in-place: %s\n", filePath)
 		} else if outputPath != "" {
 			if err := os.WriteFile(outputPath, []byte(rendered), 0644); err != nil {
-				fmt.Printf("❌ Failed to write output: %v\n", err)
+				fmt.Printf(" Failed to write output: %v\n", err)
 				return
 			}
-			fmt.Printf("✅ Rendered to: %s\n", outputPath)
+			fmt.Printf(" Rendered to: %s\n", outputPath)
 		} else {
 			// Print to stdout
 			fmt.Println(rendered)
@@ -91,7 +91,7 @@ var templateRenderCmd = &cobra.Command{
 }
 
 var templateSetCmd = &cobra.Command{
-	Use:   "set <key> <value>",
+	Use: "set <key> <value>",
 	Short: "Set a template variable",
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -101,7 +101,7 @@ var templateSetCmd = &cobra.Command{
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
@@ -112,53 +112,53 @@ var templateSetCmd = &cobra.Command{
 		cfg.Variables[key] = value
 
 		if err := cfg.Save(configPath); err != nil {
-			fmt.Printf("❌ Failed to save config: %v\n", err)
+			fmt.Printf(" Failed to save config: %v\n", err)
 			return
 		}
 
-		fmt.Printf("✅ Set %s = %s\n", key, value)
+		fmt.Printf(" Set %s = %s\n", key, value)
 	},
 }
 
 var templateListCmd = &cobra.Command{
-	Use:   "list",
+	Use: "list",
 	Short: "List all template variables",
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
 		if cfg.Variables == nil || len(cfg.Variables) == 0 {
 			fmt.Println("No variables defined")
-			fmt.Println("💡 Set variables with: dotfiles template set <key> <value>")
+			fmt.Println(" Set variables with: dotfiles template set <key> <value>")
 			return
 		}
 
-		fmt.Println("📋 Template Variables:")
+		fmt.Println(" Template Variables:")
 		for key, value := range cfg.Variables {
-			fmt.Printf("   %s = %s\n", key, value)
+			fmt.Printf("%s = %s\n", key, value)
 		}
 	},
 }
 
 var templateScanCmd = &cobra.Command{
-	Use:   "scan",
+	Use: "scan",
 	Short: "Scan for template files and undefined variables",
 	Run: func(cmd *cobra.Command, args []string) {
 		configPath := GetConfigPath(cmd)
 		cfg, err := config.Load(configPath)
 		if err != nil {
-			fmt.Printf("❌ Failed to load config: %v\n", err)
+			fmt.Printf(" Failed to load config: %v\n", err)
 			return
 		}
 
 		dotfilesDir := GetDotfilesDir(cmd)
 		stowDir := filepath.Join(dotfilesDir, "stow")
 
-		fmt.Println("🔍 Scanning for template variables...")
+		fmt.Println(" Scanning for template variables...")
 		fmt.Println()
 
 		templateFiles := []string{}
@@ -199,24 +199,24 @@ var templateScanCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Printf("📄 Found %d template file(s):\n", len(templateFiles))
+		fmt.Printf(" Found %d template file(s):\n", len(templateFiles))
 		for _, f := range templateFiles {
-			fmt.Printf("   • %s\n", f)
+			fmt.Printf("• %s\n", f)
 		}
 		fmt.Println()
 
 		if len(undefinedVars) > 0 {
-			fmt.Printf("⚠️  %d undefined variable(s):\n", len(undefinedVars))
+			fmt.Printf("%d undefined variable(s):\n", len(undefinedVars))
 			for v, files := range undefinedVars {
-				fmt.Printf("   • {{%s}} in:\n", v)
+				fmt.Printf("• {{%s}} in:\n", v)
 				for _, f := range files {
-					fmt.Printf("      - %s\n", f)
+					fmt.Printf("- %s\n", f)
 				}
 			}
 			fmt.Println()
-			fmt.Println("💡 Set variables with: dotfiles template set <key> <value>")
+			fmt.Println(" Set variables with: dotfiles template set <key> <value>")
 		} else {
-			fmt.Println("✅ All variables are defined")
+			fmt.Println(" All variables are defined")
 		}
 	},
 }

@@ -10,10 +10,10 @@ import (
 )
 
 var updateCmd = &cobra.Command{
-	Use:     "update",
+	Use: "update",
 	GroupID: "package",
-	Short:   "⬆️  Update Homebrew packages to latest versions",
-	Long: `⬆️  Update Homebrew Packages
+	Short: "Update Homebrew packages to latest versions",
+	Long: `  Update Homebrew Packages
 
 Update packages managed by Homebrew to their latest versions.
 You can update all packages or specific ones.
@@ -37,49 +37,48 @@ Examples:
 
 		// Check if brew is available
 		if _, err := exec.LookPath("brew"); err != nil {
-			fmt.Println("❌ Homebrew not found")
-			fmt.Println("💡 Install Homebrew first")
+			return fmt.Errorf("Homebrew not found. Install Homebrew first")
 		}
 
-		fmt.Println("⬆️  Updating Packages...")
+		fmt.Println("Updating Packages...")
 		fmt.Println("=" + strings.Repeat("=", 22))
 		fmt.Println()
 
 		// Step 1: Update Homebrew itself
 		if !skipBrewUpdate {
-			fmt.Println("🍺 Updating Homebrew...")
+			fmt.Println(" Updating Homebrew...")
 			if dryRun {
-				fmt.Println("   [DRY RUN] Would run: brew update")
+				fmt.Println("[DRY RUN] Would run: brew update")
 			} else {
 				updateCmd := exec.Command("brew", "update")
 				updateCmd.Stdout = os.Stdout
 				updateCmd.Stderr = os.Stderr
 				if err := updateCmd.Run(); err != nil {
-					return fmt.Errorf("⚠️  warning: brew update failed: %w", err)
+					return fmt.Errorf("warning: brew update failed: %w", err)
 				} else {
-					fmt.Println("✅ Homebrew updated")
+					fmt.Println(" Homebrew updated")
 				}
 			}
 			fmt.Println()
 		}
 
 		if brewOnly {
-			fmt.Println("🎉 Homebrew update complete!")
+			fmt.Println(" Homebrew update complete!")
 			return nil
 		}
 
 		// Step 2: Show outdated packages
-		fmt.Println("📋 Checking for outdated packages...")
+		fmt.Println(" Checking for outdated packages...")
 		outdated := getOutdatedPackages()
 
 		if len(outdated) == 0 {
-			fmt.Println("✅ All packages are up to date!")
+			fmt.Println(" All packages are up to date!")
 			return nil
 		}
 
 		fmt.Printf("Found %d outdated package(s):\n", len(outdated))
 		for _, pkg := range outdated {
-			fmt.Printf("  • %s\n", pkg)
+			fmt.Printf("• %s\n", pkg)
 		}
 		fmt.Println()
 
@@ -94,9 +93,9 @@ Examples:
 				upgradeCmd.Stdout = os.Stdout
 				upgradeCmd.Stderr = os.Stderr
 				if err := upgradeCmd.Run(); err != nil {
-					return fmt.Errorf("❌ failed to upgrade packages: %w", err)
+					return fmt.Errorf(" failed to upgrade packages: %w", err)
 				}
-				fmt.Println("✅ Packages upgraded")
+				fmt.Println(" Packages upgraded")
 			}
 		} else {
 			// Upgrade all outdated packages
@@ -108,26 +107,26 @@ Examples:
 				upgradeCmd.Stdout = os.Stdout
 				upgradeCmd.Stderr = os.Stderr
 				if err := upgradeCmd.Run(); err != nil {
-					return fmt.Errorf("❌ failed to upgrade packages: %w", err)
+					return fmt.Errorf(" failed to upgrade packages: %w", err)
 				}
-				fmt.Println("✅ All packages upgraded")
+				fmt.Println(" All packages upgraded")
 			}
 		}
 
 		fmt.Println()
-		fmt.Println("🎉 Update complete!")
+		fmt.Println(" Update complete!")
 		fmt.Println()
-		fmt.Println("💡 Next steps:")
-		fmt.Println("   • Run: dotfiles cleanup  # Remove old versions")
-		fmt.Println("   • Run: dotfiles doctor   # Verify installation")
+		fmt.Println(" Next steps:")
+		fmt.Println("• Run: dotfiles cleanup # Remove old versions")
+		fmt.Println("• Run: dotfiles doctor # Verify installation")
 		return nil
 	},
 }
 
 var upgradeCmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "⬆️  Alias for 'update' command",
-	Long:  `⬆️  Upgrade packages (alias for 'update' command)`,
+	Use: "upgrade",
+	Short: "Alias for 'update' command",
+	Long:  `  Upgrade packages (alias for 'update' command)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return updateCmd.RunE(cmd, args)
 	},

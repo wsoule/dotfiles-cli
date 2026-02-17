@@ -13,9 +13,9 @@ import (
 )
 
 var statusCmd = &cobra.Command{
-	Use:     "status",
+	Use: "status",
 	GroupID: "package",
-	Short:   "Check package installation status",
+	Short: "Check package installation status",
 	Long:    `Compare configured packages with what's actually installed on the system`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		home, err := os.UserHomeDir()
@@ -37,11 +37,11 @@ var statusCmd = &cobra.Command{
 
 		// Check if package manager is available
 		if !pm.IsAvailable() {
-			fmt.Printf("⚠️  %s not found. Cannot check package status.\n", pm.GetName())
+			fmt.Printf("%s not found. Cannot check package status.\n", pm.GetName())
 			return nil
 		}
 
-		fmt.Println("📊 Package Status Report")
+		fmt.Println(" Package Status Report")
 		fmt.Println("=" + strings.Repeat("=", 23))
 		fmt.Printf("Package Manager: %s\n", pm.GetName())
 		fmt.Println()
@@ -79,33 +79,33 @@ func checkTapsWithPM(configuredTaps []string, pm pkgmanager.PackageManager) {
 		return
 	}
 
-	fmt.Println("\n📋 Taps:")
+	fmt.Println("\n Taps:")
 
 	missing := []string{}
 	for _, tap := range configuredTaps {
 		installed, err := pm.IsInstalled(tap, "tap")
 		if err != nil {
-			fmt.Printf("  ⚠️  %s (error checking: %v)\n", tap, err)
+			fmt.Printf("%s (error checking: %v)\n", tap, err)
 			continue
 		}
 
 		if installed {
-			fmt.Printf("  ✅ %s\n", tap)
+			fmt.Printf("%s\n", tap)
 		} else {
-			fmt.Printf("  ❌ %s (not tapped)\n", tap)
+			fmt.Printf("%s (not tapped)\n", tap)
 			missing = append(missing, tap)
 		}
 	}
 
 	if len(missing) > 0 {
-		fmt.Printf("  → Run: dotfiles add --type=tap %s\n", strings.Join(missing, " "))
+		fmt.Printf("→ Run: dotfiles add --type=tap %s\n", strings.Join(missing, " "))
 	}
 }
 
 func checkPackagesWithPM(label string, packages []string, pkgType string, pm pkgmanager.PackageManager) {
-	icon := "🍺"
+	icon := ""
 	if pkgType == "cask" {
-		icon = "📦"
+		icon = ""
 		// Skip casks on non-macOS systems
 		if pm.GetName() != "homebrew" {
 			return
@@ -118,14 +118,14 @@ func checkPackagesWithPM(label string, packages []string, pkgType string, pm pkg
 	for _, pkg := range packages {
 		installed, err := pm.IsInstalled(pkg, pkgType)
 		if err != nil {
-			fmt.Printf("  ⚠️  %s (error checking: %v)\n", pkg, err)
+			fmt.Printf("%s (error checking: %v)\n", pkg, err)
 			continue
 		}
 
 		if installed {
-			fmt.Printf("  ✅ %s\n", pkg)
+			fmt.Printf("%s\n", pkg)
 		} else {
-			fmt.Printf("  ❌ %s (not installed)\n", pkg)
+			fmt.Printf("%s (not installed)\n", pkg)
 			missing = append(missing, pkg)
 		}
 	}
@@ -133,98 +133,15 @@ func checkPackagesWithPM(label string, packages []string, pkgType string, pm pkg
 	if len(missing) > 0 {
 		if pm.GetName() == "homebrew" {
 			if pkgType == "cask" {
-				fmt.Printf("  → Run: brew install --cask %s\n", strings.Join(missing, " "))
+				fmt.Printf("→ Run: brew install --cask %s\n", strings.Join(missing, " "))
 			} else {
-				fmt.Printf("  → Run: brew install %s\n", strings.Join(missing, " "))
+				fmt.Printf("→ Run: brew install %s\n", strings.Join(missing, " "))
 			}
 		} else if pm.GetName() == "pacman" {
-			fmt.Printf("  → Run: yay -S %s\n", strings.Join(missing, " "))
+			fmt.Printf("→ Run: yay -S %s\n", strings.Join(missing, " "))
 		} else {
-			fmt.Printf("  → Run: dotfiles install\n")
+			fmt.Printf("→ Run: dotfiles install\n")
 		}
-	}
-}
-
-func checkTaps(configuredTaps []string) {
-	fmt.Println("\n📋 Taps:")
-
-	// Get installed taps
-	installedTaps := getInstalledTaps()
-	installedSet := make(map[string]bool)
-	for _, tap := range installedTaps {
-		installedSet[tap] = true
-	}
-
-	missing := []string{}
-	for _, tap := range configuredTaps {
-		if installedSet[tap] {
-			fmt.Printf("  ✅ %s\n", tap)
-		} else {
-			fmt.Printf("  ❌ %s (not tapped)\n", tap)
-			missing = append(missing, tap)
-		}
-	}
-
-	if len(missing) > 0 {
-		fmt.Printf("  → Run: brew tap %s\n", strings.Join(missing, " "))
-	}
-}
-
-func checkBrews(configuredBrews []string) {
-	fmt.Println("\n🍺 Brews:")
-
-	// Get installed brews
-	installedBrews, err := getInstalledBrews()
-	if err != nil {
-		fmt.Printf("  ❌ error getting installed brews: %v\n", err)
-		return
-	}
-	installedSet := make(map[string]bool)
-	for _, brew := range installedBrews {
-		installedSet[brew] = true
-	}
-
-	missing := []string{}
-	for _, brew := range configuredBrews {
-		if installedSet[brew] {
-			fmt.Printf("  ✅ %s\n", brew)
-		} else {
-			fmt.Printf("  ❌ %s (not installed)\n", brew)
-			missing = append(missing, brew)
-		}
-	}
-
-	if len(missing) > 0 {
-		fmt.Printf("  → Run: brew install %s\n", strings.Join(missing, " "))
-	}
-}
-
-func checkCasks(configuredCasks []string) {
-	fmt.Println("\n📦 Casks:")
-
-	// Get installed casks
-	installedCasks, err := getInstalledCasks()
-	if err != nil {
-		fmt.Printf("  ❌ error getting installed casks: %v\n", err)
-		return
-	}
-	installedSet := make(map[string]bool)
-	for _, cask := range installedCasks {
-		installedSet[cask] = true
-	}
-
-	missing := []string{}
-	for _, cask := range configuredCasks {
-		if installedSet[cask] {
-			fmt.Printf("  ✅ %s\n", cask)
-		} else {
-			fmt.Printf("  ❌ %s (not installed)\n", cask)
-			missing = append(missing, cask)
-		}
-	}
-
-	if len(missing) > 0 {
-		fmt.Printf("  → Run: brew install --cask %s\n", strings.Join(missing, " "))
 	}
 }
 
@@ -246,11 +163,11 @@ func getInstalledTaps() []string {
 }
 
 func checkStowPackages(configuredStow []string) {
-	fmt.Println("\n🔗 Stow Packages:")
+	fmt.Println("\n Stow Packages:")
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Printf("  ❌ error getting home directory: %v\n", err)
+		fmt.Printf("error getting home directory: %v\n", err)
 		return
 	}
 
@@ -258,7 +175,7 @@ func checkStowPackages(configuredStow []string) {
 
 	// Check if stow is available
 	if _, err := exec.LookPath("stow"); err != nil {
-		fmt.Println("  ⚠️  GNU Stow not found. Install with: brew install stow")
+		fmt.Println("GNU Stow not found. Install with: brew install stow")
 		return
 	}
 
@@ -267,7 +184,7 @@ func checkStowPackages(configuredStow []string) {
 		// Check if package directory exists
 		pkgPath := filepath.Join(stowDir, pkg)
 		if _, err := os.Stat(pkgPath); os.IsNotExist(err) {
-			fmt.Printf("  ❌ %s (directory not found: %s)\n", pkg, pkgPath)
+			fmt.Printf("%s (directory not found: %s)\n", pkg, pkgPath)
 			missing = append(missing, pkg)
 			continue
 		}
@@ -275,15 +192,15 @@ func checkStowPackages(configuredStow []string) {
 		// Check if package is stowed (has symlinks in home)
 		isStowed := checkIfStowed(pkg, stowDir, home)
 		if isStowed {
-			fmt.Printf("  ✅ %s (stowed)\n", pkg)
+			fmt.Printf("%s (stowed)\n", pkg)
 		} else {
-			fmt.Printf("  ⚠️  %s (not stowed)\n", pkg)
+			fmt.Printf("%s (not stowed)\n", pkg)
 			missing = append(missing, pkg)
 		}
 	}
 
 	if len(missing) > 0 {
-		fmt.Printf("  → Run: dotfiles stow %s\n", strings.Join(missing, " "))
+		fmt.Printf("→ Run: dotfiles stow %s\n", strings.Join(missing, " "))
 	}
 }
 
