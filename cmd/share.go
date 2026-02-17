@@ -629,7 +629,7 @@ func downloadTemplate(templateURL string) (ShareableConfig, error) {
 func init() {
 	// Share gist flags
 	shareGistCmd.Flags().StringP("name", "n", "", "Name for the shared config (required)")
-	shareGistCmd.Flags().StringP("description", "d", "", "Description of the config")
+	shareGistCmd.Flags().String("description", "", "Description of the config")
 	shareGistCmd.Flags().StringP("author", "a", "", "Author name")
 	shareGistCmd.Flags().StringSliceP("tags", "t", []string{}, "Tags for categorization (e.g., web-dev,mobile)")
 	shareGistCmd.Flags().Bool("private", false, "Create private gist")
@@ -638,7 +638,7 @@ func init() {
 
 	// Share file flags
 	shareFileCmd.Flags().StringP("name", "n", "", "Name for the shared config (required)")
-	shareFileCmd.Flags().StringP("description", "d", "", "Description of the config")
+	shareFileCmd.Flags().String("description", "", "Description of the config")
 	shareFileCmd.Flags().StringP("author", "a", "", "Author name")
 	shareFileCmd.Flags().StringSliceP("tags", "t", []string{}, "Tags for categorization")
 

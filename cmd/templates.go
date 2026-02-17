@@ -375,7 +375,7 @@ var templatesDiscoverCmd = &cobra.Command{
 // Update the clone command to handle templates
 func init() {
 	// Add flags to create command
-	templatesCreateCmd.Flags().StringP("description", "d", "", "Template description")
+	templatesCreateCmd.Flags().String("description", "", "Template description")
 	templatesCreateCmd.Flags().StringP("author", "a", "", "Template author")
 	templatesCreateCmd.Flags().StringP("tags", "t", "", "Comma-separated tags")
 	templatesCreateCmd.Flags().StringP("extends", "e", "", "Base template to extend")

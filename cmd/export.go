@@ -298,7 +298,7 @@ func mergeUnique(a, b []string) []string {
 }
 
 func init() {
-	exportCmd.Flags().StringP("description", "d", "", "Profile description")
+	exportCmd.Flags().String("description", "", "Profile description")
 	exportCmd.Flags().StringP("output", "o", "", "Output file path (default: ~/.dotfiles/profiles/<name>.json)")
 	exportCmd.Flags().Bool("brews-only", false, "Only export brew packages")
 	exportCmd.Flags().Bool("casks-only", false, "Only export cask packages")
